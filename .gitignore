@@ -11,8 +11,8 @@ build
 # vscode project configuration
 .vscode
 
-#
+# IEGenLib creates this during build
 lib/installed
 
-#
+# IEGenLib
 lib/IEGenLib
