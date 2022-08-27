@@ -43,35 +43,34 @@ public:
     }
 
     void walk(omega::CG_loop *loop) {
-        printf("loop ");
-        printf("level:%d ", loop->level_);
-        printf("need:%s ", loop->needLoop_ ? "y" : "n");
-        printf("\n");
+        printf("loop[");
+        printf("level:%d,", loop->level_);
+        printf("need:%s,", loop->needLoop_ ? "y" : "n");
 
+        auto bounds = const_cast<omega::Relation &>(loop->bounds_);
+
+        // Loops will be created for each level in the execution schedule. Some levels will require a loop to be
+        // generated, some a call to an uninterpreted function, some don't require any code to be generated.
         if (loop->needLoop_) {
-            std::string up;
-            // This seems to break a relation such as "0<=t8 && t8<R" into individual conjuncts: "0<=t8", and "t8<R". The
-            // documentation indicates that it will be in a particular form. Not sure if that really matters.
-            //
-            // GEQ_Iterator overloads ++ operator
-            for (omega::GEQ_Iterator conjunct(const_cast<omega::Relation &>(loop->bounds_)
-                                                      .single_conjunct()->GEQs()); conjunct; conjunct++) {
-                // I don't really know what this is, but I can tell you some things that are true about it: it's `-1` if
-                // this conjunct is an upper bound, and `1` if this is a lower bound.
-                omega::coef_t coef = (*conjunct).get_coef(const_cast<omega::Relation &>(loop->bounds_)
-                                                                  .set_var(loop->level_));
-                if (coef == -1) {
-                    // This grabs the variable id that this loop will be looping over. If the bounds are "0<=t8 && t8<R"
-                    // the variable will be "t8".
-                    omega::Variable_ID v = const_cast<omega::Relation &>(loop->bounds_).set_var(loop->level_);
+            // (Should be) set while looping over greater than or equal to conjuncts.
+            std::string upper_bound;
 
-                    // Since the current conjunct should be something like "t8<R" whichever one *isn't* "t8" should be
-                    // the loop bound.
-                    for (omega::Constr_Vars_Iter cvi(*conjunct); cvi; cvi++) {
-                        if (cvi.curr_var() != v) {
-                            // TODO: maybe do this with a
-                            up = cvi.curr_var()->name();
-                            std::cout << cvi.curr_var()->name() << std::endl;
+            // This seems to break a relation such as "0<=t8 && t8<R" into individual greater than or equal to
+            // conjuncts: "0<=t8", and "t8<R".
+            for (omega::GEQ_Iterator geq_conj(bounds.single_conjunct()->GEQs()); geq_conj; geq_conj++) {
+                // bounds.set_var grabs the induction variable for the current loop. If the bounds are "0<=t8 && t8<R"
+                // the variable will be "t8".
+                omega::Variable_ID induction_variable = bounds.set_var(loop->level_);
+                // I don't really know what this is, but I can tell you some things that are true about it: it's `-1` if
+                // this geq_conj is an upper bound, and `1` if this is a lower bound.
+                omega::coef_t coef = (*geq_conj).get_coef(induction_variable);
+                if (coef == -1) {
+                    // The current geq_conj should be something like "t8<R". Whichever variable in the conjunct *isn't*
+                    // "t8" should be the loop bound.
+                    for (omega::Constr_Vars_Iter var(*geq_conj); var; var++) {
+                        if (var.curr_var() != induction_variable) {
+                            upper_bound = var.curr_var()->name();
+                            printf("over:%s,", var.curr_var()->name().c_str());
                         }
                     }
                 } else if (coef == 1) {
@@ -82,18 +81,35 @@ public:
                 }
             }
 
-            if (up.empty() || m.find(up) == m.end()) {
+            if (upper_bound.empty() || m.find(upper_bound) == m.end()) {
                 std::cerr << "err: " << "oh no!" << std::endl;
                 exit(1);
             }
 
-            // create
-            mlir::scf::ForOp forOp = builder.create<mlir::scf::ForOp>(builder.getUnknownLoc(), zero, m[up], one);
+            mlir::scf::ForOp forOp = builder.create<mlir::scf::ForOp>(builder.getUnknownLoc(), zero, m[upper_bound],
+                                                                      one);
+
+            // TODO: when we're actually calling the statement we will need to be storing these off somehow.
+            forOp.getInductionVar();
 
             // Start add future loops inside this loop
             builder.setInsertionPointToStart(forOp.getBody());
+        } else {
+            // This seems to break a relation such as "t8=UF(a,b)" into equality conjuncts: (there will only be one in
+            // this case) "t8=UF(a,b)".
+            for (omega::EQ_Iterator eq_conj(bounds.single_conjunct()->EQs()); eq_conj; eq_conj++) {
+                for (omega::Constr_Vars_Iter var(*eq_conj); var; var++) {
+                    // If the current var has an arity, it's a function. No idea what "Global" means in this
+                    // circumstance. From something like "t8=UF(a,b)": we will find "UF(a,b)". From something like
+                    // "t8=0" we won't find anything.
+                    if (var.curr_var()->kind() == omega::Global_Var && var.curr_var()->get_global_var()->arity() > 0) {
+                        printf("uf_call:%s,", var.curr_var()->name().c_str());
+                    }
+                }
+            }
         }
 
+        printf("]\n");
         dispatch(loop->body_);
     }
 
@@ -140,8 +156,22 @@ int main(int argc, char **argv) {
 
     mttkrp.addStmt(s0);
 
-    cout << "Codegen:\n";
-    cout << mttkrp.codeGen();
+    // this one is COO
+    Computation mttkrp_sps;
+    mttkrp_sps.addDataSpace("X", "double*");
+    mttkrp_sps.addDataSpace("A", "double*");
+    mttkrp_sps.addDataSpace("B", "double*");
+    mttkrp_sps.addDataSpace("C", "double*");
+    Stmt *s1 = new Stmt("A(x,i,j,k,r) += X(x,i,j,k,r)*B(x,i,j,k,r)*C(x,i,j,k,r)",
+                        "{[x,i,j,k,r] :  0<=x< NNZ and i=UFi(x) and j=UFj(x) and k=UFk(x) and 0<=r<R}",
+                        "{[x,i,j,k,r]->[0,x,0,i,0,j,0,k,0,r,0]}",
+                        dataReads,
+                        dataWrites);
+
+    mttkrp_sps.addStmt(s1);
+
+    cout << "C sparse codegen ===========================\n";
+    cout << mttkrp_sps.codeGen();
 
     mlir::MLIRContext context;
     context.getOrLoadDialect<mlir::scf::SCFDialect>();
@@ -150,15 +180,24 @@ int main(int argc, char **argv) {
     mlir::OpBuilder builder(&context);
 
     mlir::ModuleOp theModule = mlir::ModuleOp::create(builder.getUnknownLoc());
-    builder.setInsertionPointToEnd(theModule.getBody());
 
+    cout << "MLIR dense codegen =========================\n";
+    // Generate dense code
+    builder.setInsertionPointToEnd(theModule.getBody());
     std::unordered_map<std::string, mlir::arith::ConstantIndexOp> m;
     m["I"] = builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 10);
     m["J"] = builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 20);
     m["K"] = builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 30);
     m["R"] = builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 40);
+    omega::CG_result *ast = mttkrp.thing();
+    Walker(builder, m).walk(ast);
 
-    Walker(builder, m).walk(mttkrp.thing());
+    cout << "MLIR sparse codegen ========================\n";
+    // Generate sparse code
+    builder.setInsertionPointToEnd(theModule.getBody());
+    m["NNZ"] = builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 100);
+    omega::CG_result *sps_ast = mttkrp_sps.thing();
+    Walker(builder, m).walk(sps_ast);
 
     theModule.dump();
 
