@@ -40,4 +40,13 @@ def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
     }];
 }
 
+def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator]> {
+    let summary = "This is a bar op";
+    let description = [{
+        Stuff
+    }];
+
+    let regions = (region AnyRegion:$body);
+}
+
 #endif // STANDALONE_OPS
