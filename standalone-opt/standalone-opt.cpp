@@ -21,9 +21,11 @@
 #include "llvm/Support/ToolOutputFile.h"
 
 #include "Standalone/StandaloneDialect.h"
+#include "StandaloneTransforms/Passes.h"
 
 int main(int argc, char **argv)
 {
+  mlir::standalone::registerMyPassPass();
 //  mlir::registerAllPasses();
   // TODO: Register standalone passes here.
 
