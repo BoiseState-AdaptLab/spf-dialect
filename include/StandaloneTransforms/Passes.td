@@ -4,7 +4,7 @@
 include "mlir/Pass/PassBase.td"
 include "mlir/Rewrite/PassUtil.td"
 
-def MyPass : Pass<"my-pass", "mlir::func::FuncOp"> {
+def MyPass : Pass<"my-pass"> {
   let summary = "prints some debug stuff";
   let description = [{
       This pass prints some debug stuff

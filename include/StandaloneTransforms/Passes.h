@@ -5,6 +5,7 @@
 #include "mlir/Transforms/LocationSnapshot.h"
 #include "mlir/Transforms/ViewOpGraph.h"
 #include "llvm/Support/Debug.h"
+#include "Standalone/StandaloneOps.h"
 #include <limits>
 
 namespace mlir {
@@ -14,7 +15,7 @@ namespace mlir {
 // Passes
 //===----------------------------------------------------------------------===//
 
-        std::unique_ptr<OperationPass<func::FuncOp>> createMyPass();
+        std::unique_ptr<OperationPass<>> createMyPass();
 
 //===----------------------------------------------------------------------===//
 // Registration
