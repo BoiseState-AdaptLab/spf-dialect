@@ -31,7 +31,8 @@ int main(int argc, char **argv)
 
   mlir::DialectRegistry registry;
    registry.insert<mlir::standalone::StandaloneDialect,
-                   mlir::arith::ArithmeticDialect,
+//                   mlir::arith::ArithmeticDialect,
+//                   mlir::scf::SCFDialect,
                    mlir::func::FuncDialect,
                    mlir::vector::VectorDialect>();
   // Add the following to include *all* MLIR Core dialects, or selectively

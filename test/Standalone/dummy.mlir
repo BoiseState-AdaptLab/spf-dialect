@@ -6,9 +6,9 @@ module {
         %0 = arith.constant 1 : i32
         // CHECK: %{{.*}} = standalone.foo %{{.*}} : i32
         %res = standalone.foo %0 : i32
-        "standalone.bar"() ({
-            %1 = arith.constant 1 : i32
-        }) : () -> ()
+        "standalone.bar"(%i : index) ({
+            vector.print %i : index
+        }) : (index) -> ()
         return
     }
 }

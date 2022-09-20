@@ -12,3 +12,13 @@
 
 #define GET_OP_CLASSES
 #include "Standalone/StandaloneOps.cpp.inc"
+
+
+/// Returns the region on the function operation that is callable.
+mlir::Region *mlir::standalone::BarOp::getCallableRegion() { return &getBody(); }
+
+/// Returns the results types that the callable region produces when
+/// executed.
+llvm::ArrayRef<mlir::Type> mlir::standalone::BarOp::getCallableResults() {
+    return getFunctionType().getResults();
+}

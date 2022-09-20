@@ -40,21 +40,54 @@ namespace mlir {
     }
 }
 
+class Thing : public OpRewritePattern<standalone::BarOp> {
+public:
+    using OpRewritePattern<standalone::BarOp>::OpRewritePattern;
+
+    LogicalResult matchAndRewrite(standalone::BarOp op,
+                                  PatternRewriter &rewriter) const override {
+
+        LLVM_DEBUG(llvm::dbgs() << "BarOp >>>>>\n");
+        for (auto a : op.getLoc().getContext()->getAvailableDialects()) {
+            LLVM_DEBUG(llvm::dbgs() << a << "\n");
+        }
+        LLVM_DEBUG(llvm::dbgs() << "=========\n");
+        for (auto a : op.getLoc().getContext()->getLoadedDialects()) {
+            LLVM_DEBUG(llvm::dbgs() << a->getNamespace() << "\n");
+        }
+        LLVM_DEBUG(llvm::dbgs() << "<<<<< BarOp\n");
+        mlir::arith::ConstantIndexOp  zero = rewriter.create<mlir::arith::ConstantIndexOp>(op.getLoc(), 0);
+        mlir::arith::ConstantIndexOp one = rewriter.create<mlir::arith::ConstantIndexOp>(op.getLoc(), 1);
+        mlir::arith::ConstantIndexOp ten = rewriter.create<mlir::arith::ConstantIndexOp>(op.getLoc(), 10);
+
+
+        auto forOp = rewriter.replaceOpWithNewOp<scf::ForOp>(op, zero, ten, one);
+        auto indVar = forOp.getInductionVar();
+
+
+        return success();
+    }
+};
+
 void populateStandaloneToSomethingConversionPatterns(RewritePatternSet &patterns) {
-//    patterns.add<>(patterns.getContext());
+    patterns.add<Thing>(patterns.getContext());
 }
 
 void MyPass::runOnOperation() {
+    auto ctx = &getContext();
+    for (auto dialect : ctx->getDialectRegistry().getDialectNames()) {
+        LLVM_DEBUG(llvm::dbgs() << dialect << "\n");
+    }
     RewritePatternSet patterns(&getContext());
     populateStandaloneToSomethingConversionPatterns(patterns);
     ConversionTarget target(getContext());
+    target.addLegalDialect<scf::SCFDialect, arith::ArithmeticDialect>();
     // Here we want to add specific operations, or dialects, that are legal targets for this lowering.
-    target.addLegalDialect<arith::ArithmeticDialect, memref::MemRefDialect,
-            scf::SCFDialect>();
+    target.addIllegalOp<standalone::BarOp>();
     if (failed(applyPartialConversion(getOperation(), target,
-                                      std::move(patterns))))
+                                      std::move(patterns)))) {
         signalPassFailure();
-}
+    }
 
     LLVM_DEBUG(llvm::dbgs() << "TACO:" << getOperation()->getName() << "\n");
 }

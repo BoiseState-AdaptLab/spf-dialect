@@ -100,8 +100,8 @@ public:
             for (omega::EQ_Iterator eq_conj(bounds.single_conjunct()->EQs()); eq_conj; eq_conj++) {
                 for (omega::Constr_Vars_Iter var(*eq_conj); var; var++) {
                     // If the current var has an arity, it's a function. No idea what "Global" means in this
-                    // circumstance. From something like "t8=UF(a,b)": we will find "UF(a,b)". From something like
-                    // "t8=0" we won't find anything.
+                    // circumstance. From something like "t8=UF(a,b)": this code will find "UF(a,b)". From something
+                    // like "t8=0" we won't find anything.
                     if (var.curr_var()->kind() == omega::Global_Var && var.curr_var()->get_global_var()->arity() > 0) {
                         printf("uf_call:%s,", var.curr_var()->name().c_str());
                     }
@@ -110,7 +110,7 @@ public:
         }
 
         printf("]\n");
-        dispatch(loop->body_);
+        dispatch(loop->body_); // recurse to next level
     }
 
     void walk(omega::CG_leaf *leaf) {
@@ -151,8 +151,17 @@ int main(int argc, char **argv) {
     Stmt *s0 = new Stmt("A(i,r) += X(i,j,k)*B(j,r)*C(k,r)",
                         "{[i,j,k,r] : 0 <= i < I and 0<=j<J and 0<=k<K and 0<=r<R}",
                         "{[i,j,k,r]->[0,i,0,j,0,k,0,r,0]}",
-                        dataReads,
-                        dataWrites);
+                        {
+                                // data reads
+                                {"A", "{[i,k,l,j]->[i,j]}"},
+                                {"B", "{[i,k,l,j]->[i,k,l]}"},
+                                {"D", "{[i,k,l,j]->[l,j]}"},
+                                {"C", "{[i,k,l,j]->[k,j]}"},
+                        },
+                        {
+                                // data writes
+                                {"A", "{[i,k,l,j]->[i,j]}"},
+                        });
 
     mttkrp.addStmt(s0);
 
@@ -163,7 +172,8 @@ int main(int argc, char **argv) {
     mttkrp_sps.addDataSpace("B", "double*");
     mttkrp_sps.addDataSpace("C", "double*");
     Stmt *s1 = new Stmt("A(x,i,j,k,r) += X(x,i,j,k,r)*B(x,i,j,k,r)*C(x,i,j,k,r)",
-                        "{[x,i,j,k,r] :  0<=x< NNZ and i=UFi(x) and j=UFj(x) and k=UFk(x) and 0<=r<R}",
+                        "{[x,i,j,k,r] :  0<=x< NNZ and i=UFi(x) and "
+                        "j=UFj(x) and k=UFk(x) and 0<=r<R}",
                         "{[x,i,j,k,r]->[0,x,0,i,0,j,0,k,0,r,0]}",
                         dataReads,
                         dataWrites);
