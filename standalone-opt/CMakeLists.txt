@@ -6,7 +6,6 @@ set(LIBS
         StandaloneTransforms
         MLIRArithmeticDialect
         MLIROptLib
-        MLIRCallInterfaces
         MLIRStandalone
         iegenlib
         gmp

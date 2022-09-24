@@ -23,23 +23,21 @@
 #include "Standalone/StandaloneDialect.h"
 #include "StandaloneTransforms/Passes.h"
 
-int main(int argc, char **argv)
-{
-  mlir::standalone::registerMyPassPass();
-//  mlir::registerAllPasses();
-  // TODO: Register standalone passes here.
+int main(int argc, char **argv) {
+    mlir::registerAllPasses();
+    mlir::standalone::registerMyPassPass();
 
-  mlir::DialectRegistry registry;
-   registry.insert<mlir::standalone::StandaloneDialect,
+    mlir::DialectRegistry registry;
+    registry.insert<mlir::standalone::StandaloneDialect,
 //                   mlir::arith::ArithmeticDialect,
 //                   mlir::scf::SCFDialect,
-                   mlir::func::FuncDialect,
-                   mlir::vector::VectorDialect>();
-  // Add the following to include *all* MLIR Core dialects, or selectively
-  // include what you need like above. You only need to register dialects that
-  // will be *parsed* by the tool, not the one generated
-//  registerAllDialects(registry);
+            mlir::func::FuncDialect,
+            mlir::vector::VectorDialect>();
+    // Add the following to include *all* MLIR Core dialects, or selectively
+    // include what you need like above. You only need to register dialects that
+    // will be *parsed* by the tool, not the one generated
+    registerAllDialects(registry);
 
-  return mlir::asMainReturnCode(
-      mlir::MlirOptMain(argc, argv, "Standalone optimizer driver\n", registry));
+    return mlir::asMainReturnCode(
+            mlir::MlirOptMain(argc, argv, "Standalone optimizer driver\n", registry));
 }

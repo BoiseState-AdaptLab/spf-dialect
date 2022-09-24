@@ -10,11 +10,8 @@
 #define STANDALONE_OPS
 
 include "Standalone/StandaloneDialect.td"
-include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
-include "mlir/IR/FunctionInterfaces.td"
-include "mlir/IR/SymbolInterfaces.td"
 
 def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
                                              SameOperandsAndResultType]> {
@@ -43,33 +40,14 @@ def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
     }];
 }
 
-def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator,
-        DeclareOpInterfaceMethods<CallableOpInterface>, FunctionOpInterface,
-        IsolatedFromAbove, Symbol
-    ]> {
+def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator]> {
     let summary = "This is a bar op";
     let description = [{
         Stuff
     }];
 
 
-    let arguments = (ins
-            SymbolNameAttr:$sym_name,
-            TypeAttrOf<FunctionType>:$function_type
-    );
     let regions = (region AnyRegion:$body);
-
-    let extraClassDeclaration = [{
-    //===------------------------------------------------------------------===//
-    // FunctionOpInterface Methods
-    //===------------------------------------------------------------------===//
-
-    /// Returns the argument types of this function.
-    ArrayRef<Type> getArgumentTypes() { return getFunctionType().getInputs(); }
-
-    /// Returns the result types of this function.
-    ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
-    }];
 }
 
 #endif // STANDALONE_OPS

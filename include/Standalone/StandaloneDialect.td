@@ -26,7 +26,7 @@ def Standalone_Dialect : Dialect {
     let cppNamespace = "::mlir::standalone";
 
     let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
-    let dependentDialects = ["scf::SCFDialect"];
+    let dependentDialects = ["scf::SCFDialect", "vector::VectorDialect"];
 }
 
 //===----------------------------------------------------------------------===//
