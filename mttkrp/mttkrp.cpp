@@ -30,9 +30,9 @@ public:
         auto split = dynamic_cast<omega::CG_split *>(t);
         auto leaf = dynamic_cast<omega::CG_leaf *>(t);
         if (loop) {
-            walk(loop);
+            walkLoop(loop);
         } else if (leaf) {
-            walk(leaf);
+            walkLeaf(leaf);
         } else if (split) {
             std::cerr << "err: " << "split not implemented" << std::endl;
             exit(1);
@@ -42,7 +42,7 @@ public:
         }
     }
 
-    void walk(omega::CG_loop *loop) {
+    void walkLoop(omega::CG_loop *loop) {
         printf("loop[");
         printf("level:%d,", loop->level_);
         printf("need:%s,", loop->needLoop_ ? "y" : "n");
@@ -113,7 +113,7 @@ public:
         dispatch(loop->body_); // recurse to next level
     }
 
-    void walk(omega::CG_leaf *leaf) {
+    void walkLeaf(omega::CG_leaf *leaf) {
         printf("leaf\n");
         builder.create<mlir::arith::ConstantIndexOp>(builder.getUnknownLoc(), 100);
     }

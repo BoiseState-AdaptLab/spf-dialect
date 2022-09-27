@@ -42,30 +42,15 @@ ExternalProject_Add(iegenlib_in
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/lib/installed
         BUILD_COMMAND ${MAKE})
-## Add depeendence on GTEST
-#FetchContent_Declare(
-#        googletest
-#        GIT_REPOSITORY https://github.com/google/googletest.git
-#        GIT_TAG        release-1.8.0
-#)
-#
-#FetchContent_GetProperties(googletest)
-#if(NOT googletest_POPULATED)
-#  FetchContent_Populate(googletest)
-#  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-#endif()
-
 
 # INCLUDE EXTERNAL
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/installed/include)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/installed/lib)
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib/lib/installed/lib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib/lib/installed/include)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib/lib/installed/lib)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/installed/include/iegenlib)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib/lib/isl/include)
-#=======================================================================================================================
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/installed/lib)
 
-
+# subdirectories =======================================================================================================
 add_subdirectory(include)
 add_subdirectory(lib)
 if(MLIR_ENABLE_BINDINGS_PYTHON)

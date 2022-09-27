@@ -3,6 +3,9 @@ add_mlir_library(StandaloneTransforms
 
   ADDITIONAL_HEADER_DIRS
   ${MLIR_MAIN_INCLUDE_DIR}/mlir/Transforms
+  lib/installed/include/iegenlib
+  lib/IEGenLib/lib/installed/include
+  lib/IEGenLib/lib/gtest/include
 
   DEPENDS
   StandaloneTransformsPassIncGen
@@ -14,4 +17,11 @@ add_mlir_library(StandaloneTransforms
   MLIRPass
   MLIRSupport
   MLIRTransformUtils
+
+  PRIVATE
+  iegenlib
+  gmp
+  isl
+  codegen
+  omega
   )
