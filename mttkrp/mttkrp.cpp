@@ -133,34 +133,33 @@ private:
 
 int main(int argc, char **argv) {
     // this one is dense
-    //void mttkrp(int I,int J, int K, int R,double *X,
-    //               double *A, double *B, double *C) {
+    // void mttkrp(int I, int K, int L, int J, double *B,
+    //               double *A, double *C, double *D) {
     // for (i = 0; i < I; i++)
-    //   for (j = 0; j < J; j++)
-    //     for (k = 0; k < K; k++)
-    //       for (r = 0; r < R; r++)
-    //         A[i,r] += X[i,j,k]*B[j,r]*C[k,r];
-    ///
+    //   for (k = 0; k < K; k++)
+    //     for (l = 0; l < L; l++)
+    //       for (j = 0; j < J; j++)
+    //         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
     vector<pair<string, string> > dataReads;
     vector<pair<string, string> > dataWrites;
     Computation mttkrp;
-    mttkrp.addDataSpace("X", "double*");
     mttkrp.addDataSpace("A", "double*");
     mttkrp.addDataSpace("B", "double*");
     mttkrp.addDataSpace("C", "double*");
-    Stmt *s0 = new Stmt("A(i,r) += X(i,j,k)*B(j,r)*C(k,r)",
-                        "{[i,j,k,r] : 0 <= i < I and 0<=j<J and 0<=k<K and 0<=r<R}",
-                        "{[i,j,k,r]->[0,i,0,j,0,k,0,r,0]}",
+    mttkrp.addDataSpace("D", "double*");
+    Stmt *s0 = new Stmt("A(i,j) += B(i,k,l)*D(l,j)*C(k,j)",
+                        "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}",
+                        "{[i,k,l,j]->[0,i,0,k,0,l,0,j,0]}",
                         {
-                                // data reads
-                                {"A", "{[i,k,l,j]->[i,j]}"},
-                                {"B", "{[i,k,l,j]->[i,k,l]}"},
-                                {"D", "{[i,k,l,j]->[l,j]}"},
-                                {"C", "{[i,k,l,j]->[k,j]}"},
+                            // data reads
+                            {"A", "{[i,k,l,j]->[i,j]}"},
+                            {"B", "{[i,k,l,j]->[i,k,l]}"},
+                            {"C", "{[i,k,l,j]->[k,j]}"},
+                            {"D", "{[i,k,l,j]->[l,j]}"},
                         },
                         {
-                                // data writes
-                                {"A", "{[i,k,l,j]->[i,j]}"},
+                            // data writes
+                            {"A", "{[i,k,l,j]->[i,j]}"},
                         });
 
     mttkrp.addStmt(s0);
