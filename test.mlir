@@ -6,17 +6,27 @@ module {
                    %argc: memref<?x?xf64>,
                    %argd: memref<?x?xf64>,
                    %arga: memref<?x?xf64>) -> memref<?x?xf64> {
-        "standalone.bar"() ({
+
+        "standalone.bar"(%argb, %argc, %argd, %arga) ({
         ^bb0(%i : index, %k : index, %l : index, %j : index):
-        %b_i_k_l = memref.load %argb[%i, %k, %l] : memref<?x?x?xf64>
-        %a_i_j = memref.load %arga[%i, %j] : memref<?x?xf64>
-        %d_l_j = memref.load %argd[%l, %j] : memref<?x?xf64>
-        %c_k_j = memref.load %argc[%k, %j] : memref<?x?xf64>
-        %0 = arith.mulf %b_i_k_l, %d_l_j : f64
-        %1 = arith.mulf %0, %c_k_j : f64
-        %2 = arith.addf %1, %a_i_j : f64
-        memref.store %2, %arga[%i, %j] : memref<?x?xf64>
-        }) : () -> ()
+        // %b_i_k_l = memref.load %argb[%i, %k, %l] : memref<?x?x?xf64>
+        // %c_k_j = memref.load %argc[%k, %j] : memref<?x?xf64>
+        // %d_l_j = memref.load %argd[%l, %j] : memref<?x?xf64>
+        // %a_i_j = memref.load %arga[%i, %j] : memref<?x?xf64>
+        // %0 = arith.mulf %b_i_k_l, %d_l_j : f64
+        // %1 = arith.mulf %0, %c_k_j : f64
+        // %2 = arith.addf %1, %a_i_j : f64
+        // memref.store %2, %arga[%i, %j] : memref<?x?xf64>
+        })  {
+                indexing_maps = [
+                                    affine_map<(i, k, l, j) -> (i, k, l)>,
+                                    affine_map<(i, k, l, j) -> (k, j)>,
+                                    affine_map<(i, k, l, j) -> (l, j)>,
+                                    affine_map<(i, k, l, j) -> (i, j)>
+                                ],
+                operand_segment_sizes = dense<[3, 1]> : vector<2xi32>
+            } : (memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
+
         return %arga : memref<?x?xf64>
     }
 
@@ -46,7 +56,7 @@ module {
         %c3 = arith.constant 3 : index
         %c4 = arith.constant 4 : index
 
-        // Dimensions of matrices for mttkrp_b 
+        // Dimensions of matrices for mttkrp_b
         %I = arith.constant 2 : index
         %J = arith.constant 5 : index
         %K = arith.constant 3 : index
@@ -120,8 +130,8 @@ module {
         // call @output_memref_f64(%unranked_a) : (memref<*xf64>) -> ()
 
         // Call kernel.
-        %out = call @dense_mttkrp(%b, %c, %d, %a) : (memref<?x?x?xf64>, memref<?x?xf64>, 
-                                                     memref<?x?xf64>, memref<?x?xf64>) 
+        %out = call @dense_mttkrp(%b, %c, %d, %a) : (memref<?x?x?xf64>, memref<?x?xf64>,
+                                                     memref<?x?xf64>, memref<?x?xf64>)
                                                      -> memref<?x?xf64>
 
         // Expected output from  mttkrp_b.tns:

@@ -10,6 +10,10 @@ build
 
 # vscode project configuration
 .vscode
+*.code-workspace
+
+# clangd
+.cache
 
 # IEGenLib creates this during build
 lib/installed

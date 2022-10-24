@@ -9,6 +9,7 @@
 #ifndef STANDALONE_OPS
 #define STANDALONE_OPS
 
+include "mlir/IR/OpBase.td"
 include "Standalone/StandaloneDialect.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
@@ -40,12 +41,20 @@ def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
     }];
 }
 
-def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator]> {
+def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator, AttrSizedOperandSegments]> {
     let summary = "This is a bar op";
     let description = [{
         Stuff
     }];
 
+    let arguments = (ins    Variadic<AnyType>:$inputs,
+                            Variadic<AnyShaped>:$outputs,
+                            AffineMapArrayAttr:$indexing_maps);
+
+    let extraClassDeclaration = [{
+        mlir::linalg::OpOperandVector getInputOperands();
+        mlir::linalg::OpOperandVector getOutputOperands();
+    }];
 
     let regions = (region AnyRegion:$body);
 }
