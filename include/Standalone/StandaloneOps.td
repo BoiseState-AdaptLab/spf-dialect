@@ -13,6 +13,7 @@ include "mlir/IR/OpBase.td"
 include "Standalone/StandaloneDialect.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
+include "mlir/Interfaces/ControlFlowInterfaces.td"
 
 def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
                                              SameOperandsAndResultType]> {
@@ -41,7 +42,15 @@ def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
     }];
 }
 
-def Standalone_BarOp : Standalone_Op<"bar", [NoTerminator, AttrSizedOperandSegments]> {
+def Standalone_YieldOp : Standalone_Op<"yield", [NoSideEffect, ReturnLike, Terminator]>,
+    Arguments<(ins Variadic<AnyType>:$values)> {
+  let summary = "TODO";
+  let description = [{
+    TODO
+  }];
+}
+
+def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
     let summary = "This is a bar op";
     let description = [{
         Stuff

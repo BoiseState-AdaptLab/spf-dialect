@@ -8,15 +8,11 @@ module {
                    %arga: memref<?x?xf64>) -> memref<?x?xf64> {
 
         "standalone.bar"(%argb, %argc, %argd, %arga) ({
-        ^bb0(%i : index, %k : index, %l : index, %j : index):
-        // %b_i_k_l = memref.load %argb[%i, %k, %l] : memref<?x?x?xf64>
-        // %c_k_j = memref.load %argc[%k, %j] : memref<?x?xf64>
-        // %d_l_j = memref.load %argd[%l, %j] : memref<?x?xf64>
-        // %a_i_j = memref.load %arga[%i, %j] : memref<?x?xf64>
-        // %0 = arith.mulf %b_i_k_l, %d_l_j : f64
-        // %1 = arith.mulf %0, %c_k_j : f64
-        // %2 = arith.addf %1, %a_i_j : f64
-        // memref.store %2, %arga[%i, %j] : memref<?x?xf64>
+        ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
+        %0 = arith.mulf %b_i_k_l, %d_l_j : f64
+        %1 = arith.mulf %0, %c_k_j : f64
+        %2 = arith.addf %1, %a_i_j : f64
+        "standalone.yield"(%2) : (f64) -> ()
         })  {
                 indexing_maps = [
                                     affine_map<(i, k, l, j) -> (i, k, l)>,
