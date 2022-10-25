@@ -102,6 +102,7 @@ public:
   }
 
   llvm::Optional<mlir::scf::ForOp> walk(omega::CG_result *t) {
+    llvm::dbgs() << "Walker ====================================\n";
     LLVM_DEBUG(llvm::dbgs() << "result\n");
     dispatch(t);
     return maybeOp;
@@ -264,7 +265,7 @@ public:
 
     // read indexing maps out of attributes
     auto indexingMaps =
-        barOp.getIndexingMaps().template getAsValueRange<AffineMapAttr>();
+        barOp.getIndexingMaps().getAsValueRange<AffineMapAttr>();
 
     // 1.a. produce loads from input memrefs
     SmallVector<Value> indexedValues;
@@ -360,7 +361,6 @@ public:
     LLVM_DEBUG({
       llvm::dbgs() << "C dense codegen ===========================\n";
       llvm::dbgs() << mttkrp.codeGen();
-      llvm::dbgs() << "===========================================\n";
     });
 
     std::unordered_map<std::string, mlir::arith::ConstantIndexOp> m;
@@ -374,6 +374,7 @@ public:
       return failure();
     }
     rewriter.eraseOp(barOp);
+    LLVM_DEBUG(llvm::dbgs() << "===========================================\n");
     return success();
   }
 };
