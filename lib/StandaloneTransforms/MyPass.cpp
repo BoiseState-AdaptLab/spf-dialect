@@ -277,33 +277,34 @@ public:
 
     auto loc = barOp->getLoc();
 
-    // read indexing maps out of attributes
-    auto indexingMaps =
-        barOp.getIndexingMaps().getAsValueRange<AffineMapAttr>();
+    auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
+    auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
 
-    // 1.a. produce loads from input memrefs
     SmallVector<Value> indexedValues;
     indexedValues.reserve(barOp->getNumOperands());
-    for (OpOperand *inputOperand : barOp.getInputOperands()) {
-      // read the map that corresponds with the current inputOperand. It seems
-      // like this would be better using the subscript "[]" operator, but
-      // indexingMaps doesn't provide one.
-      auto map = *(indexingMaps.begin() + inputOperand->getOperandNumber());
-      auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
-      indexedValues.push_back(
-          builder.create<memref::LoadOp>(loc, inputOperand->get(), indexing));
+    { // 1.a. produce loads from input memrefs
+      SmallVector<Value> inputOperands = barOp.getInputOperands();
+      for (size_t i = 0; i < inputOperands.size(); i++) {
+        // read the map that corresponds with the current inputOperand. It seems
+        // like this would be better using the subscript "[]" operator, but
+        // indexingMaps doesn't provide one.
+        auto map = *(readMaps.begin() + i);
+        auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
+        indexedValues.push_back(
+            builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
+      }
     }
 
     // 1.b. Emit load for output memrefs
-    for (OpOperand *outputOperand : barOp.getOutputOperands()) {
+    SmallVector<Value> outputOperands = barOp.getOutputOperands();
+    for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map =
-          *(indexingMaps.begin() + outputOperand->getOperandNumber());
+      AffineMap map = *(writeMaps.begin() + i);
 
       SmallVector<Value> indexing =
           makeCanonicalAffineApplies(builder, loc, map, ivs);
       indexedValues.push_back(
-          builder.create<memref::LoadOp>(loc, outputOperand->get(), indexing));
+          builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
     }
 
     // TODO: there's no validation that the region has a block.
@@ -320,12 +321,11 @@ public:
     // 3. emit store
     SmallVector<SmallVector<Value>, 8> indexing;
     SmallVector<Value> outputBuffers;
-    for (OpOperand *outputOperand : barOp.getOutputOperands()) {
+    for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map =
-          *(indexingMaps.begin() + outputOperand->getOperandNumber());
+      AffineMap map = *(writeMaps.begin() + i);
       indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, ivs));
-      outputBuffers.push_back(outputOperand->get());
+      outputBuffers.push_back(outputOperands[i]);
     }
     Operation *terminator = block.getTerminator();
     for (OpOperand &operand : terminator->getOpOperands()) {
@@ -337,19 +337,14 @@ public:
   }
 };
 
-/// relationForOperand builds an IEGenLib Relation string representation from
-/// the `i`-th indexing map on `barOp`.
-std::string relationForOperand(standalone::BarOp barOp, size_t i) {
-  // read indexing maps out of attributes
-  auto indexingMaps = barOp.getIndexingMaps().getAsValueRange<AffineMapAttr>();
-
-  auto map = *(indexingMaps.begin() + i);
-
-  // Create IEGenLib relation string from AffineMap. It's a little weird to
-  // me to construct an object with a string (that it will parse) when we
-  // could probably just build a Relations from an AffineMap pretty easily
-  // (without going through a string intermediary). But it appears that the
-  // string constructor is the main API for constructing a Relation so OK.
+/// relationForOperand builds an IEGenLib Relation string representation from an
+/// AffineMap
+///
+/// I think it's a little weird to create an IEGenLib relation string from
+/// AffineMap. We could probably just build a Relations from an AffineMaps
+/// pretty easily without going through a string intermediary. But, it appears
+/// to me that the string constructor on Relation is "the API". So OK.
+std::string relationForOperand(AffineMap map) {
   std::string read;
   llvm::raw_string_ostream ss(read);
   CopyPastedPrintingStuff(ss).printAffineMap(map);
@@ -362,35 +357,34 @@ public:
 
   LogicalResult matchAndRewrite(standalone::BarOp barOp,
                                 PatternRewriter &rewriter) const override {
-    // Create relations for reads
+    // Build up reads and writes
     ReadWrite reads;
-    for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
-      auto read = relationForOperand(barOp, i);
-
-      // We won't actually use the data space names for anything, just make
-      // something nice-ish for debugging purposes.
-      char name[100];
-      std::sprintf(name, "input_%zu", i);
-      reads.push_back({name, read});
-    }
-
-    // the output is read as well
-    for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
-      auto read = relationForOperand(barOp, i);
-
-      char name[100];
-      std::sprintf(name, "output_%zu", i);
-      reads.push_back({name, read});
-    }
-
-    // Create relations for writes
     ReadWrite writes;
-    for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
-      auto write = relationForOperand(barOp, i);
+    { // create reads for inputs
+      auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
+      for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
+        AffineMap map = *(readMaps.begin() + i);
+        std::string read = relationForOperand(map);
 
-      char var_name[100];
-      std::sprintf(var_name, "output_%zu", i);
-      writes.push_back({var_name, write});
+        // We won't actually use the data space names for anything, just make
+        // something nice-ish for debugging purposes.
+        char name[100];
+        std::sprintf(name, "input_%zu", i);
+        reads.push_back({name, read});
+      }
+    }
+    { // create reads/writes for outputs
+      auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
+      for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
+        AffineMap map = *(writeMaps.begin() + i);
+        // The += operator counts as both read and write.
+        std::string read_write = relationForOperand(map);
+
+        char name[100];
+        std::sprintf(name, "output_%zu", i);
+        reads.push_back({name, read_write});
+        writes.push_back({name, read_write});
+      }
     }
 
     // void mttkrp(int I, int K, int L, int J, double *B,

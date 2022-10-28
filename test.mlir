@@ -14,12 +14,14 @@ module {
         %2 = arith.addf %1, %a_i_j : f64
         "standalone.yield"(%2) : (f64) -> ()
         })  {
-                indexing_maps = [
-                                    affine_map<(i, k, l, j) -> (i, k, l)>,
-                                    affine_map<(i, k, l, j) -> (k, j)>,
-                                    affine_map<(i, k, l, j) -> (l, j)>,
-                                    affine_map<(i, k, l, j) -> (i, j)>
-                                ],
+                reads = [
+                    affine_map<(i, k, l, j) -> (i, k, l)>,
+                    affine_map<(i, k, l, j) -> (k, j)>,
+                    affine_map<(i, k, l, j) -> (l, j)>
+                ],
+                writes = [
+                    affine_map<(i, k, l, j) -> (i, j)>
+                ],
                 operand_segment_sizes = dense<[3, 1]> : vector<2xi32>
             } : (memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 
