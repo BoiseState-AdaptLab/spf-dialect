@@ -14,6 +14,7 @@ build
 
 # clangd
 .cache
+.clangd
 
 # IEGenLib creates this during build
 lib/installed

@@ -1,3 +1,5 @@
+#include "Printer.h"
+#include "Standalone/StandaloneDialect.h"
 #include "Standalone/StandaloneOps.h"
 #include "StandaloneTransforms/Passes.h"
 #include "iegenlib.h"
@@ -6,24 +8,36 @@
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Vector/IR/VectorOps.h"
+#include "mlir/IR/AffineMap.h"
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
+#include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/Value.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/DialectConversion.h"
 #include "mlir/Transforms/Passes.h"
+#include "llvm/ADT/Optional.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 #include <code_gen/CG.h>
 #include <code_gen/codegen_error.h>
+#include <cstddef>
 #include <iomanip>
-#include <llvm/ADT/Optional.h>
 #include <omega.h>
+#include <ostream>
+#include <sstream>
+#include <string>
+#include <strstream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #define DEBUG_TYPE "my-pass"
+
+using ReadWrite = std::vector<std::pair<std::string, std::string>>;
 
 namespace mlir {
 namespace standalone {
@@ -274,8 +288,7 @@ public:
       // read the map that corresponds with the current inputOperand. It seems
       // like this would be better using the subscript "[]" operator, but
       // indexingMaps doesn't provide one.
-      AffineMap map =
-          *(indexingMaps.begin() + inputOperand->getOperandNumber());
+      auto map = *(indexingMaps.begin() + inputOperand->getOperandNumber());
       auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
       indexedValues.push_back(
           builder.create<memref::LoadOp>(loc, inputOperand->get(), indexing));
@@ -324,12 +337,62 @@ public:
   }
 };
 
+/// relationForOperand builds an IEGenLib Relation string representation from
+/// the `i`-th indexing map on `barOp`.
+std::string relationForOperand(standalone::BarOp barOp, size_t i) {
+  // read indexing maps out of attributes
+  auto indexingMaps = barOp.getIndexingMaps().getAsValueRange<AffineMapAttr>();
+
+  auto map = *(indexingMaps.begin() + i);
+
+  // Create IEGenLib relation string from AffineMap. It's a little weird to
+  // me to construct an object with a string (that it will parse) when we
+  // could probably just build a Relations from an AffineMap pretty easily
+  // (without going through a string intermediary). But it appears that the
+  // string constructor is the main API for constructing a Relation so OK.
+  std::string read;
+  llvm::raw_string_ostream ss(read);
+  CopyPastedPrintingStuff(ss).printAffineMap(map);
+  return read;
+};
+
 class ReplaceWithCodeGen : public OpRewritePattern<standalone::BarOp> {
 public:
   using OpRewritePattern<standalone::BarOp>::OpRewritePattern;
 
   LogicalResult matchAndRewrite(standalone::BarOp barOp,
                                 PatternRewriter &rewriter) const override {
+    // Create relations for reads
+    ReadWrite reads;
+    for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
+      auto read = relationForOperand(barOp, i);
+
+      // We won't actually use the data space names for anything, just make
+      // something nice-ish for debugging purposes.
+      char name[100];
+      std::sprintf(name, "input_%zu", i);
+      reads.push_back({name, read});
+    }
+
+    // the output is read as well
+    for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
+      auto read = relationForOperand(barOp, i);
+
+      char name[100];
+      std::sprintf(name, "output_%zu", i);
+      reads.push_back({name, read});
+    }
+
+    // Create relations for writes
+    ReadWrite writes;
+    for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
+      auto write = relationForOperand(barOp, i);
+
+      char var_name[100];
+      std::sprintf(var_name, "output_%zu", i);
+      writes.push_back({var_name, write});
+    }
+
     // void mttkrp(int I, int K, int L, int J, double *B,
     //               double *A, double *C, double *D) {
     // for (i = 0; i < I; i++)
@@ -344,19 +407,7 @@ public:
     mttkrp.addDataSpace("D", "double*");
     Stmt *s0 = new Stmt("A(i,j) += B(i,k,l)*D(l,j)*C(k,j)",
                         "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}",
-                        "{[i,k,l,j]->[0,i,0,k,0,l,0,j,0]}",
-                        {
-                            // data reads
-                            {"A", "{[i,k,l,j]->[i,j]}"},
-                            {"B", "{[i,k,l,j]->[i,k,l]}"},
-                            {"D", "{[i,k,l,j]->[l,j]}"},
-                            {"C", "{[i,k,l,j]->[k,j]}"},
-                        },
-                        {
-                            // data writes
-                            {"A", "{[i,k,l,j]->[i,j]}"},
-                        });
-
+                        "{[i,k,l,j]->[0,i,0,k,0,l,0,j,0]}", reads, writes);
     mttkrp.addStmt(s0);
     LLVM_DEBUG({
       llvm::dbgs() << "C dense codegen ===========================\n";
