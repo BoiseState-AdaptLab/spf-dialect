@@ -406,12 +406,13 @@ public:
       }
     }
 
+    // http://tensor-compiler.org/docs/data_analytics
     // void mttkrp(int I, int K, int L, int J, double *B,
     //               double *A, double *C, double *D) {
-    // for (i = 0; i < I; i++)
-    //   for (k = 0; k < K; k++)
-    //     for (l = 0; l < L; l++)
-    //       for (j = 0; j < J; j++)
+    // for(int i = 0; i < I; i++)
+    //   for(int k = 0; k < K; k++)
+    //     for(int l = 0; l < L; l++)
+    //       for(int j = 0; j < J; j++)
     //         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
     Computation mttkrp;
     mttkrp.addDataSpace("B", "double*");
@@ -500,7 +501,7 @@ public:
     //     {[t0,t1]->[t2,t3]: t0=t3 && t1=t2}.
     //   To construct the RHS, we go through each of the variables in the the
     //   order of input to the relation we're inverting (t0, t1) and ask for a
-    //   function solving for that variable using using only the variables in
+    //   function solving for each variable using using only the variables in
     //   the output arity (t2, t3). Since the output of the relation we're
     //   inverting is the LHS of our inverse function, something that solves for
     //   the input to the relation we're inverting using only those variables is
@@ -528,14 +529,15 @@ public:
     std::string inverseRHS;
     TupleDecl decl = transform->getTupleDecl();
     // loop over input to relation we're trying to invert
-    for (int i = 0; i < transform->inArity(); i++) {
+    for (int inputVar = 0; inputVar < transform->inArity(); inputVar++) {
       // find fuction for variable in input in the output (output is the LHS of
       // function we're inverting, it's the RHS of inverse function).
-      Exp *e =
-          transform->findFunction(i, transform->inArity(), transform->arity());
+      Exp *inverseForInputVar = transform->findFunction(
+          inputVar, transform->inArity(), transform->arity());
 
-      inverseRHS += e->prettyPrintString(decl);
-      inverseRHS += i == transform->inArity() - 1 ? "" : ", "; // add comma
+      inverseRHS += inverseForInputVar->prettyPrintString(decl);
+      inverseRHS +=
+          inputVar == transform->inArity() - 1 ? "" : ", "; // add comma
     }
 
     std::strstream ss;
