@@ -58,6 +58,7 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
 
     let arguments = (ins    Variadic<AnyType>:$inputs,
                             Variadic<AnyShaped>:$outputs,
+                            ArrayAttr:$ufNames,
                             AffineMapArrayAttr:$reads,
                             AffineMapArrayAttr:$writes);
 
@@ -66,7 +67,7 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
         mlir::linalg::OpOperandVector getOutputOperands();
     }];
 
-    let regions = (region AnyRegion:$body);
+    let regions = (region AnyRegion:$body, VariadicRegion<AnyRegion>:$ufs);
 }
 
 #endif // STANDALONE_OPS

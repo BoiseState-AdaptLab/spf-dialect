@@ -2,9 +2,11 @@
 #include "Standalone/StandaloneDialect.h"
 #include "Standalone/StandaloneOps.h"
 #include "StandaloneTransforms/Passes.h"
+#include "Utils.h"
 #include "iegenlib.h"
 #include "mlir/AsmParser/AsmParser.h"
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
@@ -15,6 +17,7 @@
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/OpImplementation.h"
+#include "mlir/IR/Region.h"
 #include "mlir/IR/Value.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
@@ -114,6 +117,16 @@ public:
       llvm::Optional<mlir::AffineMap> inverseMap =
           llvm::Optional<mlir::AffineMap>())
       : builder(builder), m(m), barOp(barOp), inverseMap(inverseMap) {
+    // populate ufNameToRegion
+    auto ufs = barOp.getUfs();
+    LLVM_DEBUG(llvm::dbgs() << "ufs.size(): " << ufs.size() << "\n");
+    auto ufNames = barOp.getUfNames();
+
+    for (auto &attr : llvm::enumerate(ufNames)) {
+      std::string ufName = attr.value().dyn_cast_or_null<StringAttr>().str();
+      ufNameToRegion[ufName] = &ufs[attr.index()];
+    }
+
     // For aesthetic reasons it is nice to only have one zero and 1 constant op
     // created.
     zero = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 0);
@@ -129,6 +142,7 @@ public:
 
   mlir::OpBuilder &builder;
   std::unordered_map<std::string, mlir::arith::ConstantIndexOp> &m;
+  std::unordered_map<std::string, mlir::Region *> ufNameToRegion;
   mlir::arith::ConstantIndexOp zero;
   mlir::arith::ConstantIndexOp one;
   llvm::Optional<mlir::scf::ForOp> maybeOp;
@@ -159,8 +173,8 @@ public:
 
   void walkLoop(omega::CG_loop *loop) {
     LLVM_DEBUG(llvm::dbgs() << "loop[");
-    LLVM_DEBUG(llvm::dbgs() << "level:" << loop->level_ << ",");
-    LLVM_DEBUG(llvm::dbgs() << "need:" << (loop->needLoop_ ? "y" : "n") << ",");
+    LLVM_DEBUG(llvm::dbgs() << " level:" << loop->level_);
+    LLVM_DEBUG(llvm::dbgs() << " need:" << (loop->needLoop_ ? "y" : "n"));
 
     auto bounds = const_cast<omega::Relation &>(loop->bounds_);
 
@@ -188,8 +202,7 @@ public:
           for (omega::Constr_Vars_Iter var(*geq_conj); var; var++) {
             if (var.curr_var() != induction_variable) {
               upper_bound = var.curr_var()->name();
-              LLVM_DEBUG(llvm::dbgs()
-                         << "over:" << var.curr_var()->name() << ",");
+              LLVM_DEBUG(llvm::dbgs() << " over:" << var.curr_var()->name());
             }
           }
         } else if (coef == 1) {
@@ -231,14 +244,26 @@ public:
           // "t8=0" we won't find anything.
           if (var.curr_var()->kind() == omega::Global_Var &&
               var.curr_var()->get_global_var()->arity() > 0) {
-            LLVM_DEBUG(llvm::dbgs()
-                       << "uf_call:" << var.curr_var()->name() << ",");
+
+            // Find region associated with uf (uninterpreted function)
+            std::string ufName = unmangleUfName(var.curr_var()->name());
+            if (ufNameToRegion.find(ufName) == ufNameToRegion.end()) {
+              std::cerr << "err: could not find uninterpreted function"
+                        << std::endl;
+              exit(1);
+            }
+            LLVM_DEBUG(llvm::dbgs() << " uf_call:" << ufName);
+
+            mlir::arith::ConstantIndexOp fakeUFCall =
+                builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(),
+                                                             69);
+            ivs.push_back(fakeUFCall->getOpResult(0));
           }
         }
       }
     }
 
-    LLVM_DEBUG(llvm::dbgs() << "]\n");
+    LLVM_DEBUG(llvm::dbgs() << " ]\n");
     dispatch(loop->body_); // recurse to next level
   }
 
@@ -402,6 +427,26 @@ public:
       }
     }
 
+    // this one is COO
+    // for(int z = 0; z < NNZ; z++) {
+    //   i=UFi(z);
+    //   k=UFk(z);
+    //   l=UFl(z);
+    //   val=UFval(z);
+    //   for (int j = 0; j < J; j++)
+    //     A[i,j] += val*D[l,j]*C[k,j];
+    // }
+    Computation mttkrp_sps;
+    mttkrp_sps.addDataSpace("A", "double*");
+    mttkrp_sps.addDataSpace("D", "double*");
+    mttkrp_sps.addDataSpace("C", "double*");
+    Stmt *s1 = new Stmt("A(i,j) += B(i,k,l)*D(l,j)*C(k,j)",
+                        "{[z,i,k,l,j] :  0<=z<NNZ and i=UFi(z) and "
+                        "k=UFk(z) and l=UFl(z) and 0<=j<J}",
+                        "{[z,i,k,l,j]->[z,i,k,l,j]}", reads, writes);
+
+    mttkrp_sps.addStmt(s1);
+
     // http://tensor-compiler.org/docs/data_analytics
     // void mttkrp(int I, int K, int L, int J, double *B,
     //               double *A, double *C, double *D) {
@@ -547,14 +592,17 @@ public:
     LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
 
     std::unordered_map<std::string, mlir::arith::ConstantIndexOp> m;
+    m["NNZ"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 1);
     m["I"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 2);
     m["K"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 3);
     m["L"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 4);
     m["J"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 5);
+    // sparse
+    // omega::CG_result *ast = mttkrp_sps.thing();
+    // auto loop = Walker(rewriter, barOp, m).walk(ast);
+    // dense
     omega::CG_result *ast = mttkrp.thing();
-    auto loop =
-        Walker(rewriter, barOp, m, llvm::Optional<mlir::AffineMap>(inverseMap))
-            .walk(ast);
+    auto loop = Walker(rewriter, barOp, m, inverseMap).walk(ast);
     if (!loop) {
       return failure();
     }

@@ -1,11 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+export ASAN_OPTIONS=detect_leaks=0
+
 echo  "EXPECTED OUTPUT ========================="
 echo  "( ( 16075, 21930, 28505, 35800, 43815 ),"
 echo  "  ( 10000, 14225, 19180, 24865, 31280 ) )"
 echo  "========================================="
-build/bin/standalone-opt test.mlir \
+build/bin/standalone-opt dense_mttkrp_test.mlir \
   -my-pass \
   -convert-vector-to-scf \
   -convert-scf-to-cf \

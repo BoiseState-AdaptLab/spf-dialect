@@ -13,16 +13,29 @@ module {
         %1 = arith.mulf %0, %c_k_j : f64
         %2 = arith.addf %1, %a_i_j : f64
         "standalone.yield"(%2) : (f64) -> ()
+        },{
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
+        %c69 = arith.constant 69 : index
+        "standalone.yield"(%c69) : (index) -> ()
+        },{
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
+        %c69 = arith.constant 69 : index
+        "standalone.yield"(%c69) : (index) -> ()
+        },{
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
+        %c69 = arith.constant 69 : index
+        "standalone.yield"(%c69) : (index) -> ()
         })  {
                 reads = [
-                    affine_map<(i, k, l, j) -> (i, k, l)>,
-                    affine_map<(i, k, l, j) -> (k, j)>,
-                    affine_map<(i, k, l, j) -> (l, j)>
+                    affine_map<(z, i, k, l, j) -> (i, k, l)>,
+                    affine_map<(z, i, k, l, j) -> (k, j)>,
+                    affine_map<(z, i, k, l, j) -> (l, j)>
                 ],
                 writes = [
-                    affine_map<(i, k, l, j) -> (i, j)>
+                    affine_map<(z, i, k, l, j) -> (i, j)>
                 ],
-                operand_segment_sizes = dense<[3, 1]> : vector<2xi32>
+                operand_segment_sizes = dense<[3, 1]> : vector<2xi32>,
+                ufNames = ["UFi", "UFk", "UFl"]
             } : (memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 
         return %arga : memref<?x?xf64>
