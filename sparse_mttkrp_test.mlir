@@ -14,15 +14,17 @@ module {
         %2 = arith.addf %1, %a_i_j : f64
         "standalone.yield"(%2) : (f64) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
-        %c69 = arith.constant 69 : index
-        "standalone.yield"(%c69) : (index) -> ()
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
+        %c67 = arith.constant 67 : index
+        "standalone.yield"(%c67) : (index) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
-        %c69 = arith.constant 69 : index
-        "standalone.yield"(%c69) : (index) -> ()
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
+        %mov = memref.load %argb_uf0[%z, %z, %z] : memref<?x?x?xf64>
+        %thing = arith.fptoui %mov : f64 to i64
+        %thing2 = arith.index_cast %thing : i64 to index
+        "standalone.yield"(%thing2) : (index) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %arga_uf3: memref<?x?xf64>, %z :index):
+        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
         %c69 = arith.constant 69 : index
         "standalone.yield"(%c69) : (index) -> ()
         })  {
