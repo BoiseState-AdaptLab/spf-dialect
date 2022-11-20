@@ -15,8 +15,7 @@
 #define GET_OP_CLASSES
 #include "Standalone/StandaloneOps.cpp.inc"
 
-// the operands
-mlir::linalg::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
+mlir::linalg::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
   // BarOp has variadic number of input and output parameters. There's a problem
   // with this, how are we to know where to break between operation parameters
   // intended to be fall in the input bucket vs output bucket. The
@@ -24,13 +23,30 @@ mlir::linalg::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
   // operation to have a operand_segment_sizes attribute. When trait is present,
   // tablegen generates `getInputs` and `getOutputs` functions that read the
   // appropriate numer of operands based on this attribute.
-  int64_t numInputs = this->getInputs().size();
+  int64_t numExtra = this->getUfInputs().size();
   mlir::linalg::OpOperandVector result;
-  result.reserve(numInputs);
+  result.reserve(numExtra);
+  llvm::transform(this->getOperation()->getOpOperands().take_front(numExtra),
+                  std::back_inserter(result),
+                  [](mlir::OpOperand &opOperand) { return &opOperand; });
+  return result;
+}
+
+mlir::linalg::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
+  int64_t numInputs = this->getInputs().size();
+  // Regular inputs come after uf inputs. To clarify the difference, a UF input
+  // may be used as an argument to a UF (Uninterpreted Function) but will not be
+  // used to generate a load used in the statement.
+  int64_t numUFInputs = this->getUfInputs().size();
+  mlir::linalg::OpOperandVector result;
   // TODO: this is copy pasted from the equivalent linalg op. I don't know what
   // the point of this transform thing is. I think it might just be an obnoxious
   // way to do a for loop and push back onto result.
-  llvm::transform(this->getOperation()->getOpOperands().take_front(numInputs),
+  result.reserve(numInputs);
+  llvm::transform(this->getOperation()
+                      ->getOpOperands()
+                      .drop_front(numUFInputs)
+                      .take_front(numInputs),
                   std::back_inserter(result),
                   [](mlir::OpOperand &opOperand) { return &opOperand; });
   return result;

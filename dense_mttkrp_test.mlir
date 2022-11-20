@@ -22,7 +22,7 @@ module {
                 writes = [
                     affine_map<(i, k, l, j) -> (i, j)>
                 ],
-                operand_segment_sizes = dense<[3, 1]> : vector<2xi32>,
+                operand_segment_sizes = dense<[0,3, 1]> : vector<3xi32>,
                 ufNames = []
             } : (memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 

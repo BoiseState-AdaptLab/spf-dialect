@@ -1,73 +1,60 @@
 module {
     func.func private @printMemrefF64(memref<*xf64>) attributes { llvm.emit_c_interface }
+    func.func private @getTensorFilename(index) -> (!llvm.ptr<i8>)
+    func.func private @coords(!llvm.ptr<i8>, index) -> memref<?xindex> attributes {llvm.emit_c_interface}
+    func.func private @read_coo(!llvm.ptr<i8>) -> !llvm.ptr<i8> attributes {llvm.emit_c_interface}
+    func.func private @values(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
 
-    func.func @dense_mttkrp(
-                   %argb: memref<?x?x?xf64>,
-                   %argc: memref<?x?xf64>,
-                   %argd: memref<?x?xf64>,
-                   %arga: memref<?x?xf64>) -> memref<?x?xf64> {
+    func.func @sparse_mttkrp(%argb_coord_0 : memref<?xindex>,
+                             %argb_coord_1 : memref<?xindex>,
+                             %argb_coord_2 : memref<?xindex>,
+                             %argb_values : memref<?xf64>,
+                             %argc: memref<?x?xf64>,
+                             %argd: memref<?x?xf64>,
+                             %arga: memref<?x?xf64>) -> memref<?x?xf64> {
 
-        "standalone.bar"(%argb, %argc, %argd, %arga) ({
+        "standalone.bar"(%argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
         ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
         %0 = arith.mulf %b_i_k_l, %d_l_j : f64
         %1 = arith.mulf %0, %c_k_j : f64
         %2 = arith.addf %1, %a_i_j : f64
         "standalone.yield"(%2) : (f64) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
-        %c67 = arith.constant 67 : index
-        "standalone.yield"(%c67) : (index) -> ()
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
+        "standalone.yield"(%i) : (index) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
-        %mov = memref.load %argb_uf0[%z, %z, %z] : memref<?x?x?xf64>
-        %thing = arith.fptoui %mov : f64 to i64
-        %thing2 = arith.index_cast %thing : i64 to index
-        "standalone.yield"(%thing2) : (index) -> ()
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
+        "standalone.yield"(%k) : (index) -> ()
         },{
-        ^bb0(%argb_uf0: memref<?x?x?xf64>, %argc_uf1: memref<?x?xf64>, %argd_uf2: memref<?x?xf64>, %z :index):
-        %c69 = arith.constant 69 : index
-        "standalone.yield"(%c69) : (index) -> ()
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
+        "standalone.yield"(%l) : (index) -> ()
         })  {
                 reads = [
-                    affine_map<(z, i, k, l, j) -> (i, k, l)>,
+                    affine_map<(z, i, k, l, j) -> (z)>,
                     affine_map<(z, i, k, l, j) -> (k, j)>,
                     affine_map<(z, i, k, l, j) -> (l, j)>
                 ],
                 writes = [
                     affine_map<(z, i, k, l, j) -> (i, j)>
                 ],
-                operand_segment_sizes = dense<[3, 1]> : vector<2xi32>,
+                operand_segment_sizes = dense<[3,3, 1]> : vector<3xi32>,
                 ufNames = ["UFi", "UFk", "UFl"]
-            } : (memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
+            } : (memref<?xindex>, memref<?xindex>, memref<?xindex>, memref<?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 
         return %arga : memref<?x?xf64>
     }
 
     func.func @main() {
-        // constants of float type
+        // // constants of float type
         %f0 = arith.constant 0.0 : f64
-        %f3 = arith.constant 3.0 : f64
-        %f63 = arith.constant 63.0 : f64
-        %f11 = arith.constant 11.0 : f64
-        %f100 = arith.constant 100.0 : f64
-        %f66 = arith.constant 66.0 : f64
-        %f61 = arith.constant 61.0 : f64
-        %f13 = arith.constant 13.0 : f64
-        %f43 = arith.constant 43.0 : f64
-        %f77 = arith.constant 77.0 : f64
-        %f10 = arith.constant 10.0 : f64
-        %f46 = arith.constant 46.0 : f64
-        %f53 = arith.constant 53.0 : f64
-        %f75 = arith.constant 75.0 : f64
-        %f22 = arith.constant 22.0 : f64
-        %f18 = arith.constant 18.0 : f64
 
         // constants of index type
         %c0 = arith.constant 0 : index
         %c1 = arith.constant 1 : index
         %c2 = arith.constant 2 : index
-        %c3 = arith.constant 3 : index
-        %c4 = arith.constant 4 : index
 
         // Dimensions of matrices for mttkrp_b
         %I = arith.constant 2 : index
@@ -76,35 +63,15 @@ module {
         %L = arith.constant 4 : index
         %nnz = arith.constant 17 : index
 
-        // Construct dense B matrix by manually writing contentes of mttkrp_b.tns.
-        // TODO: read this from file
-        %b = memref.alloc(%I, %K, %L) : memref<?x?x?xf64>
-        scf.for %i = %c0 to %I step %c1 {
-            scf.for %k = %c0 to %K step %c1 {
-                scf.for %l = %c0 to %L step %c1 {
-                    memref.store %f0, %b[%i, %k, %l] : memref<?x?x?xf64>
-                }
-            }
-        }
-        memref.store %f3, %b[%c0, %c0, %c2] : memref<?x?x?xf64>
-        memref.store %f63, %b[%c0, %c0, %c3] : memref<?x?x?xf64>
-        memref.store %f11, %b[%c0, %c1, %c1] : memref<?x?x?xf64>
-        memref.store %f100, %b[%c0, %c1, %c2] : memref<?x?x?xf64>
-        memref.store %f66, %b[%c0, %c2, %c0] : memref<?x?x?xf64>
-        memref.store %f61, %b[%c0, %c2, %c1] : memref<?x?x?xf64>
-        memref.store %f13, %b[%c0, %c2, %c2] : memref<?x?x?xf64>
-        memref.store %f43, %b[%c0, %c2, %c3] : memref<?x?x?xf64>
-        memref.store %f77, %b[%c1, %c0, %c0] : memref<?x?x?xf64>
-        memref.store %f10, %b[%c1, %c0, %c2] : memref<?x?x?xf64>
-        memref.store %f46, %b[%c1, %c0, %c3] : memref<?x?x?xf64>
-        memref.store %f61, %b[%c1, %c1, %c0] : memref<?x?x?xf64>
-        memref.store %f53, %b[%c1, %c1, %c1] : memref<?x?x?xf64>
-        memref.store %f3, %b[%c1, %c1, %c2] : memref<?x?x?xf64>
-        memref.store %f75, %b[%c1, %c1, %c3] : memref<?x?x?xf64>
-        memref.store %f22, %b[%c1, %c2, %c1] : memref<?x?x?xf64>
-        memref.store %f18, %b[%c1, %c2, %c2] : memref<?x?x?xf64>
-        // %unranked_b = memref.cast %b : memref<?x?x?xf64> to memref<*xf64>
-        // call @printMemrefF64(%unranked_b) : (memref<*xf64>) -> ()
+        // Read the sparse B input from a file.
+        %filename = call @getTensorFilename(%c0) : (index) -> !llvm.ptr<i8>
+        %storage = call @read_coo(%filename) : (!llvm.ptr<i8>) -> !llvm.ptr<i8>
+        %b_coord_0 = call @coords(%storage, %c0) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
+        %b_coord_1 = call @coords(%storage, %c1) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
+        %b_coord_2 = call @coords(%storage, %c2) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
+        %b_values = call @values(%storage) : (!llvm.ptr<i8>) -> (memref<?xf64>)
+        // %unranked_b_values = memref.cast %b_values : memref<?xf64> to memref<*xf64>
+        // call @printMemrefF64(%unranked_b_values) : (memref<*xf64>) -> ()
 
         // Initialize dense C and D inputs and dense output A.
         %c = memref.alloc(%K, %J) : memref<?x?xf64>
@@ -143,9 +110,12 @@ module {
         // call @output_memref_f64(%unranked_a) : (memref<*xf64>) -> ()
 
         // Call kernel.
-        %out = call @dense_mttkrp(%b, %c, %d, %a) : (memref<?x?x?xf64>, memref<?x?xf64>,
-                                                     memref<?x?xf64>, memref<?x?xf64>)
-                                                     -> memref<?x?xf64>
+        %out = call @sparse_mttkrp(%b_coord_0, %b_coord_1,
+                                   %b_coord_2, %b_values,
+                                   %c, %d, %a) : (memref<?xindex>, memref<?xindex>,
+                                                  memref<?xindex>, memref<?xf64>,
+                                                  memref<?x?xf64>, memref<?x?xf64>,
+                                                  memref<?x?xf64>) -> memref<?x?xf64>
 
         // Expected output from  mttkrp_b.tns:
         // ( ( 16075, 21930, 28505, 35800, 43815 ), ( 10000, 14225, 19180, 24865, 31280 ) )

@@ -56,13 +56,15 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
         Stuff
     }];
 
-    let arguments = (ins    Variadic<AnyType>:$inputs,
-                            Variadic<AnyShaped>:$outputs,
-                            ArrayAttr:$ufNames,
-                            AffineMapArrayAttr:$reads,
-                            AffineMapArrayAttr:$writes);
+    let arguments = (ins Variadic<AnyType>:$ufInputs,
+                         Variadic<AnyType>:$inputs,
+                         Variadic<AnyType>:$outputs,
+                         ArrayAttr:$ufNames,
+                         AffineMapArrayAttr:$reads,
+                         AffineMapArrayAttr:$writes);
 
     let extraClassDeclaration = [{
+        mlir::linalg::OpOperandVector getUFInputOperands();
         mlir::linalg::OpOperandVector getInputOperands();
         mlir::linalg::OpOperandVector getOutputOperands();
     }];
