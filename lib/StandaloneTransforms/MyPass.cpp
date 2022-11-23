@@ -14,6 +14,7 @@
 #include "mlir/Dialect/Vector/IR/VectorOps.h"
 #include "mlir/IR/AffineExpr.h"
 #include "mlir/IR/AffineMap.h"
+#include "mlir/IR/Attributes.h"
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/OpImplementation.h"
@@ -111,12 +112,10 @@ static SmallVector<Value> makeCanonicalAffineApplies(OpBuilder &builder,
 
 struct Walker {
 public:
-  explicit Walker(
-      mlir::OpBuilder &builder, standalone::BarOp barOp,
-      std::unordered_map<std::string, mlir::arith::ConstantIndexOp> &m,
-      llvm::Optional<mlir::AffineMap> inverseMap =
-          llvm::Optional<mlir::AffineMap>())
-      : builder(builder), m(m), barOp(barOp), inverseMap(inverseMap) {
+  explicit Walker(mlir::OpBuilder &builder, standalone::BarOp barOp,
+                  llvm::Optional<mlir::AffineMap> inverseMap =
+                      llvm::Optional<mlir::AffineMap>())
+      : builder(builder), barOp(barOp), inverseMap(inverseMap) {
     // populate ufNameToRegion
     auto ufs = barOp.getUfs();
     auto ufNames = barOp.getUfNames();
@@ -126,6 +125,15 @@ public:
       // context and not moved around, in which case this is safe. But I might
       // be wrong. Asan hasn't told me about any issues yet.
       ufNameToRegion[ufName] = &ufs[attr.index()];
+    }
+
+    // populate symbols
+    SmallVector<Value> symbolOperands = barOp.getSymbolOperands();
+    auto symbolNames = barOp.getSymbolNames();
+    for (auto &attr : llvm::enumerate(symbolNames)) {
+      std::string symbolName =
+          attr.value().dyn_cast_or_null<StringAttr>().str();
+      symbols[symbolName] = symbolOperands[attr.index()];
     }
 
     // For aesthetic reasons it is nice to only have one zero and 1 constant op
@@ -142,7 +150,7 @@ public:
   }
 
   mlir::OpBuilder &builder;
-  std::unordered_map<std::string, mlir::arith::ConstantIndexOp> &m;
+  std::unordered_map<std::string, mlir::Value> symbols;
   std::unordered_map<std::string, mlir::Region *> ufNameToRegion;
   mlir::arith::ConstantIndexOp zero;
   mlir::arith::ConstantIndexOp one;
@@ -215,14 +223,14 @@ public:
         }
       }
 
-      if (upper_bound.empty() || m.find(upper_bound) == m.end()) {
+      if (upper_bound.empty() || symbols.find(upper_bound) == symbols.end()) {
         std::cerr << "err: "
                   << "oh no!" << std::endl;
         exit(1);
       }
 
       mlir::scf::ForOp forOp = builder.create<mlir::scf::ForOp>(
-          barOp.getLoc(), zero, m[upper_bound], one);
+          barOp.getLoc(), zero, symbols[upper_bound], one);
       // if this is the top level loop store it off to return
       if (!maybeOp) {
         maybeOp = forOp;
@@ -264,6 +272,12 @@ public:
             // guaranteed not to move around. What makes blocks different?
             auto &ufBlock = ufNameToRegion[ufName]->front();
 
+            // TODO: this should probably be done with symbols:
+            // https://mlir.llvm.org/docs/SymbolsAndSymbolTables/ inside
+            // something like integer sets:
+            // https://mlir.llvm.org/docs/Dialects/Affine/#integer-sets that
+            // would replace the string execution schedule.
+            //
             // We need to create a mapping from the UF arguments to the
             // generated induction variables and UF inputs to the operation. An
             // example is given below:
@@ -503,72 +517,25 @@ public:
       }
     }
 
-    // this one is COO
-    // for(int z = 0; z < NNZ; z++) {
-    //   i=UFi(z);
-    //   k=UFk(z);
-    //   l=UFl(z);
-    //   val=UFval(z);
-    //   for (int j = 0; j < J; j++)
-    //     A[i,j] += val*D[l,j]*C[k,j];
-    // }
-    Computation mttkrp_sps;
-    mttkrp_sps.addDataSpace("A", "double*");
-    mttkrp_sps.addDataSpace("D", "double*");
-    mttkrp_sps.addDataSpace("C", "double*");
-    Stmt *s1 = new Stmt("A(i,j) += B(i,k,l)*D(l,j)*C(k,j)",
-                        "{[z,i,k,l,j] :  0<=z<NNZ and i=UFi(z) and "
-                        "k=UFk(z) and l=UFl(z) and 0<=j<J}",
-                        "{[z,i,k,l,j]->[z,i,k,l,j]}", reads, writes);
+    // Build IEGenLib representation from MLIR operation
+    Computation computation;
+    Stmt *s0 = new Stmt("", barOp.getIterationSpace().str(),
+                        barOp.getExecutionSchedule().str(), reads, writes);
 
-    mttkrp_sps.addStmt(s1);
-
-    // http://tensor-compiler.org/docs/data_analytics
-    // void mttkrp(int I, int K, int L, int J, double *B,
-    //               double *A, double *C, double *D) {
-    // for(int i = 0; i < I; i++)
-    //   for(int k = 0; k < K; k++)
-    //     for(int l = 0; l < L; l++)
-    //       for(int j = 0; j < J; j++)
-    //         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
-    Computation mttkrp;
-    mttkrp.addDataSpace("B", "double*");
-    mttkrp.addDataSpace("A", "double*");
-    mttkrp.addDataSpace("C", "double*");
-    mttkrp.addDataSpace("D", "double*");
-    Stmt *s0 = new Stmt("A(i,j) += B(i,k,l)*D(l,j)*C(k,j)",
-                        "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}",
-                        "{[i,k,l,j]->[i,k,l,j]}", reads, writes);
-    mttkrp.addStmt(s0);
-    LLVM_DEBUG({
-      llvm::dbgs() << "C dense codegen ===========================\n";
-      llvm::dbgs() << mttkrp.codeGen();
-    });
+    computation.addStmt(s0);
 
     LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation ================\n");
+    // LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j] -> [k,i,l,j]}"
+    //                         << "\n");
+    // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
+    // mttkrp.addTransformation(0, transform);
+    // AffineMap inverseMap = createInverse(transform, s0, rewriter);
+    // LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
 
-    LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j] -> [k,i,l,j]}"
-                            << "\n");
-    auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
-    mttkrp.addTransformation(0, transform);
+    // generate MLIR from omega AST
+    omega::CG_result *ast = computation.thing();
+    auto loop = Walker(rewriter, barOp).walk(ast);
 
-    AffineMap inverseMap = createInverse(transform, s0, rewriter);
-
-    LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
-
-    std::unordered_map<std::string, mlir::arith::ConstantIndexOp> m;
-    m["NNZ"] =
-        rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 17);
-    m["I"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 2);
-    m["K"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 3);
-    m["L"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 4);
-    m["J"] = rewriter.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 5);
-    // sparse
-    omega::CG_result *ast = mttkrp_sps.thing();
-    auto loop = Walker(rewriter, barOp, m).walk(ast);
-    // dense
-    // omega::CG_result *ast = mttkrp.thing();
-    // auto loop = Walker(rewriter, barOp, m, inverseMap).walk(ast);
     if (!loop) {
       return failure();
     }
