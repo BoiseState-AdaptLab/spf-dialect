@@ -7,9 +7,9 @@ module {
 
     func.func @sparse_mttkrp(%NNZ : index,
                              %I: index,
+                             %J: index,
                              %K: index,
                              %L: index,
-                             %J: index,
                              %argb_coord_0 : memref<?xindex>,
                              %argb_coord_1 : memref<?xindex>,
                              %argb_coord_2 : memref<?xindex>,
@@ -26,38 +26,39 @@ module {
         //   for (int j = 0; j < J; j++)
         //     A[i,j] += val*D[l,j]*C[k,j];
         // }
-        "standalone.bar"(%NNZ, %I, %K, %L, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+        "standalone.bar"(%NNZ, %I, %J, %K, %L, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
         ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
         %0 = arith.mulf %b_i_k_l, %d_l_j : f64
         %1 = arith.mulf %0, %c_k_j : f64
         %2 = arith.addf %1, %a_i_j : f64
         "standalone.yield"(%2) : (f64) -> ()
         },{
-        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %j :index, %z: index):
         %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
         "standalone.yield"(%i) : (index) -> ()
         },{
-        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %j :index, %z: index):
         %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
         "standalone.yield"(%k) : (index) -> ()
         },{
-        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %z :index):
+        ^bb0(%uf_argb_coord_0 : memref<?xindex>, %uf_argb_coord_1 : memref<?xindex>, %uf_argb_coord_2 : memref<?xindex>, %j :index, %z: index):
         %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
         "standalone.yield"(%l) : (index) -> ()
         })  {
                 reads = [
-                    affine_map<(z, i, k, l, j) -> (z)>,
-                    affine_map<(z, i, k, l, j) -> (k, j)>,
-                    affine_map<(z, i, k, l, j) -> (l, j)>
+                    affine_map<(j, z, i, k, l) -> (z)>,
+                    affine_map<(j, z, i, k, l) -> (k, j)>,
+                    affine_map<(j, z, i, k, l) -> (l, j)>
                 ],
                 writes = [
-                    affine_map<(z, i, k, l, j) -> (i, j)>
+                    affine_map<(j, z, i, k, l) -> (i, j)>
                 ],
                 operand_segment_sizes = dense<[5,3,3,1]> : vector<4xi32>,
                 ufNames = ["UFi", "UFk", "UFl"],
                 symbolNames = ["NNZ", "I", "J", "K", "L"],
-                executionSchedule = "{[z,i,k,l,j]->[z,i,k,l,j]}",
-                iterationSpace = "{[z,i,k,l,j]: 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z) and 0<=j<J}"
+                iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
+                executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
+                iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}"
             } : (index, index, index, index, index,
                  memref<?xindex>, memref<?xindex>,
                  memref<?xindex>, memref<?xf64>,

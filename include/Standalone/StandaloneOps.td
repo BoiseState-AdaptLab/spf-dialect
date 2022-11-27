@@ -62,6 +62,7 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
                          Variadic<AnyType>:$outputs,
                          ArrayAttr:$symbolNames,
                          ArrayAttr:$ufNames,
+                         ArrayAttr:$iteratorTypes,
                          StrAttr:$iterationSpace,
                          StrAttr:$executionSchedule,
                          AffineMapArrayAttr:$reads,

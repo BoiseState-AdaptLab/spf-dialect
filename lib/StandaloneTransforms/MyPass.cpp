@@ -18,8 +18,10 @@
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/OpImplementation.h"
+#include "mlir/IR/Operation.h"
 #include "mlir/IR/Region.h"
 #include "mlir/IR/Value.h"
+#include "mlir/IR/ValueRange.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/DialectConversion.h"
@@ -142,7 +144,7 @@ public:
     one = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 1);
   }
 
-  llvm::Optional<mlir::scf::ForOp> walk(omega::CG_result *t) {
+  llvm::Optional<mlir::Operation *> walk(omega::CG_result *t) {
     LLVM_DEBUG(llvm::dbgs() << "Walker ====================================\n");
     LLVM_DEBUG(llvm::dbgs() << "result\n");
     dispatch(t);
@@ -152,9 +154,9 @@ public:
   mlir::OpBuilder &builder;
   std::unordered_map<std::string, mlir::Value> symbols;
   std::unordered_map<std::string, mlir::Region *> ufNameToRegion;
-  mlir::arith::ConstantIndexOp zero;
-  mlir::arith::ConstantIndexOp one;
-  llvm::Optional<mlir::scf::ForOp> maybeOp;
+  mlir::Value zero;
+  mlir::Value one;
+  llvm::Optional<mlir::Operation *> maybeOp;
   standalone::BarOp barOp;
   llvm::Optional<mlir::AffineMap> inverseMap;
   std::vector<mlir::Value> ivs; // induction variables
@@ -192,7 +194,7 @@ public:
     // uninterpreted function, some don't require any code to be generated.
     if (loop->needLoop_) {
       // (Should be) set while looping over greater than or equal to conjuncts.
-      std::string upper_bound;
+      std::string upperBound;
 
       // This seems to break a relation such as "0<=t8 && t8<R" into individual
       // greater than or equal to conjuncts: "0<=t8", and "t8<R".
@@ -210,7 +212,7 @@ public:
           // variable in the conjunct *isn't* "t8" should be the loop bound.
           for (omega::Constr_Vars_Iter var(*geq_conj); var; var++) {
             if (var.curr_var() != induction_variable) {
-              upper_bound = var.curr_var()->name();
+              upperBound = var.curr_var()->name();
               LLVM_DEBUG(llvm::dbgs() << " over:" << var.curr_var()->name());
             }
           }
@@ -223,24 +225,56 @@ public:
         }
       }
 
-      if (upper_bound.empty() || symbols.find(upper_bound) == symbols.end()) {
+      if (upperBound.empty() || symbols.find(upperBound) == symbols.end()) {
         std::cerr << "err: "
                   << "oh no!" << std::endl;
         exit(1);
       }
 
-      mlir::scf::ForOp forOp = builder.create<mlir::scf::ForOp>(
-          barOp.getLoc(), zero, symbols[upper_bound], one);
-      // if this is the top level loop store it off to return
-      if (!maybeOp) {
-        maybeOp = forOp;
+      auto upperBoundValue = symbols[upperBound];
+
+      // omega 1 indexes "loop->level_", hence the -1
+      auto iteratorType = barOp.getIteratorTypes()[loop->level_ - 1]
+                              .dyn_cast_or_null<StringAttr>();
+
+      // Generate loops.
+      //
+      // TODO: it would be nice to template this but there doesn't appear to be
+      // a common API between ParallelOp and ForOp. There is a LoopLike
+      // Interface but it seems like it doesn't ahve everything we need. Maybe
+      // what we need could be added upstream?
+      if (iteratorType &&
+          iteratorType.getValue() ==
+              "parallel") { // add parallel loop, and update walker state
+        scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
+            barOp.getLoc(), mlir::ValueRange(zero),
+            mlir::ValueRange(upperBoundValue), mlir::ValueRange(one));
+
+        // if this is the top level loop store it off to return
+        if (!maybeOp) {
+          maybeOp = parallelOp;
+        }
+
+        // store off induction variable
+        ivs.push_back(parallelOp.getInductionVars().front());
+
+        // Start add future loops inside this loop
+        builder.setInsertionPointToStart(parallelOp.getBody());
+      } else { // add regular for loop, and update walker state
+        scf::ForOp forOp = builder.create<scf::ForOp>(barOp.getLoc(), zero,
+                                                      upperBoundValue, one);
+
+        // if this is the top level loop store it off to return
+        if (!maybeOp) {
+          maybeOp = forOp;
+        }
+
+        // store off induction variable
+        ivs.push_back(forOp.getInductionVar());
+
+        // Start add future loops inside this loop
+        builder.setInsertionPointToStart(forOp.getBody());
       }
-
-      // store off induction variable
-      ivs.push_back(forOp.getInductionVar());
-
-      // Start add future loops inside this loop
-      builder.setInsertionPointToStart(forOp.getBody());
     } else { // non loops may require a call to a UF
       // This seems to break a relation such as "t8=UF(a,b)" into equality
       // conjuncts: (there will only be one in this case) "t8=UF(a,b)".

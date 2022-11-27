@@ -11,36 +11,6 @@ module {
                    %argd: memref<?x?xf64>,
                    %arga: memref<?x?xf64>) -> memref<?x?xf64> {
 
-        // http://tensor-compiler.org/docs/data_analytics
-        // void mttkrp(int I, int K, int L, int J, double *B,
-        //               double *A, double *C, double *D) {
-        // for(int i = 0; i < I; i++)
-        //   for(int k = 0; k < K; k++)
-        //     for(int l = 0; l < L; l++)
-        //       for(int j = 0; j < J; j++)
-        //         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
-        "standalone.bar"(%I, %J, %K, %L, %argb, %argc, %argd, %arga) ({
-        ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
-        %0 = arith.mulf %b_i_k_l, %d_l_j : f64
-        %1 = arith.mulf %0, %c_k_j : f64
-        %2 = arith.addf %1, %a_i_j : f64
-        "standalone.yield"(%2) : (f64) -> ()
-        })  {
-                reads = [
-                    affine_map<(i, k, l, j) -> (i, k, l)>,
-                    affine_map<(i, k, l, j) -> (k, j)>,
-                    affine_map<(i, k, l, j) -> (l, j)>
-                ],
-                writes = [
-                    affine_map<(i, k, l, j) -> (i, j)>
-                ],
-                operand_segment_sizes = dense<[4,0,3,1]> : vector<4xi32>,
-                ufNames = [],
-                symbolNames = ["I", "J", "K", "L"],
-                executionSchedule = "{[i,k,l,j]->[i,k,l,j]}",
-                iteratorTypes = ["reduction", "reduction", "reduction", "reduction", "reduction"],
-                iterationSpace = "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}"
-            } : (index,index,index,index,memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 
         return %arga : memref<?x?xf64>
     }
@@ -107,6 +77,10 @@ module {
         // %unranked_b = memref.cast %b : memref<?x?x?xf64> to memref<*xf64>
         // call @printMemrefF64(%unranked_b) : (memref<*xf64>) -> ()
 
+        %cast_b = memref.cast %b : memref<?x?x?xf64> to memref<*xf64>
+        gpu.host_register %cast_b : memref<*xf64>
+
+
         // Initialize dense C and D inputs and dense output A.
         %c = memref.alloc(%K, %J) : memref<?x?xf64>
         scf.for %k = %c0 to %K step %c1 {
@@ -121,6 +95,9 @@ module {
         // %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
         // call @output_memref_f64(%unranked_c) : (memref<*xf64>) -> ()
 
+        %cast_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
+        gpu.host_register %cast_c : memref<*xf64>
+
         %d = memref.alloc(%L, %J) : memref<?x?xf64>
         scf.for %l = %c0 to %L step %c1 {
             scf.for %j = %c0 to %J step %c1 {
@@ -134,6 +111,9 @@ module {
         // %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
         // call @output_memref_f64(%unranked_d) : (memref<*xf64>) -> ()
 
+        %cast_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
+        gpu.host_register %cast_d : memref<*xf64>
+
         %a = memref.alloc(%I, %J) : memref<?x?xf64>
         scf.for %i = %c0 to %I step %c1 {
             scf.for %j = %c0 to %J step %c1 {
@@ -143,12 +123,39 @@ module {
         // %unranked_a = memref.cast %a : memref<?x?xf64> to memref<*xf64>
         // call @output_memref_f64(%unranked_a) : (memref<*xf64>) -> ()
 
-        // Call kernel.
-        %out = call @dense_mttkrp(%I, %J, %K, %L, %b, %c, %d, %a) :
-                                                    (index, index, index, index,
-                                                     memref<?x?x?xf64>, memref<?x?xf64>,
-                                                     memref<?x?xf64>, memref<?x?xf64>)
-                                                     -> memref<?x?xf64>
+        %cast_a = memref.cast %a : memref<?x?xf64> to memref<*xf64>
+        gpu.host_register %cast_a : memref<*xf64>
+
+        // http://tensor-compiler.org/docs/data_analytics
+        // void mttkrp(int I, int K, int L, int J, double *B,
+        //               double *A, double *C, double *D) {
+        // for(int i = 0; i < I; i++)
+        //   for(int k = 0; k < K; k++)
+        //     for(int l = 0; l < L; l++)
+        //       for(int j = 0; j < J; j++)
+        //         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
+        "standalone.bar"(%I, %J, %K, %L, %b, %c, %d, %a) ({
+        ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
+        %0 = arith.mulf %b_i_k_l, %d_l_j : f64
+        %1 = arith.mulf %0, %c_k_j : f64
+        %2 = arith.addf %1, %a_i_j : f64
+        "standalone.yield"(%2) : (f64) -> ()
+        })  {
+                reads = [
+                    affine_map<(j, i, k, l) -> (i, k, l)>,
+                    affine_map<(j, i, k, l) -> (k, j)>,
+                    affine_map<(j, i, k, l) -> (l, j)>
+                ],
+                writes = [
+                    affine_map<(j, i, k, l) -> (i, j)>
+                ],
+                operand_segment_sizes = dense<[4,0,3,1]> : vector<4xi32>,
+                ufNames = [],
+                symbolNames = ["I", "J", "K", "L"],
+                executionSchedule = "{[j, i,k,l]->[j,i,k,l]}",
+                iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
+                iterationSpace = "{[j,i,k,l] : 0<=j<J and 0<=i<I and 0<=k<K and 0<=l<L}"
+            } : (index,index,index,index,memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
 
         // Expected output from  mttkrp_b.tns:
         // ( ( 16075, 21930, 28505, 35800, 43815 ), ( 10000, 14225, 19180, 24865, 31280 ) )
