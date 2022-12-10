@@ -177,7 +177,7 @@ public:
       exit(1);
     } else {
       std::cerr << "err: "
-                << "unreachable" << std::endl;
+                << "unknown omega::CG_result type" << std::endl;
       exit(1);
     }
   }
@@ -558,7 +558,10 @@ public:
 
     computation.addStmt(s0);
 
-    LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation ================\n");
+    LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
+    LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
+
+    // LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation ================\n");
     // LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j] -> [k,i,l,j]}"
     //                         << "\n");
     // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
