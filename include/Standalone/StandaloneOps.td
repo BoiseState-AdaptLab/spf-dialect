@@ -78,4 +78,13 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
     let regions = (region AnyRegion:$body, VariadicRegion<AnyRegion>:$ufs);
 }
 
+def Standalone_ComputationOp : Standalone_Op<"computation", [NoTerminator]> {
+    let summary = "TODO";
+    let description = [{
+        TODO
+    }];
+
+    let regions = (region AnyRegion:$body);
+}
+
 #endif // STANDALONE_OPS
