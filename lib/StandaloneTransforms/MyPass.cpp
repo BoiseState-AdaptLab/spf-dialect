@@ -454,49 +454,58 @@ std::unique_ptr<standalone::parser::Program> parse(std::string s) {
   return parser.parseProgram();
 }
 
-class ReplaceWithCodeGen : public OpRewritePattern<standalone::BarOp> {
+class ReplaceWithCodeGen : public OpRewritePattern<standalone::ComputationOp> {
 public:
-  using OpRewritePattern<standalone::BarOp>::OpRewritePattern;
+  using OpRewritePattern<standalone::ComputationOp>::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(standalone::BarOp barOp,
+  LogicalResult matchAndRewrite(standalone::ComputationOp computationOp,
                                 PatternRewriter &rewriter) const override {
-
-    // Build up reads and writes
-    ReadWrite reads;
-    ReadWrite writes;
-    { // create reads for inputs
-      auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
-      for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
-        AffineMap map = *(readMaps.begin() + i);
-        std::string read = relationForOperand(map);
-
-        // We won't actually use the data space names for anything, just make
-        // something nice-ish for debugging purposes.
-        char name[100];
-        std::sprintf(name, "input_%zu", i);
-        reads.push_back({name, read});
+    Computation computation; // IEGenLib computation (MLIR computationOp is
+                             // directly analogous)
+    // Run through MLIR statements in MLIR computationOp and populate IEGenLib
+    // computation.
+    for (auto &op : computationOp.getBody().front()) {
+      if (!isa<standalone::BarOp>(op)) {
+        return emitError(op.getLoc(),
+                         "A computation can only contain statements");
       }
-    }
-    { // create reads/writes for outputs
-      auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
-      for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
-        AffineMap map = *(writeMaps.begin() + i);
-        // The += operator counts as both read and write.
-        std::string read_write = relationForOperand(map);
+      standalone::BarOp barOp = cast<standalone::BarOp>(op);
 
-        char name[100];
-        std::sprintf(name, "output_%zu", i);
-        reads.push_back({name, read_write});
-        writes.push_back({name, read_write});
+      // Build up reads and writes
+      ReadWrite reads;
+      ReadWrite writes;
+      { // create reads for inputs
+        auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
+        for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
+          AffineMap map = *(readMaps.begin() + i);
+          std::string read = relationForOperand(map);
+
+          // We won't actually use the data space names for anything, just make
+          // something nice-ish for debugging purposes.
+          char name[100];
+          std::sprintf(name, "input_%zu", i);
+          reads.push_back({name, read});
+        }
       }
+      { // create reads/writes for outputs
+        auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
+        for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
+          AffineMap map = *(writeMaps.begin() + i);
+          // The += operator counts as both read and write.
+          std::string read_write = relationForOperand(map);
+
+          char name[100];
+          std::sprintf(name, "output_%zu", i);
+          reads.push_back({name, read_write});
+          writes.push_back({name, read_write});
+        }
+      }
+
+      // create IEGenLib statement and add to IEGenLib computation
+      Stmt *s = new Stmt("", barOp.getIterationSpace().str(),
+                         barOp.getExecutionSchedule().str(), reads, writes);
+      computation.addStmt(s);
     }
-
-    // Build IEGenLib representation from MLIR operation
-    Computation computation;
-    Stmt *s0 = new Stmt("", barOp.getIterationSpace().str(),
-                        barOp.getExecutionSchedule().str(), reads, writes);
-
-    computation.addStmt(s0);
 
     LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
     LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
@@ -520,13 +529,13 @@ public:
       LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
     }
 
-    auto loop = Walker(rewriter, barOp, llvm::Optional<AffineMap>())
-                    .walk(std::move(simpleAST));
+    // auto loop = Walker(rewriter, barOp, llvm::Optional<AffineMap>())
+    //                 .walk(std::move(simpleAST));
 
-    if (!loop) {
-      return failure();
-    }
-    rewriter.eraseOp(barOp);
+    // if (!loop) {
+    //   return failure();
+    // }
+    rewriter.eraseOp(computationOp);
     LLVM_DEBUG(llvm::dbgs() << "===========================================\n");
     return success();
   }
@@ -544,7 +553,7 @@ void MyPass::runOnOperation() {
   ConversionTarget target(getContext());
   target.addLegalDialect<scf::SCFDialect, arith::ArithmeticDialect,
                          vector::VectorDialect, memref::MemRefDialect>();
-  target.addIllegalOp<standalone::BarOp>();
+  // target.addIllegalOp<standalone::BarOp>();
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
     signalPassFailure();
