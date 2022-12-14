@@ -15,8 +15,8 @@ module {
 							ufNames = [],
 							symbolNames = ["I"],
 							iteratorTypes = ["reduction"],
-							executionSchedule = "{[i]->[0,i,0]}",
-							iterationSpace = "{[i]: 0<=i<I}"
+							executionSchedule = "{[t,x]->[t,0,x,0]}",
+							iterationSpace = "{[t,x] : 1<=t<=T and 1<=x<=X}"
 					} : (index) -> ()
 
 			"standalone.bar"(%I) ({
@@ -30,8 +30,8 @@ module {
 							ufNames = [],
 							symbolNames = ["I"],
 							iteratorTypes = ["reduction"],
-							executionSchedule = "{[i]->[0,i,1]}",
-							iterationSpace = "{[i]: 0<=i<I}"
+							executionSchedule = "{[t,x]->[t,1,x,0]}",
+							iterationSpace = "{[t,x] : 1<=t<=T and 1<=x<=X}"
 					} : (index) -> ()
 		}): () -> ()
 

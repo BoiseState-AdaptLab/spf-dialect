@@ -114,34 +114,37 @@ static SmallVector<Value> makeCanonicalAffineApplies(OpBuilder &builder,
 
 struct Walker {
 public:
-  explicit Walker(mlir::OpBuilder &builder, standalone::BarOp barOp,
+  explicit Walker(mlir::OpBuilder &builder, /* standalone::BarOp barOp, */
                   llvm::Optional<mlir::AffineMap> inverseMap =
                       llvm::Optional<mlir::AffineMap>())
-      : builder(builder), barOp(barOp), inverseMap(inverseMap) {
-    // populate ufNameToRegion
-    auto ufs = barOp.getUfs();
-    auto ufNames = barOp.getUfNames();
-    for (auto &attr : llvm::enumerate(ufNames)) {
-      std::string ufName = attr.value().dyn_cast_or_null<StringAttr>().str();
-      // This *might* be sketchy... I think all regions are stored in the main
-      // context and not moved around, in which case this is safe. But I might
-      // be wrong. Asan hasn't told me about any issues yet.
-      ufNameToRegion[ufName] = &ufs[attr.index()];
-    }
+      : builder(builder), /*barOp(barOp),*/ inverseMap(inverseMap) {
+    // // populate ufNameToRegion
+    // auto ufs = barOp.getUfs();
+    // auto ufNames = barOp.getUfNames();
+    // for (auto &attr : llvm::enumerate(ufNames)) {
+    //   std::string ufName = attr.value().dyn_cast_or_null<StringAttr>().str();
+    //   // This *might* be sketchy... I think all regions are stored in the
+    //   main
+    //   // context and not moved around, in which case this is safe. But I
+    //   might
+    //   // be wrong. Asan hasn't told me about any issues yet.
+    //   ufNameToRegion[ufName] = &ufs[attr.index()];
+    // }
 
-    // populate symbols
-    SmallVector<Value> symbolOperands = barOp.getSymbolOperands();
-    auto symbolNames = barOp.getSymbolNames();
-    for (auto &attr : llvm::enumerate(symbolNames)) {
-      std::string symbolName =
-          attr.value().dyn_cast_or_null<StringAttr>().str();
-      symbols[symbolName] = symbolOperands[attr.index()];
-    }
+    // // populate symbols
+    // SmallVector<Value> symbolOperands = barOp.getSymbolOperands();
+    // auto symbolNames = barOp.getSymbolNames();
+    // for (auto &attr : llvm::enumerate(symbolNames)) {
+    //   std::string symbolName =
+    //       attr.value().dyn_cast_or_null<StringAttr>().str();
+    //   symbols[symbolName] = symbolOperands[attr.index()];
+    // }
 
-    // For aesthetic reasons it is nice to only have one zero and 1 constant op
-    // created.
-    zero = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 0);
-    one = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 1);
+    // // For aesthetic reasons it is nice to only have one zero and 1 constant
+    // op
+    // // created.
+    // zero = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 0);
+    // one = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 1);
   }
 
   llvm::Optional<mlir::Operation *> walk(omega::CG_result *t) {
@@ -157,13 +160,15 @@ public:
   mlir::Value zero;
   mlir::Value one;
   llvm::Optional<mlir::Operation *> maybeOp;
-  standalone::BarOp barOp;
+  // standalone::BarOp barOp;
   llvm::Optional<mlir::AffineMap> inverseMap;
   std::vector<mlir::Value> ivs; // induction variables
+  int debugIndent = 0;
 
   // This could be done in a nicer way with a visitor pattern, but I don't feel
   // like mucking about in t
   void dispatch(omega::CG_result *t) {
+    debugIndent++;
     auto loop = dynamic_cast<omega::CG_loop *>(t);
     auto split = dynamic_cast<omega::CG_split *>(t);
     auto leaf = dynamic_cast<omega::CG_leaf *>(t);
@@ -172,18 +177,34 @@ public:
     } else if (leaf) {
       walkLeaf(leaf);
     } else if (split) {
-      std::cerr << "err: "
-                << "split not implemented" << std::endl;
-      exit(1);
+      walkSplit(split);
     } else {
       std::cerr << "err: "
                 << "unknown omega::CG_result type" << std::endl;
       exit(1);
     }
+    debugIndent--;
+  }
+
+  void walkSplit(omega::CG_split *split) {
+    LLVM_DEBUG(llvm::dbgs() << std::string(debugIndent, ' ') << "split[");
+    LLVM_DEBUG(llvm::dbgs() << "]\n");
+
+    std::vector<omega::CG_result *> next_level = split->findNextLevel();
+    for (auto result : next_level) {
+      auto loop = dynamic_cast<omega::CG_loop *>(result);
+      if (!loop) {
+        std::cerr << "err: "
+                  << "expected omega::CG_loop type inside omega::CG_split"
+                  << std::endl;
+        exit(1);
+      }
+      dispatch(loop);
+    }
   }
 
   void walkLoop(omega::CG_loop *loop) {
-    LLVM_DEBUG(llvm::dbgs() << "loop[");
+    LLVM_DEBUG(llvm::dbgs() << std::string(debugIndent, ' ') << "loop[");
     LLVM_DEBUG(llvm::dbgs() << " level:" << loop->level_);
     LLVM_DEBUG(llvm::dbgs() << " need:" << (loop->needLoop_ ? "y" : "n"));
 
@@ -225,56 +246,58 @@ public:
         }
       }
 
-      if (upperBound.empty() || symbols.find(upperBound) == symbols.end()) {
-        std::cerr << "err: "
-                  << "oh no!" << std::endl;
-        exit(1);
-      }
+      // if (upperBound.empty() || symbols.find(upperBound) == symbols.end()) {
+      //   std::cerr << "err: "
+      //             << "oh no!" << std::endl;
+      //   exit(1);
+      // }
 
-      auto upperBoundValue = symbols[upperBound];
+      // auto upperBoundValue = symbols[upperBound];
 
-      // omega 1 indexes "loop->level_", hence the -1
-      auto iteratorType = barOp.getIteratorTypes()[loop->level_ - 1]
-                              .dyn_cast_or_null<StringAttr>();
+      // // omega 1 indexes "loop->level_", hence the -1
+      // auto iteratorType = barOp.getIteratorTypes()[loop->level_ - 1]
+      //                         .dyn_cast_or_null<StringAttr>();
 
-      // Generate loops.
-      //
-      // TODO: it would be nice to template this but there doesn't appear to be
-      // a common API between ParallelOp and ForOp. There is a LoopLike
-      // Interface but it seems like it doesn't ahve everything we need. Maybe
-      // what we need could be added upstream?
-      if (iteratorType &&
-          iteratorType.getValue() ==
-              "parallel") { // add parallel loop, and update walker state
-        scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
-            barOp.getLoc(), mlir::ValueRange(zero),
-            mlir::ValueRange(upperBoundValue), mlir::ValueRange(one));
+      // // Generate loops.
+      // //
+      // // TODO: it would be nice to template this but there doesn't appear to
+      // be
+      // // a common API between ParallelOp and ForOp. There is a LoopLike
+      // // Interface but it seems like it doesn't ahve everything we need.
+      // Maybe
+      // // what we need could be added upstream?
+      // if (iteratorType &&
+      //     iteratorType.getValue() ==
+      //         "parallel") { // add parallel loop, and update walker state
+      //   scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
+      //       barOp.getLoc(), mlir::ValueRange(zero),
+      //       mlir::ValueRange(upperBoundValue), mlir::ValueRange(one));
 
-        // if this is the top level loop store it off to return
-        if (!maybeOp) {
-          maybeOp = parallelOp;
-        }
+      //   // if this is the top level loop store it off to return
+      //   if (!maybeOp) {
+      //     maybeOp = parallelOp;
+      //   }
 
-        // store off induction variable
-        ivs.push_back(parallelOp.getInductionVars().front());
+      //   // store off induction variable
+      //   ivs.push_back(parallelOp.getInductionVars().front());
 
-        // Start add future loops inside this loop
-        builder.setInsertionPointToStart(parallelOp.getBody());
-      } else { // add regular for loop, and update walker state
-        scf::ForOp forOp = builder.create<scf::ForOp>(barOp.getLoc(), zero,
-                                                      upperBoundValue, one);
+      //   // Start add future loops inside this loop
+      //   builder.setInsertionPointToStart(parallelOp.getBody());
+      // } else { // add regular for loop, and update walker state
+      //   scf::ForOp forOp = builder.create<scf::ForOp>(barOp.getLoc(), zero,
+      //                                                 upperBoundValue, one);
 
-        // if this is the top level loop store it off to return
-        if (!maybeOp) {
-          maybeOp = forOp;
-        }
+      //   // if this is the top level loop store it off to return
+      //   if (!maybeOp) {
+      //     maybeOp = forOp;
+      //   }
 
-        // store off induction variable
-        ivs.push_back(forOp.getInductionVar());
+      //   // store off induction variable
+      //   ivs.push_back(forOp.getInductionVar());
 
-        // Start add future loops inside this loop
-        builder.setInsertionPointToStart(forOp.getBody());
-      }
+      //   // Start add future loops inside this loop
+      //   builder.setInsertionPointToStart(forOp.getBody());
+      // }
     } else { // non loops may require a call to a UF
       // This seems to break a relation such as "t8=UF(a,b)" into equality
       // conjuncts: (there will only be one in this case) "t8=UF(a,b)".
@@ -300,88 +323,98 @@ public:
             }
             LLVM_DEBUG(llvm::dbgs() << " uf_call:" << ufName);
 
-            // TODO: why aren't blocks value types?
-            // Most MLIR types (Attribute for example) are lightweight wrappers
-            // around pointers to storage in the main context that (I think) is
-            // guaranteed not to move around. What makes blocks different?
-            auto &ufBlock = ufNameToRegion[ufName]->front();
+            // // TODO: why aren't blocks value types?
+            // // Most MLIR types (Attribute for example) are lightweight
+            // wrappers
+            // // around pointers to storage in the main context that (I think)
+            // is
+            // // guaranteed not to move around. What makes blocks different?
+            // auto &ufBlock = ufNameToRegion[ufName]->front();
 
-            // TODO: this should probably be done with symbols:
-            // https://mlir.llvm.org/docs/SymbolsAndSymbolTables/ inside
-            // something like integer sets:
-            // https://mlir.llvm.org/docs/Dialects/Affine/#integer-sets that
-            // would replace the string execution schedule.
-            //
-            // We need to create a mapping from the UF arguments to the
-            // generated induction variables and UF inputs to the operation. An
-            // example is given below:
-            //
-            // Inputs to the operation are in 3 segments: UF inputs, inputs, and
-            // outputs.
-            //  - UF inputs: used in UFs but not in the statement.
-            //  - inputs: loads are generated from inputs that are used as
-            //    arguments to the statement.
-            //  - output: loads and stores are generated for/from the statement.
-            //
-            // // a += b * c  where b is a sparse matrix and c is dense
-            // "standalone.bar"(
-            //                   %b_coord_0, // UF input
-            //                   %b_coord_1, // UF input
-            //                   %b_values,  // input
-            //                   %c,         // input
-            //                   %a          // output
-            //                 ) ({ //this region represents be the statement
-            // // statement region omitted.
-            // }, { // this region is the first UF
-            // ^bb0(%uf_b_coord_0,: memref<?xindex>, // This needs to be
-            //                                       // mapped from
-            //                                       // b_coord_0 UF
-            //                                       // input.
-            //      %uf_b_coord_1,: memref<?xindex>, // This needs to be
-            //                                       // mapped from
-            //                                       // b_coord_1 UF
-            //                                       // input.
-            //      %z index // This needs to be mapped from generated induction
-            //               // variable ranging from 0 to NNZ.
-            //     ) :
-            //  // This region is UF 0, it's expected to have the same arguments
-            //  // as the operation's UF input section but can also take any
-            //  // induction variables generated by the time it's called.
-            // %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
-            // // This UF generates %i induction variable.
-            // "standalone.yield"(%i) : (index) -> ()
-            // }, { // this would be another UF
-            // // omitted.
-            // })  { // attribues
-            //       // operand_segment_sizes indicates how large the UF input,
-            //       // input, and output segments are.
-            //       operand_segment_sizes = dense<[2,2, 1]> : vector<3xi32>,
-            //
-            //       // other attributes omitted.
-            //     } : (memref<?xindex>, memref<?xindex>, memref<?xf64>,
-            //          memref<?x?xf64>, memref<?x?xf64>) -> ()
-            //
-            // The UF in the example needs a mapping from the operation's 2 UF
-            // inputs (%b_coord_0, %b_coord_1) and the generated induction
-            // variable to the arguments to the UF (%uf_b_coord_0, uf_b_coord_1,
-            // %z).
-            SmallVector<Value> ufArgs = barOp.getUFInputOperands();
-            ufArgs.insert(ufArgs.end(), ivs.begin(), ivs.end());
-            BlockAndValueMapping map; // holds a mapping between values.
-            map.map(/*from*/ ufBlock.getArguments(),
-                    /*to*/ ufArgs);
+            // // TODO: this should probably be done with symbols:
+            // // https://mlir.llvm.org/docs/SymbolsAndSymbolTables/ inside
+            // // something like integer sets:
+            // // https://mlir.llvm.org/docs/Dialects/Affine/#integer-sets that
+            // // would replace the string execution schedule.
+            // //
+            // // We need to create a mapping from the UF arguments to the
+            // // generated induction variables and UF inputs to the operation.
+            // An
+            // // example is given below:
+            // //
+            // // Inputs to the operation are in 3 segments: UF inputs, inputs,
+            // and
+            // // outputs.
+            // //  - UF inputs: used in UFs but not in the statement.
+            // //  - inputs: loads are generated from inputs that are used as
+            // //    arguments to the statement.
+            // //  - output: loads and stores are generated for/from the
+            // statement.
+            // //
+            // // // a += b * c  where b is a sparse matrix and c is dense
+            // // "standalone.bar"(
+            // //                   %b_coord_0, // UF input
+            // //                   %b_coord_1, // UF input
+            // //                   %b_values,  // input
+            // //                   %c,         // input
+            // //                   %a          // output
+            // //                 ) ({ //this region represents be the statement
+            // // // statement region omitted.
+            // // }, { // this region is the first UF
+            // // ^bb0(%uf_b_coord_0,: memref<?xindex>, // This needs to be
+            // //                                       // mapped from
+            // //                                       // b_coord_0 UF
+            // //                                       // input.
+            // //      %uf_b_coord_1,: memref<?xindex>, // This needs to be
+            // //                                       // mapped from
+            // //                                       // b_coord_1 UF
+            // //                                       // input.
+            // //      %z index // This needs to be mapped from generated
+            // induction
+            // //               // variable ranging from 0 to NNZ.
+            // //     ) :
+            // //  // This region is UF 0, it's expected to have the same
+            // arguments
+            // //  // as the operation's UF input section but can also take any
+            // //  // induction variables generated by the time it's called.
+            // // %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
+            // // // This UF generates %i induction variable.
+            // // "standalone.yield"(%i) : (index) -> ()
+            // // }, { // this would be another UF
+            // // // omitted.
+            // // })  { // attribues
+            // //       // operand_segment_sizes indicates how large the UF
+            // input,
+            // //       // input, and output segments are.
+            // //       operand_segment_sizes = dense<[2,2, 1]> : vector<3xi32>,
+            // //
+            // //       // other attributes omitted.
+            // //     } : (memref<?xindex>, memref<?xindex>, memref<?xf64>,
+            // //          memref<?x?xf64>, memref<?x?xf64>) -> ()
+            // //
+            // // The UF in the example needs a mapping from the operation's 2
+            // UF
+            // // inputs (%b_coord_0, %b_coord_1) and the generated induction
+            // // variable to the arguments to the UF (%uf_b_coord_0,
+            // uf_b_coord_1,
+            // // %z).
+            // SmallVector<Value> ufArgs = barOp.getUFInputOperands();
+            // ufArgs.insert(ufArgs.end(), ivs.begin(), ivs.end());
+            // BlockAndValueMapping map; // holds a mapping between values.
+            // map.map(/*from*/ ufBlock.getArguments(),
+            //         /*to*/ ufArgs);
 
-            // Inlines the UF region with the mapping we created above.
-            for (auto &op : ufBlock.without_terminator()) {
-              // clone creates the op with the map applied.
-              builder.clone(op, map);
-            }
+            // // Inlines the UF region with the mapping we created above.
+            // for (auto &op : ufBlock.without_terminator()) {
+            //   // clone creates the op with the map applied.
+            //   builder.clone(op, map);
+            // }
 
-            // The UF generates an induction variable with the terminator.
-            Operation *terminator = ufBlock.getTerminator();
-            OpOperand &operand = terminator->getOpOperands()[0];
-            Value iv = map.lookupOrDefault(operand.get());
-            ivs.push_back(iv);
+            // // The UF generates an induction variable with the terminator.
+            // Operation *terminator = ufBlock.getTerminator();
+            // OpOperand &operand = terminator->getOpOperands()[0];
+            // Value iv = map.lookupOrDefault(operand.get());
+            // ivs.push_back(iv);
           }
         }
       }
@@ -436,68 +469,82 @@ public:
   ///    }
   /// ```
   void walkLeaf(omega::CG_leaf *leaf) {
-    LLVM_DEBUG(llvm::dbgs() << "leaf\n");
+    LLVM_DEBUG(llvm::dbgs() << std::string(debugIndent, ' ') << "leaf[");
+    LLVM_DEBUG(llvm::dbgs() << " statement:" << *leaf->active_.begin() << " ");
+    LLVM_DEBUG(llvm::dbgs() << "]\n");
 
-    auto loc = barOp->getLoc();
+    // auto i = leaf->active_.begin();
+    // omega::Relation mapping = omega::Inverse(omega::copy((leaf->codegen_->remap_[*i])));
+    // mapping.simplify();
+    // mapping.setup_names();
+    // std::vector<std::string> loop_vars;
+    // for (int k = 1; k <= mapping.n_out(); k++)
+    //   loop_vars.push_back(mapping.output_var(k)->name());
 
-    // TODO: apply fixMap with llvm::map_range(
-    auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
-    auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
+    // printf("boing\n");
 
-    SmallVector<Value> indexedValues;
-    indexedValues.reserve(barOp.getInputs().size());
-    { // 1.a. produce loads from input memrefs
-      SmallVector<Value> inputOperands = barOp.getInputOperands();
-      for (size_t i = 0; i < inputOperands.size(); i++) {
-        // read the map that corresponds with the current inputOperand. It seems
-        // like this would be better using the subscript "[]" operator, but
-        // indexingMaps doesn't provide one.
-        auto map = fixMap(*(readMaps.begin() + i));
-        auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
-        indexedValues.push_back(
-            builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
-      }
-    }
 
-    // 1.b. Emit load for output memrefs
-    SmallVector<Value> outputOperands = barOp.getOutputOperands();
-    for (size_t i = 0; i < outputOperands.size(); i++) {
-      // read the map that corresponds with the current inputOperand.
-      AffineMap map = fixMap(*(writeMaps.begin() + i));
+    // auto loc = barOp->getLoc();
 
-      SmallVector<Value> indexing =
-          makeCanonicalAffineApplies(builder, loc, map, ivs);
-      indexedValues.push_back(
-          builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
-    }
+    // // TODO: apply fixMap with llvm::map_range(
+    // auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
+    // auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
 
-    // TODO: there's no validation that the region has a block.
-    auto &block = barOp.getBody().front();
+    // SmallVector<Value> indexedValues;
+    // indexedValues.reserve(barOp.getInputs().size());
+    // { // 1.a. produce loads from input memrefs
+    //   SmallVector<Value> inputOperands = barOp.getInputOperands();
+    //   for (size_t i = 0; i < inputOperands.size(); i++) {
+    //     // read the map that corresponds with the current inputOperand. It
+    //     seems
+    //     // like this would be better using the subscript "[]" operator, but
+    //     // indexingMaps doesn't provide one.
+    //     auto map = fixMap(*(readMaps.begin() + i));
+    //     auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
+    //     indexedValues.push_back(
+    //         builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
+    //   }
+    // }
 
-    // 2. inline statement
-    BlockAndValueMapping map; // holds a mapping between values.
-    map.map(block.getArguments(), indexedValues);
-    for (auto &op : block.without_terminator()) {
-      // clone creates the op with the map applied.
-      builder.clone(op, map);
-    }
+    // // 1.b. Emit load for output memrefs
+    // SmallVector<Value> outputOperands = barOp.getOutputOperands();
+    // for (size_t i = 0; i < outputOperands.size(); i++) {
+    //   // read the map that corresponds with the current inputOperand.
+    //   AffineMap map = fixMap(*(writeMaps.begin() + i));
 
-    // 3. emit store
-    SmallVector<SmallVector<Value>, 8> indexing;
-    SmallVector<Value> outputBuffers;
-    for (size_t i = 0; i < outputOperands.size(); i++) {
-      // read the map that corresponds with the current inputOperand.
-      AffineMap map = fixMap(*(writeMaps.begin() + i));
-      indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, ivs));
-      outputBuffers.push_back(outputOperands[i]);
-    }
-    Operation *terminator = block.getTerminator();
-    for (OpOperand &operand : terminator->getOpOperands()) {
-      Value toStore = map.lookupOrDefault(operand.get());
-      builder.create<memref::StoreOp>(loc, toStore,
-                                      outputBuffers[operand.getOperandNumber()],
-                                      indexing[operand.getOperandNumber()]);
-    }
+    //   SmallVector<Value> indexing =
+    //       makeCanonicalAffineApplies(builder, loc, map, ivs);
+    //   indexedValues.push_back(
+    //       builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
+    // }
+
+    // // TODO: there's no validation that the region has a block.
+    // auto &block = barOp.getBody().front();
+
+    // // 2. inline statement
+    // BlockAndValueMapping map; // holds a mapping between values.
+    // map.map(block.getArguments(), indexedValues);
+    // for (auto &op : block.without_terminator()) {
+    //   // clone creates the op with the map applied.
+    //   builder.clone(op, map);
+    // }
+
+    // // 3. emit store
+    // SmallVector<SmallVector<Value>, 8> indexing;
+    // SmallVector<Value> outputBuffers;
+    // for (size_t i = 0; i < outputOperands.size(); i++) {
+    //   // read the map that corresponds with the current inputOperand.
+    //   AffineMap map = fixMap(*(writeMaps.begin() + i));
+    //   indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, ivs));
+    //   outputBuffers.push_back(outputOperands[i]);
+    // }
+    // Operation *terminator = block.getTerminator();
+    // for (OpOperand &operand : terminator->getOpOperands()) {
+    //   Value toStore = map.lookupOrDefault(operand.get());
+    //   builder.create<memref::StoreOp>(loc, toStore,
+    //                                   outputBuffers[operand.getOperandNumber()],
+    //                                   indexing[operand.getOperandNumber()]);
+    // }
   }
 };
 
@@ -568,8 +615,14 @@ public:
       computation.addStmt(s);
     }
 
+    // skew
+    computation.addTransformation(0, new Relation("{[a,b,c,d]->[a,b,x,d]:x=c-1}"));
+
+    // fuse
+    computation.fuse(0,1,3);
+
     LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
-    LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
+    LLVM_DEBUG(llvm::dbgs() << computation.codeGen() << "\n");
 
     // // LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation
     // ================\n");
@@ -582,7 +635,9 @@ public:
 
     // generate MLIR from omega AST
     omega::CG_result *ast = computation.thing();
-    // auto loop = Walker(rewriter, barOp).walk(ast);
+    // LLVM_DEBUG(llvm::dbgs() << "ast->printString() ========================\n");
+    // LLVM_DEBUG(llvm::dbgs() << ast->printString() << "\n");
+    auto loop = Walker(rewriter).walk(ast);
 
     // if (!loop) {
     //   return failure();
