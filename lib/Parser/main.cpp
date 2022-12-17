@@ -5,8 +5,10 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -378,8 +380,8 @@ public:
   std::unique_ptr<Symbol> stop;
   int step;
 
-  LoopAST(Location loc, std::vector<std::unique_ptr<AST>> &&block, int start, std::unique_ptr<Symbol> stop,
-          int step)
+  LoopAST(Location loc, std::vector<std::unique_ptr<AST>> &&block, int start,
+          std::unique_ptr<Symbol> stop, int step)
       : AST(std::move(loc)), block(std::move(block)), start(start), stop(std::move(stop)),
         step(step){};
 
@@ -403,36 +405,53 @@ class DumpVisitor : public VisitorBase {
   void visit(LoopAST *loop) override {
     printf("%s", std::string(indent, ' ').c_str());
 
-    printf("loop[start:%d, stop:%s, step:%d] {\n", loop->start, loop->stop->symbol.c_str(), loop->step);
+    printf("loop{start:%d, stop:%s, step:%d body:[\n", loop->start,
+           dumpSymbolOrInt(loop->stop.get()).c_str(), loop->step);
     indent += 2;
     for (auto &statement : loop->block) {
       statement->accept(*this);
     }
     indent -= 2;
-    printf("%s", std::string(indent, ' ').c_str());
-    printf("}\n");
+
+    // If we have an indent assume we're in a list and print a comma. This is a
+    // little hacky but the alternative was to have the visitor return a
+    // templated type. That's just a lot of templates. Not worth it in this
+    // case.
+    printf("%s]}%s", std::string(indent, ' ').c_str(), indent > 0 ? ",\n" : "\n");
   }
 
   void visit(CallAST *call) override {
     printf("%s", std::string(indent, ' ').c_str());
 
-    printf("call[statementNumber:%d, args:[", call->statementNumber);
-    for (auto symbolOrInt : llvm::enumerate(call->args)) {
-      if (symbolOrInt.index() != 0) {
-        printf(",");
+    printf("call{statementNumber:%d, args:[", call->statementNumber);
+    int first = true;
+    for (auto &symbolOrInt : call->args) {
+      if (first) {
+        first = false;
+      } else {
+        printf(", ");
       }
-
-      llvm::TypeSwitch<SymbolOrInt *>(symbolOrInt.value().get())
-          .Case<Symbol>([&](auto *symbol) {
-            printf("%ld:symbol(%s)", symbolOrInt.index(), symbol->symbol.c_str());
-          })
-          .Case<Int>(
-              [&](auto *integer) { printf("%ld:int(%d)", symbolOrInt.index(), integer->val); })
-          .Default([&](SymbolOrInt *) {
-            llvm::errs() << "<unknown SymbolOrInt,kind " << symbolOrInt.value()->getKind() << ">\n";
-          });
+      printf("%s", dumpSymbolOrInt(symbolOrInt.get()).c_str());
     }
-    printf("]]\n");
+    printf("]}%s", indent > 0 ? ",\n" : "\n");
+  }
+
+  std::string dumpSymbolOrInt(SymbolOrInt *symbolOrInt) {
+    std::stringstream ss;
+    llvm::TypeSwitch<SymbolOrInt *>(symbolOrInt)
+        .Case<Symbol>([&](auto *symbol) {
+          ss << "symbol{symbol:" << symbol->symbol;
+          if (symbol->increment) {
+            ss << ",increment:" << symbol->increment;
+          }
+          ss << "}";
+        })
+        .Case<Int>([&](auto *integer) { ss << "int{val:" << integer->val << "}"; })
+        .Default([&](SymbolOrInt *) {
+          ss << "<unknown SymbolOrInt,kind " << symbolOrInt->getKind() << ">\n";
+          exit(1);
+        });
+    return ss.str();
   }
 };
 
@@ -667,7 +686,8 @@ private:
 struct AVisitor : VisitorBase {
 
   void visit(LoopAST *loop) override {
-    printf("loop [start: %d, stop: %s, step %d]\n", loop->start, loop->stop->symbol.c_str(), loop->step);
+    printf("loop [start: %d, stop: %s, step %d]\n", loop->start, loop->stop->symbol.c_str(),
+           loop->step);
     indent++;
   }
 
