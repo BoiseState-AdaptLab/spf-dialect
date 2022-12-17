@@ -41,22 +41,21 @@ enum Token : int {
   tok_eof = -1,
 
   tok_for = -2,
-  tok_var = -3,
-  tok_def = -4,
+  tok_if = -3,
 
   // primary
-  tok_identifier = -5,
-  tok_int = -6,
+  tok_identifier = -4,
+  tok_int = -5,
 
   // order
   tok_less = '<',
   tok_greater = '>',
-  tok_less_equal = -7,    // <=
-  tok_greater_equal = -8, // >=
+  tok_less_equal = -6,    // <=
+  tok_greater_equal = -7, // >=
 
   // increment/decrement operator
-  tok_increment = -9,  // ++
-  tok_decrement = -10, // --
+  tok_increment = -8,  // ++
+  tok_decrement = -9, // --
 };
 
 /// Lexer goes through the stream one token at a time and keeps track the
@@ -172,10 +171,8 @@ public:
 
       if (identifierStr == "for")
         return tok_for;
-      if (identifierStr == "def")
-        return tok_def;
-      if (identifierStr == "var")
-        return tok_var;
+      if (identifierStr == "if")
+        return tok_if;
       return tok_identifier;
     }
 
@@ -243,66 +240,6 @@ public:
   /// Buffer supplied by the derived class on calls to `readNextLine()`
   llvm::StringRef curLineBuffer = "\n";
 };
-
-// Adapted from
-// https://gist.github.com/arslancharyev31/c48d18d8f917ffe217a0e23eb3535957.
-// I added the "program" production, all others I simply modified or removed.
-//
-// {
-//     tokens=[
-//          identifier='regexp:[a-zA-Z][a-zA-Z0-9_]*'
-//
-//          integer-constant='regexp:\d+'
-//     ]
-// }
-//
-// program ::= statement+
-//
-// statement ::= expression-statement
-//               | compound-statement
-//               | selection-statement
-//               | iteration-statement
-// expression-statement ::= {expression}? ';'
-// compound-statement ::= '{' {statement}* '}'
-// selection-statement ::= if '(' expression ')' statement
-// iteration-statement ::= for '(' {expression}? ';' {expression}? ';' {expression}? ')' statement
-//
-// expression ::= assignment-expression
-// assignment-expression ::= conditional-expression
-//                           | unary-expression assignment-operator assignment-expression
-// conditional-expression ::= logical-or-expression
-// logical-or-expression ::= logical-and-expression
-// logical-and-expression ::= inclusive-or-expression
-// inclusive-or-expression ::= exclusive-or-expression
-// exclusive-or-expression ::= and-expression
-// and-expression ::= equality-expression
-// equality-expression ::= relational-expression
-// relational-expression ::= shift-expression
-//                           | relational-expression '<' shift-expression
-//                           | relational-expression '>' shift-expression
-//                           | relational-expression '<=' shift-expression
-//                           | relational-expression '>=' shift-expression
-// shift-expression ::= additive-expression
-// additive-expression ::= multiplicative-expression
-//                         | additive-expression '+' multiplicative-expression
-//                         | additive-expression '-' multiplicative-expression
-// multiplicative-expression ::= cast-expression
-// cast-expression ::= unary-expression
-// unary-expression ::= postfix-expression
-//                      | postfix-expression '(' {assignment-expression}* ')'
-//                      | '++' unary-expression
-//                      | '--' unary-expression
-//                      | unary-operator cast-expression
-// postfix-expression ::= primary-expression
-//                        | postfix-expression '++'
-//                        | postfix-expression '--'
-// primary-expression ::= identifier
-//                        | constant
-//
-// unary-operator ::= '+'
-//                    | '-'
-// assignment-operator ::= '='
-// constant ::= integer-constant
 
 class VisitorBase;
 
@@ -506,6 +443,22 @@ private:
       return parseLoop();
     } else if (lexer.getCurToken() == tok_identifier) {
       return parseCall();
+    } else if (lexer.getCurToken() == tok_if) {
+      // We're just throwing out 'if' statements for now. The only ones in the
+      // examples that are currently using just do some error checking that
+      // isn't important. TODO: There's definitely are cases
+      // where an if statement is important, parse them properly.
+
+      EXPECT_AND_CONSUME(tok_if, "if statement")
+      EXPECT_AND_CONSUME(tok_parentheses_open, "if statement")
+      while (lexer.getCurToken() != tok_parentheses_close) {
+        lexer.consume(lexer.getCurToken());
+      }
+      EXPECT_AND_CONSUME(tok_parentheses_close, "if statement")
+      EXPECT_AND_CONSUME(tok_bracket_open, "if statement")
+      auto inside = parseStatement();
+      EXPECT_AND_CONSUME(tok_bracket_close, "if statement")
+      return inside;
     } else {
       return parseError<AST>("for loop or statement call", "parsing statement");
     }
@@ -708,16 +661,7 @@ int main(int argc, char *argv[]) {
                   "    s1(t1,0,X,1);\n"
                   "  }\n"
                   "}\n";
-
-  std::string s1 = "  for(t1 = 1; t1 <= T; t1++) {\n"
-                   "    s0(t1,0,0,0);\n"
-                   "    for(t3 = 1; t3 <= X-1; t3++) {\n"
-                   "      s0(t1,0,t3,0);\n"
-                   "      s1(t1,0,t3,1);\n"
-                   "    }\n"
-                   "    s1(t1,0,X,1);\n"
-                   "  }\n";
-  auto lexer = Lexer(std::move(s1));
+  auto lexer = Lexer(std::move(s));
   auto parser = Parser(lexer);
   auto program = parser.parseProgram();
   if (program) {
