@@ -375,11 +375,15 @@ public:
 
 class DumpVisitor : public VisitorBase {
   int indent = 0;
-  void visit(LoopAST *loop) override {
-    printf("%s", std::string(indent, ' ').c_str());
+  std::stringstream ss;
 
-    printf("loop{start:%d, stop:%s, step:%d body:[\n", loop->start,
-           dumpSymbolOrInt(loop->stop.get()).c_str(), loop->step);
+public:
+  void visit(LoopAST *loop) override {
+    ss << std::string(indent, ' ');
+
+    ss << "loop{start:" << loop->start
+       << ", stop:" << dumpSymbolOrInt(loop->stop.get())
+       << ", step:" << loop->step << " body:[\n";
     indent += 2;
     for (auto &statement : loop->block) {
       statement->accept(*this);
@@ -390,28 +394,33 @@ class DumpVisitor : public VisitorBase {
     // little hacky but the alternative was to have the visitor return a
     // templated type. That's just a lot of templates. Not worth it in this
     // case.
-    printf("%s]}%s", std::string(indent, ' ').c_str(),
-           indent > 0 ? ",\n" : "\n");
+    ss << std::string(indent, ' ') << "]}" << (indent > 0 ? ",\n" : "\n");
   }
 
   void visit(CallAST *call) override {
-    printf("%s", std::string(indent, ' ').c_str());
+    ss << std::string(indent, ' ');
 
-    printf("call{statementNumber:%d, args:[", call->statementNumber);
+    ss << "call{statementNumber:" << call->statementNumber <<", args:[";
     int first = true;
     for (auto &symbolOrInt : call->args) {
       if (first) {
         first = false;
       } else {
-        printf(", ");
+        ss << ", ";
       }
-      printf("%s", dumpSymbolOrInt(symbolOrInt.get()).c_str());
+      ss << dumpSymbolOrInt(symbolOrInt.get());
     }
-    printf("]}%s", indent > 0 ? ",\n" : "\n");
+    ss << "]}" << (indent > 0 ? ",\n" : "\n");
   }
 
-  void visit(UFAssignmentAST *call) override { printf("UF assignment\n"); }
+  void visit(UFAssignmentAST *call) override { ss << "UF assignment\n"; }
 
+  // virtual methods can't be templated so getting the visitor to return a
+  // string and build it up that way would require a lot of Type Erasure
+  // nonsense. This works and is pretty easy.
+  std::string output() { return ss.str(); }
+
+private:
   std::string dumpSymbolOrInt(SymbolOrInt *symbolOrInt) {
     std::stringstream ss;
     llvm::TypeSwitch<SymbolOrInt *>(symbolOrInt)
@@ -437,11 +446,12 @@ public:
   explicit Program(std::vector<std::unique_ptr<AST>> &&statements)
       : statements(std::move(statements)){};
 
-  void dump() {
+  std::string dump() {
     DumpVisitor d;
     for (auto &statement : statements) {
       statement->accept(d);
     }
+    return d.output();
   }
 
 private:

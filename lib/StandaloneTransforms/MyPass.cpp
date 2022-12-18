@@ -587,7 +587,7 @@ public:
     LLVM_DEBUG(llvm::dbgs() << "parse =====================================\n");
     auto simpleAST = parse(codeJen);
     if (simpleAST) {
-      simpleAST->dump();
+      LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
     }
 
     auto loop = Walker(rewriter, barOp).walk(ast);
