@@ -1,3 +1,4 @@
+#include "Parser.h"
 #include "Printer.h"
 #include "Standalone/StandaloneDialect.h"
 #include "Standalone/StandaloneOps.h"
@@ -37,6 +38,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <iomanip>
+#include <memory>
 #include <omega.h>
 #include <ostream>
 #include <string>
@@ -515,6 +517,12 @@ std::string relationForOperand(AffineMap map) {
   return read;
 };
 
+std::unique_ptr<standalone::parser::Program> parse(std::string s) {
+  auto lexer = standalone::parser::Lexer(std::move(s));
+  auto parser = standalone::parser::Parser(lexer);
+  return parser.parseProgram();
+}
+
 class ReplaceWithCodeGen : public OpRewritePattern<standalone::BarOp> {
 public:
   using OpRewritePattern<standalone::BarOp>::OpRewritePattern;
@@ -559,14 +567,22 @@ public:
     computation.addStmt(s0);
 
     LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation ================\n");
-    // LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j] -> [k,i,l,j]}"
-    //                         << "\n");
+    LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j] -> [k,i,l,j]}"
+                            << "\n");
     // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
     // mttkrp.addTransformation(0, transform);
     // AffineMap inverseMap = createInverse(transform, s0, rewriter);
     // LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
 
     // generate MLIR from omega AST
+    LLVM_DEBUG(llvm::dbgs() << "codeJen ===================================\n");
+    std::string codeJen = computation.codeJen();
+    LLVM_DEBUG(llvm::dbgs() << codeJen);
+
+    LLVM_DEBUG(llvm::dbgs() << "parse =====================================\n");
+    auto simpleAST = parse(codeJen);
+    simpleAST->dump();
+
     omega::CG_result *ast = computation.thing();
     auto loop = Walker(rewriter, barOp).walk(ast);
 

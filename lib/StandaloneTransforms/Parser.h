@@ -1,5 +1,6 @@
+#ifndef STANDALONE_PARSER_H
+#define STANDALONE_PARSER_H
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/TypeSwitch.h"
 #include "llvm/Support/raw_ostream.h"
@@ -15,6 +16,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+namespace mlir {
+namespace standalone {
+namespace parser {
 
 /// Structure definition a location in a file.
 struct Location {
@@ -54,7 +59,7 @@ enum Token : int {
   tok_greater_equal = -7, // >=
 
   // increment/decrement operator
-  tok_increment = -8,  // ++
+  tok_increment = -8, // ++
   tok_decrement = -9, // --
 };
 
@@ -66,7 +71,8 @@ class Lexer {
 public:
   /// Create a lexer for the given filename. The filename is kept only for
   /// debugging purposes (attaching a location to a Token).
-  explicit Lexer(std::string &&fromOmega) : buffer(std::move(fromOmega)), lastLocation({0, 0}) {
+  explicit Lexer(std::string &&fromOmega)
+      : buffer(std::move(fromOmega)), lastLocation({0, 0}) {
     bufferCurrent = buffer.begin();
     bufferEnd = buffer.end();
   }
@@ -110,11 +116,13 @@ public:
   /// of the buffer.
   llvm::StringRef readNextLine() {
     auto begin = bufferCurrent;
-    while (bufferCurrent <= bufferEnd && *bufferCurrent && *bufferCurrent != '\n')
+    while (bufferCurrent <= bufferEnd && *bufferCurrent &&
+           *bufferCurrent != '\n')
       ++bufferCurrent;
     if (bufferCurrent <= bufferEnd && *bufferCurrent)
       ++bufferCurrent;
-    llvm::StringRef result{begin.base(), static_cast<size_t>(bufferCurrent - begin)};
+    llvm::StringRef result{begin.base(),
+                           static_cast<size_t>(bufferCurrent - begin)};
     return result;
   }
 
@@ -282,20 +290,25 @@ public:
   int increment;
 
   explicit Symbol(Location loc, std::string &&symbol, int increment)
-      : SymbolOrInt(SymbolOrInt_Symbol, std::move(loc)), symbol(std::move(symbol)),
-        increment(increment) {}
+      : SymbolOrInt(SymbolOrInt_Symbol, std::move(loc)),
+        symbol(std::move(symbol)), increment(increment) {}
 
   /// LLVM style RTTI
-  static bool classof(const SymbolOrInt *c) { return c->getKind() == SymbolOrInt_Symbol; }
+  static bool classof(const SymbolOrInt *c) {
+    return c->getKind() == SymbolOrInt_Symbol;
+  }
 };
 
 class Int : public SymbolOrInt {
 public:
   int val;
-  Int(Location loc, int val) : SymbolOrInt(SymbolOrInt_Int, std::move(loc)), val(val) {}
+  Int(Location loc, int val)
+      : SymbolOrInt(SymbolOrInt_Int, std::move(loc)), val(val) {}
 
   /// LLVM style RTTI
-  static bool classof(const SymbolOrInt *c) { return c->getKind() == SymbolOrInt_Int; }
+  static bool classof(const SymbolOrInt *c) {
+    return c->getKind() == SymbolOrInt_Int;
+  }
 };
 
 class LoopAST;
@@ -319,8 +332,8 @@ public:
 
   LoopAST(Location loc, std::vector<std::unique_ptr<AST>> &&block, int start,
           std::unique_ptr<Symbol> stop, int step)
-      : AST(std::move(loc)), block(std::move(block)), start(start), stop(std::move(stop)),
-        step(step){};
+      : AST(std::move(loc)), block(std::move(block)), start(start),
+        stop(std::move(stop)), step(step){};
 
   void accept(VisitorBase &b) override { b.visit(this); }
 };
@@ -332,7 +345,8 @@ public:
 
   explicit CallAST(Location loc, int statementNumber,
                    std::vector<std::unique_ptr<SymbolOrInt>> args)
-      : AST(std::move(loc)), statementNumber(statementNumber), args(std::move(args)){};
+      : AST(std::move(loc)), statementNumber(statementNumber),
+        args(std::move(args)){};
 
   void accept(VisitorBase &b) override { b.visit(this); }
 };
@@ -354,7 +368,8 @@ class DumpVisitor : public VisitorBase {
     // little hacky but the alternative was to have the visitor return a
     // templated type. That's just a lot of templates. Not worth it in this
     // case.
-    printf("%s]}%s", std::string(indent, ' ').c_str(), indent > 0 ? ",\n" : "\n");
+    printf("%s]}%s", std::string(indent, ' ').c_str(),
+           indent > 0 ? ",\n" : "\n");
   }
 
   void visit(CallAST *call) override {
@@ -383,7 +398,8 @@ class DumpVisitor : public VisitorBase {
           }
           ss << "}";
         })
-        .Case<Int>([&](auto *integer) { ss << "int{val:" << integer->val << "}"; })
+        .Case<Int>(
+            [&](auto *integer) { ss << "int{val:" << integer->val << "}"; })
         .Default([&](SymbolOrInt *) {
           ss << "<unknown SymbolOrInt,kind " << symbolOrInt->getKind() << ">\n";
           exit(1);
@@ -431,9 +447,9 @@ public:
   }
 
 private:
-#define EXPECT_AND_CONSUME(tok, context)                                                           \
-  if (lexer.getCurToken() != tok)                                                                  \
-    return parseError<AST>(tok, context);                                                          \
+#define EXPECT_AND_CONSUME(tok, context)                                       \
+  if (lexer.getCurToken() != tok)                                              \
+    return parseError<AST>(tok, context);                                      \
   lexer.consume(tok);
 
   Lexer &lexer;
@@ -482,10 +498,12 @@ private:
     while (lexer.getCurToken() != tok_parentheses_close) {
       // 't1'|'0'
       if (lexer.getCurToken() == tok_identifier) {
-        args.push_back(std::make_unique<Symbol>(lexer.getLastLocation(), lexer.getId(), 0));
+        args.push_back(std::make_unique<Symbol>(lexer.getLastLocation(),
+                                                lexer.getId(), 0));
         lexer.consume(tok_identifier);
       } else if (lexer.getCurToken() == tok_int) {
-        args.push_back(std::make_unique<Int>(lexer.getLastLocation(), lexer.getValue()));
+        args.push_back(
+            std::make_unique<Int>(lexer.getLastLocation(), lexer.getValue()));
         lexer.consume(tok_int);
       } else {
         return parseError<AST>("identifier or int", context);
@@ -539,8 +557,8 @@ private:
       return parseError<AST>("induction var", context);
     {
       auto var = lexer.getId();
-      assert(var == inductionVar &&
-             "expected induction var to reman the same between initializer and condition");
+      assert(var == inductionVar && "expected induction var to reman the same "
+                                    "between initializer and condition");
     }
     lexer.consume(tok_identifier);
 
@@ -576,7 +594,8 @@ private:
       increment = increment_sign * lexer.getValue();
       lexer.consume(tok_int);
     }
-    auto stop = std::make_unique<Symbol>(lexer.lastLocation, std::move(stopSymbol), increment);
+    auto stop = std::make_unique<Symbol>(lexer.lastLocation,
+                                         std::move(stopSymbol), increment);
 
     // `;`
     if (lexer.getCurToken() != tok_semicolon)
@@ -588,8 +607,8 @@ private:
       return parseError<AST>("induction var", context);
     {
       auto var = lexer.getId();
-      assert(var == inductionVar &&
-             "expected induction var to reman the same between initializer and increment");
+      assert(var == inductionVar && "expected induction var to reman the same "
+                                    "between initializer and increment");
     }
     lexer.consume(tok_identifier);
 
@@ -616,7 +635,8 @@ private:
     }
     EXPECT_AND_CONSUME(tok_bracket_close, context);
 
-    return std::make_unique<LoopAST>(loc, std::move(block), start, std::move(stop), step);
+    return std::make_unique<LoopAST>(loc, std::move(block), start,
+                                     std::move(stop), step);
   }
 
   /// Helper function to signal errors while parsing, it takes an argument
@@ -626,8 +646,8 @@ private:
   std::unique_ptr<R> parseError(T &&expected, U &&context = "") {
     auto curToken = lexer.getCurToken();
     llvm::errs() << "Parse error (" << lexer.getLastLocation().line << ", "
-                 << lexer.getLastLocation().col << "): expected '" << expected << "' " << context
-                 << " but has Token " << curToken;
+                 << lexer.getLastLocation().col << "): expected '" << expected
+                 << "' " << context << " but has Token " << curToken;
     if (isprint(curToken))
       llvm::errs() << " '" << (char)curToken << "'";
     llvm::errs() << "\n";
@@ -636,35 +656,8 @@ private:
 #undef EXPECT_AND_CONSUME
 };
 
-struct AVisitor : VisitorBase {
+} // namespace parser
+} // namespace standalone
+} // namespace mlir
 
-  void visit(LoopAST *loop) override {
-    printf("loop [start: %d, stop: %s, step %d]\n", loop->start, loop->stop->symbol.c_str(),
-           loop->step);
-    indent++;
-  }
-
-  void visit(CallAST *call) override { printf("call"); }
-
-private:
-  int indent = 0;
-};
-
-int main(int argc, char *argv[]) {
-  std::string s = "if (X >= 1) {\n"
-                  "  for(t1 = 1; t1 <= T; t1++) {\n"
-                  "    s0(t1,0,0,0);\n"
-                  "    for(t3 = 1; t3 <= X-1; t3++) {\n"
-                  "      s0(t1,0,t3,0);\n"
-                  "      s1(t1,0,t3,1);\n"
-                  "    }\n"
-                  "    s1(t1,0,X,1);\n"
-                  "  }\n"
-                  "}\n";
-  auto lexer = Lexer(std::move(s));
-  auto parser = Parser(lexer);
-  auto program = parser.parseProgram();
-  if (program) {
-    program->dump();
-  }
-}
+#endif // STANDALONE_PARSER_H
