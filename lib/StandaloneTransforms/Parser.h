@@ -314,7 +314,7 @@ public:
 };
 
 class LoopAST;
-class CallAST;
+class StatementCallAST;
 class UFAssignmentAST;
 
 class VisitorBase {
@@ -323,7 +323,7 @@ public:
 
   virtual void visit(LoopAST *loop) = 0;
 
-  virtual void visit(CallAST *call) = 0;
+  virtual void visit(StatementCallAST *call) = 0;
 
   virtual void visit(UFAssignmentAST *call) = 0;
 };
@@ -360,12 +360,12 @@ public:
   void accept(VisitorBase &b) override { b.visit(this); }
 };
 
-class CallAST : public AST {
+class StatementCallAST : public AST {
 public:
   const int statementNumber;
   std::vector<std::unique_ptr<SymbolOrInt>> args;
 
-  explicit CallAST(Location loc, int statementNumber,
+  explicit StatementCallAST(Location loc, int statementNumber,
                    std::vector<std::unique_ptr<SymbolOrInt>> &&args)
       : AST(std::move(loc)), statementNumber(statementNumber),
         args(std::move(args)){};
@@ -383,7 +383,7 @@ public:
 
     ss << "loop{start:" << loop->start
        << ", stop:" << dumpSymbolOrInt(loop->stop.get())
-       << ", step:" << loop->step << " body:[\n";
+       << ", step:" << loop->step << ", body:[\n";
     indent += 2;
     for (auto &statement : loop->block) {
       statement->accept(*this);
@@ -397,7 +397,7 @@ public:
     ss << std::string(indent, ' ') << "]}" << (indent > 0 ? ",\n" : "\n");
   }
 
-  void visit(CallAST *call) override {
+  void visit(StatementCallAST *call) override {
     ss << std::string(indent, ' ');
 
     ss << "call{statementNumber:" << call->statementNumber <<", args:[";
@@ -454,7 +454,6 @@ public:
     return d.output();
   }
 
-private:
   std::vector<std::unique_ptr<AST>> statements;
 };
 
@@ -589,7 +588,7 @@ private:
     // ';'
     EXPECT_AND_CONSUME(tok_semicolon, context);
 
-    return std::make_unique<CallAST>(loc, statementNumber, std::move(args));
+    return std::make_unique<StatementCallAST>(loc, statementNumber, std::move(args));
   }
 
   std::unique_ptr<AST> parseLoop() {
