@@ -5,10 +5,12 @@
 #include "llvm/ADT/TypeSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -313,6 +315,7 @@ public:
 
 class LoopAST;
 class CallAST;
+class UFAssignmentAST;
 
 class VisitorBase {
 public:
@@ -321,19 +324,38 @@ public:
   virtual void visit(LoopAST *loop) = 0;
 
   virtual void visit(CallAST *call) = 0;
+
+  virtual void visit(UFAssignmentAST *call) = 0;
 };
 
 class LoopAST : public AST {
 public:
-  std::vector<std::unique_ptr<AST>> block;
+  std::string inductionVar;
   int start;
   std::unique_ptr<Symbol> stop;
   int step;
+  std::vector<std::unique_ptr<AST>> block;
 
-  LoopAST(Location loc, std::vector<std::unique_ptr<AST>> &&block, int start,
-          std::unique_ptr<Symbol> stop, int step)
-      : AST(std::move(loc)), block(std::move(block)), start(start),
-        stop(std::move(stop)), step(step){};
+  LoopAST(Location loc, std::string &&inductionVar, int start,
+          std::unique_ptr<Symbol> stop, int step,
+          std::vector<std::unique_ptr<AST>> &&block)
+      : AST(std::move(loc)), inductionVar(std::move(inductionVar)),
+        start(start), stop(std::move(stop)), step(step),
+        block(std::move(block)){};
+
+  void accept(VisitorBase &b) override { b.visit(this); }
+};
+
+class UFAssignmentAST : public AST {
+public:
+  std::string inductionVar;
+  std::string ufName;
+  std::vector<std::unique_ptr<SymbolOrInt>> args;
+  explicit UFAssignmentAST(Location loc, std::string &&inductionVar,
+                           std::string &&ufName,
+                           std::vector<std::unique_ptr<SymbolOrInt>> &&args)
+      : AST(std::move(loc)), inductionVar(std::move(inductionVar)),
+        ufName(std::move(ufName)), args(std::move(args)) {}
 
   void accept(VisitorBase &b) override { b.visit(this); }
 };
@@ -344,7 +366,7 @@ public:
   std::vector<std::unique_ptr<SymbolOrInt>> args;
 
   explicit CallAST(Location loc, int statementNumber,
-                   std::vector<std::unique_ptr<SymbolOrInt>> args)
+                   std::vector<std::unique_ptr<SymbolOrInt>> &&args)
       : AST(std::move(loc)), statementNumber(statementNumber),
         args(std::move(args)){};
 
@@ -387,6 +409,8 @@ class DumpVisitor : public VisitorBase {
     }
     printf("]}%s", indent > 0 ? ",\n" : "\n");
   }
+
+  void visit(UFAssignmentAST *call) override { printf("UF assignment\n"); }
 
   std::string dumpSymbolOrInt(SymbolOrInt *symbolOrInt) {
     std::stringstream ss;
@@ -455,11 +479,26 @@ private:
   Lexer &lexer;
 
   std::unique_ptr<AST> parseStatement() {
-    if (lexer.getCurToken() == tok_for) {
+    if (lexer.getCurToken() == tok_for) { // for loop
       return parseLoop();
-    } else if (lexer.getCurToken() == tok_identifier) {
-      return parseCall();
-    } else if (lexer.getCurToken() == tok_if) {
+    } else if (lexer.getCurToken() == tok_identifier) { // some sort of call
+      // Here we can have a UF call or a statement call. We're expecting that
+      // statements look like 's0(t1,0,t2)` and uf calls look like 't1 =
+      // UFi_0()'.
+
+      // previousIdent will either be something like `t1` in the UF case or `s0`
+      // in the statement call case.
+      auto previousIdent = lexer.getId();
+      lexer.consume(tok_identifier);
+
+      // determine if this looks like `t1 = ` or `s0(`. The latter is a
+      // statement, the former a UF assignment.
+      if (lexer.getCurToken() == tok_equal) {
+        return parseUFAssignment(std::move(previousIdent));
+      } else {
+        return parseCall(std::move(previousIdent));
+      }
+    } else if (lexer.getCurToken() == tok_if) { // if statement
       // We're just throwing out 'if' statements for now. The only ones in the
       // examples that are currently using just do some error checking that
       // isn't important. TODO: There's definitely are cases
@@ -480,40 +519,59 @@ private:
     }
   }
 
-  std::unique_ptr<AST> parseCall() {
+  std::unique_ptr<AST> parseUFAssignment(std::string &&previousIdent) {
     auto loc = lexer.getLastLocation();
-    auto context = "in statement call";
+    auto context = "in UF assignment";
 
+    // `t1`
+    auto inductionVar = previousIdent;
+
+    // `=`
+    EXPECT_AND_CONSUME(tok_equal, context);
+
+    // `UFi_0`
     if (lexer.getCurToken() != tok_identifier)
       return parseError<AST>(tok_identifier, context);
-    auto statement = lexer.identifierStr;
-    statement.erase(statement.begin());
-    auto statementNumber = std::stoi(statement);
+    auto ufName = unmangleUfName(lexer.identifierStr);
     lexer.consume(tok_identifier);
 
     // '('
     EXPECT_AND_CONSUME(tok_parentheses_open, context);
 
-    std::vector<std::unique_ptr<SymbolOrInt>> args;
-    while (lexer.getCurToken() != tok_parentheses_close) {
-      // 't1'|'0'
-      if (lexer.getCurToken() == tok_identifier) {
-        args.push_back(std::make_unique<Symbol>(lexer.getLastLocation(),
-                                                lexer.getId(), 0));
-        lexer.consume(tok_identifier);
-      } else if (lexer.getCurToken() == tok_int) {
-        args.push_back(
-            std::make_unique<Int>(lexer.getLastLocation(), lexer.getValue()));
-        lexer.consume(tok_int);
-      } else {
-        return parseError<AST>("identifier or int", context);
-      }
-
-      // unless this is the end of the argument list
-      if (lexer.getCurToken() == tok_comma) {
-        lexer.consume(tok_comma);
-      }
+    // 't1,0,t2,0'
+    auto argsPtr = parseArgs(context);
+    if (!argsPtr) {
+      return parseError<AST>("argument list", context);
     }
+    auto args = std::move(*argsPtr);
+
+    // ')'
+    EXPECT_AND_CONSUME(tok_parentheses_close, context);
+
+    // ';'
+    EXPECT_AND_CONSUME(tok_semicolon, context);
+
+    return std::make_unique<UFAssignmentAST>(
+        loc, std::move(inductionVar), std::move(ufName), std::move(args));
+  }
+
+  std::unique_ptr<AST> parseCall(std::string &&previousIdent) {
+    auto loc = lexer.getLastLocation();
+    auto context = "in statement call";
+
+    auto statement = std::move(previousIdent);
+    statement.erase(statement.begin());
+    auto statementNumber = std::stoi(statement);
+
+    // '('
+    EXPECT_AND_CONSUME(tok_parentheses_open, context);
+
+    // 't1,0,t2,0'
+    auto argsPtr = parseArgs(context);
+    if (!argsPtr) {
+      return parseError<AST>("argument list", context);
+    }
+    auto args = std::move(*argsPtr);
 
     // ')'
     EXPECT_AND_CONSUME(tok_parentheses_close, context);
@@ -635,8 +693,46 @@ private:
     }
     EXPECT_AND_CONSUME(tok_bracket_close, context);
 
-    return std::make_unique<LoopAST>(loc, std::move(block), start,
-                                     std::move(stop), step);
+    return std::make_unique<LoopAST>(loc, std::move(inductionVar), start,
+                                     std::move(stop), step, std::move(block));
+  }
+
+  std::unique_ptr<std::vector<std::unique_ptr<SymbolOrInt>>>
+  parseArgs(const char *context) {
+    std::vector<std::unique_ptr<SymbolOrInt>> args;
+    while (lexer.getCurToken() != tok_parentheses_close) {
+      // 't1'|'0'
+      if (lexer.getCurToken() == tok_identifier) {
+        args.push_back(std::make_unique<Symbol>(lexer.getLastLocation(),
+                                                lexer.getId(), 0));
+        lexer.consume(tok_identifier);
+      } else if (lexer.getCurToken() == tok_int) {
+        args.push_back(
+            std::make_unique<Int>(lexer.getLastLocation(), lexer.getValue()));
+        lexer.consume(tok_int);
+      } else {
+        return parseError<std::vector<std::unique_ptr<SymbolOrInt>>>(
+            "identifier or int", context);
+      }
+
+      // unless this is the end of the argument list
+      if (lexer.getCurToken() == tok_comma) {
+        lexer.consume(tok_comma);
+      }
+    }
+
+    return std::make_unique<std::vector<std::unique_ptr<SymbolOrInt>>>(
+        std::move(args));
+  }
+
+  // TODO: copying all these strings around is definitely bad.
+  std::string unmangleUfName(std::string ufMangledName) {
+    // This is all a hack, it seems like the omega rename thing in hte
+    // computation API ads "_<some number>", so I'm just removing that
+    // here. There's definitely some way to compose the problem so
+    // that this isn't a problem, and that way would be better.
+    auto underscorePos = ufMangledName.find("_");
+    return ufMangledName.substr(0, underscorePos);
   }
 
   /// Helper function to signal errors while parsing, it takes an argument

@@ -529,6 +529,7 @@ public:
 
   LogicalResult matchAndRewrite(standalone::BarOp barOp,
                                 PatternRewriter &rewriter) const override {
+
     // Build up reads and writes
     ReadWrite reads;
     ReadWrite writes;
@@ -575,15 +576,17 @@ public:
     // LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
 
     // generate MLIR from omega AST
+    omega::CG_result *ast = computation.thing();
     LLVM_DEBUG(llvm::dbgs() << "codeJen ===================================\n");
     std::string codeJen = computation.codeJen();
     LLVM_DEBUG(llvm::dbgs() << codeJen);
 
     LLVM_DEBUG(llvm::dbgs() << "parse =====================================\n");
     auto simpleAST = parse(codeJen);
-    simpleAST->dump();
+    if (simpleAST) {
+      simpleAST->dump();
+    }
 
-    omega::CG_result *ast = computation.thing();
     auto loop = Walker(rewriter, barOp).walk(ast);
 
     if (!loop) {
