@@ -121,25 +121,30 @@ struct Walker : public sparser::VisitorBase {
   mlir::OpBuilder &builder;
   std::unordered_map<std::string, mlir::Value> symbols;
   std::unordered_map<std::string, mlir::Region *> ufNameToRegion;
-  mlir::Value zero;
-  mlir::Value one;
 
-  // TODO: I think this is going to need to be a block instead, or just a vector
-  // of ops.
+  // TODO: this is really only used for error checking, could use a bool or
+  // something better. IDK.
   llvm::Optional<mlir::Operation *> maybeOp;
-  standalone::BarOp barOp;
+  standalone::ComputationOp computationOp;
+  std::vector<standalone::BarOp> statementOps;
   llvm::Optional<mlir::AffineMap> inverseMap;
   std::vector<mlir::Value> ivs; // induction variables
   int loopLevel = 0;
 
 public:
-  explicit Walker(mlir::OpBuilder &builder, standalone::BarOp barOp,
+  explicit Walker(mlir::OpBuilder &builder,
+                  standalone::ComputationOp computationOp,
+                  std::vector<standalone::BarOp> statementOps,
                   llvm::Optional<mlir::AffineMap> inverseMap =
                       llvm::Optional<mlir::AffineMap>())
-      : builder(builder), barOp(barOp), inverseMap(inverseMap) {
-    // populate ufNameToRegion
-    auto ufs = barOp.getUfs();
-    auto ufNames = barOp.getUfNames();
+      : builder(builder), computationOp(computationOp),
+        statementOps(statementOps), inverseMap(inverseMap) {
+
+    // populate ufNameToRegion TODO: ufs should be functions stored in the
+    // symbol table. They definitely shouldn't be read off the first statement
+    // like this. This is bad.
+    auto ufs = statementOps[0].getUfs();
+    auto ufNames = statementOps[0].getUfNames();
     for (auto &attr : llvm::enumerate(ufNames)) {
       std::string ufName = attr.value().dyn_cast_or_null<StringAttr>().str();
       // This *might* be sketchy... I think all regions are stored in the main
@@ -148,19 +153,16 @@ public:
       ufNameToRegion[ufName] = &ufs[attr.index()];
     }
 
-    // populate symbols
-    SmallVector<Value> symbolOperands = barOp.getSymbolOperands();
-    auto symbolNames = barOp.getSymbolNames();
+    // populate symbols TODO: symbols should hang off computation not statement,
+    // for now I'm just assuming that the symbols are the same and reading them
+    // off the first op. This is definitely not a reasonable thing to do.
+    SmallVector<Value> symbolOperands = statementOps[0].getSymbolOperands();
+    auto symbolNames = statementOps[0].getSymbolNames();
     for (auto &attr : llvm::enumerate(symbolNames)) {
       std::string symbolName =
           attr.value().dyn_cast_or_null<StringAttr>().str();
       symbols[symbolName] = symbolOperands[attr.index()];
     }
-
-    // For aesthetic reasons it is nice to only have one zero and 1 constant op
-    // created.
-    zero = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 0);
-    one = builder.create<mlir::arith::ConstantIndexOp>(barOp.getLoc(), 1);
   }
 
   llvm::Optional<mlir::Operation *> walk(std::unique_ptr<sparser::Program> p) {
@@ -175,61 +177,41 @@ private:
   void visit(sparser::LoopAST *loop) override {
     LLVM_DEBUG(llvm::dbgs() << "loop"
                             << "\n");
-    auto upperBound = loop->stop->symbol;
-    if (upperBound.empty() || symbols.find(upperBound) == symbols.end()) {
+    auto stopString = loop->stop->symbol;
+    if (stopString.empty() || symbols.find(stopString) == symbols.end()) {
       std::cerr << "err: "
                 << "oh no!" << std::endl;
       exit(1);
     }
 
-    auto upperBoundValue = symbols[upperBound];
+    auto start = builder.create<mlir::arith::ConstantIndexOp>(
+        computationOp.getLoc(), loop->start);
+    auto stop = symbols[stopString];
+    auto step = builder.create<mlir::arith::ConstantIndexOp>(
+        computationOp.getLoc(), loop->step);
 
-    // omega 1 indexes "loop->level_", hence the -1
-    auto iteratorType =
-        barOp.getIteratorTypes()[loopLevel].dyn_cast_or_null<StringAttr>();
+    scf::ForOp forOp =
+        builder.create<scf::ForOp>(computationOp.getLoc(), start, stop, step);
 
-    // Generate loops.
-    //
-    // TODO: it would be nice to template this but there doesn't appear to be
-    // a common API between ParallelOp and ForOp. There is a LoopLike
-    // Interface but it seems like it doesn't have everything we need. Maybe
-    // what we need could be added upstream?
-    if (iteratorType &&
-        iteratorType.getValue() ==
-            "parallel") { // add parallel loop, and update walker state
-      scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
-          barOp.getLoc(), mlir::ValueRange(zero),
-          mlir::ValueRange(upperBoundValue), mlir::ValueRange(one));
-
-      // if this is the top level loop store it off to return
-      if (!maybeOp) {
-        maybeOp = parallelOp;
-      }
-
-      // store off induction variable
-      ivs.push_back(parallelOp.getInductionVars().front());
-
-      // Start add future loops inside this loop
-      builder.setInsertionPointToStart(parallelOp.getBody());
-    } else { // add regular for loop, and update walker state
-      scf::ForOp forOp = builder.create<scf::ForOp>(barOp.getLoc(), zero,
-                                                    upperBoundValue, one);
-
-      // if this is the top level loop store it off to return
-      if (!maybeOp) {
-        maybeOp = forOp;
-      }
-
-      // store off induction variable
-      ivs.push_back(forOp.getInductionVar());
-
-      // Start add future loops inside this loop
-      builder.setInsertionPointToStart(forOp.getBody());
+    // if this is the top level loop store it off to return
+    if (!maybeOp) {
+      maybeOp = forOp;
     }
 
+    // store off induction variable
+    ivs.push_back(forOp.getInductionVar());
+
+    // generate code for body of loop
+    builder.setInsertionPointToStart(forOp.getBody());
     for (auto &statement : loop->block) {
       statement->accept(*this);
     }
+
+    // As we're not inside the loop anymore, this isn't a valid induction variable.
+    ivs.pop_back();
+
+    // reset insertion point for next statement
+    builder.setInsertionPointAfter(forOp);
   }
 
   /// Much of this function adapted from `emitScalarImplementation` fuction in
@@ -270,7 +252,10 @@ private:
     LLVM_DEBUG(llvm::dbgs() << "call"
                             << "\n");
 
-    auto loc = barOp->getLoc();
+    auto loc = computationOp->getLoc();
+
+    // get the statement being called
+    auto barOp = statementOps[call->statementNumber];
 
     // TODO: apply fixMap with llvm::map_range(
     auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
@@ -404,7 +389,7 @@ private:
     // inputs (%b_coord_0, %b_coord_1) and the generated induction
     // variable to the arguments to the UF (%uf_b_coord_0, uf_b_coord_1,
     // %z).
-    SmallVector<Value> ufArgs = barOp.getUFInputOperands();
+    SmallVector<Value> ufArgs = statementOps[0].getUFInputOperands();
     ufArgs.insert(ufArgs.end(), ivs.begin(), ivs.end());
     BlockAndValueMapping map; // holds a mapping between values.
     map.map(/*from*/ ufBlock.getArguments(),
@@ -462,6 +447,8 @@ public:
                                 PatternRewriter &rewriter) const override {
     Computation computation; // IEGenLib computation (MLIR computationOp is
                              // directly analogous)
+
+    std::vector<standalone::BarOp> statements;
     // Run through MLIR statements in MLIR computationOp and populate IEGenLib
     // computation.
     for (auto &op : computationOp.getBody().front()) {
@@ -505,7 +492,18 @@ public:
       Stmt *s = new Stmt("", barOp.getIterationSpace().str(),
                          barOp.getExecutionSchedule().str(), reads, writes);
       computation.addStmt(s);
+
+      // store off MLIR statement
+      statements.push_back(barOp);
     }
+
+    // // skew
+    // computation.addTransformation(0, new
+    // Relation("{[a,b,c,d]->[a,b,x,d]:x=c-1}"));
+
+    // // fuse (this could also be done with `computation.fuse(0,1,3)`)
+    // computation.addTransformation(0, new Relation("{[a,b,c,d]->[a,0,c,0]}"));
+    // computation.addTransformation(1, new Relation("{[a,b,c,d]->[a,0,c,1]}"));
 
     LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
     LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
@@ -529,8 +527,9 @@ public:
       LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
     }
 
-    // auto loop = Walker(rewriter, barOp, llvm::Optional<AffineMap>())
-    //                 .walk(std::move(simpleAST));
+    auto loop =
+        Walker(rewriter, computationOp, statements, llvm::Optional<AffineMap>())
+            .walk(std::move(simpleAST));
 
     // if (!loop) {
     //   return failure();

@@ -190,4 +190,62 @@ char *getTensorFilename(index_type id) {
   return env;
 }
 
+void _mlir_ciface_print2D(UnrankedMemRefType<index_type> *store) {
+  auto m = DynamicMemRefType<index_type>(*store);
+  printf("m.rank: %lu\n", m.rank);
+
+  printf("m.sizes: [");
+  for (int i = 0; i < m.rank; i++) {
+    if (i != 0) {
+      printf(",");
+    }
+    printf("%lu", m.sizes[i]);
+  }
+  printf("]\n");
+
+  printf("data(linear): [");
+  for (int i = 0; i < m.sizes[0] * m.sizes[1]; i++) {
+    if (i != 0) {
+      printf(",");
+    }
+    printf("%ld", m.data[i]);
+  }
+  printf("]\n");
+
+  printf("data: [");
+  for (int i = 0; i < m.sizes[0]; i++) {
+    if (i != 0) {
+      printf(",\n       ");
+    }
+    printf("[");
+
+    for (int j = 0; j < m.sizes[1]; j++) {
+      if (j != 0) {
+        printf(",");
+      }
+      printf("%ld", m.data[i * m.sizes[1] + j]);
+    }
+    printf("]");
+  }
+  printf("]\n");
+}
+
+void _mlir_ciface_printStatementCalls(UnrankedMemRefType<index_type> *store) {
+  auto m = DynamicMemRefType<index_type>(*store);
+  for (int i = 0; i < m.sizes[0]; i++) {
+    // if (i != 0) {
+    //   printf(",\n       ");
+    // }
+    // printf("[");
+
+    printf("s%ld(", m.data[i * m.sizes[1]]);
+    for (int j = 1; j < m.sizes[1]; j++) {
+      if (j != 1) {
+        printf(",");
+      }
+      printf("%ld", m.data[i * m.sizes[1] + j]);
+    }
+    printf(")\n");
+  }
+}
 } // extern "C"
