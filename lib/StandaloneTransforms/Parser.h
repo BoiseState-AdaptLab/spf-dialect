@@ -362,12 +362,12 @@ public:
 
 class StatementCallAST : public AST {
 public:
-  const int statementNumber;
+  const int statementIndex;
   std::vector<std::unique_ptr<SymbolOrInt>> args;
 
-  explicit StatementCallAST(Location loc, int statementNumber,
+  explicit StatementCallAST(Location loc, int statementIndex,
                             std::vector<std::unique_ptr<SymbolOrInt>> &&args)
-      : AST(std::move(loc)), statementNumber(statementNumber),
+      : AST(std::move(loc)), statementIndex(statementIndex),
         args(std::move(args)){};
 
   void accept(VisitorBase &b) override { b.visit(this); }
@@ -401,7 +401,7 @@ public:
   void visit(StatementCallAST *call) override {
     ss << std::string(indent, ' ');
 
-    ss << "call{statementNumber:" << call->statementNumber << ", args:[";
+    ss << "call{statementNumber:" << call->statementIndex << ", args:[";
     int first = true;
     for (auto &symbolOrInt : call->args) {
       if (first) {

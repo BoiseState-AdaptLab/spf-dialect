@@ -18,6 +18,7 @@
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
+#include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/Operation.h"
 #include "mlir/IR/Region.h"
@@ -117,13 +118,6 @@ static SmallVector<Value> makeCanonicalAffineApplies(OpBuilder &builder,
   return res;
 }
 
-struct StatementContext {
-  standalone::BarOp statementOp;
-  AffineMap inverseMap;
-  StatementContext(standalone::BarOp statement, AffineMap inverseMap)
-      : statementOp(statement), inverseMap(inverseMap) {}
-};
-
 struct Walker : public sparser::VisitorBase {
   mlir::OpBuilder &builder;
   std::unordered_map<std::string, mlir::Value> symbols;
@@ -134,7 +128,6 @@ struct Walker : public sparser::VisitorBase {
   llvm::Optional<mlir::Operation *> maybeOp;
   standalone::ComputationOp computationOp;
   std::vector<StatementContext> statements;
-  llvm::Optional<mlir::AffineMap> inverseMap;
   std::vector<mlir::Value> ivs; // induction variables
   int loopLevel = 0;
 
@@ -144,8 +137,7 @@ public:
                   std::vector<StatementContext> statements,
                   llvm::Optional<mlir::AffineMap> inverseMap =
                       llvm::Optional<mlir::AffineMap>())
-      : builder(builder), computationOp(computationOp), statements(statements),
-        inverseMap(inverseMap) {
+      : builder(builder), computationOp(computationOp), statements(statements) {
 
     // populate ufNameToRegion TODO: ufs should be functions stored in the
     // symbol table. They definitely shouldn't be read off the first statement
@@ -263,22 +255,38 @@ private:
 
     auto loc = computationOp->getLoc();
 
-    // get the statement being called
-    auto barOp = statements[call->statementNumber].statementOp;
+    int statementIndex = call->statementIndex;
 
-    // TODO: apply fixMap with llvm::map_range(
-    auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
-    auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
+    // get the statement being called
+    auto statementOp = statements[statementIndex].statementOp;
+
+    // The statement op provides data access functions: read and write maps
+    // written with an iteration space tuple as input and where to read out of a
+    // memref as output. Omega generates statement calls with the execution
+    // schedule tuple as input. These two things won't work together... But, if
+    // we can compose a function from (possibly transformed) execution schedule
+    // back to iteration space (aka the composition of the inverse of all
+    // transformations done) with the data access functions then we have a map
+    // from omega generated statement calls to where to read or write out of
+    // memref.
+    auto inverse =
+        statements[statementIndex].executionScheduleToIterationSpace();
+    auto readMaps = llvm::map_range(
+        statementOp.getReads().getAsValueRange<AffineMapAttr>(),
+        [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
+    auto writeMaps = llvm::map_range(
+        statementOp.getWrites().getAsValueRange<AffineMapAttr>(),
+        [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
 
     SmallVector<Value> indexedValues;
-    indexedValues.reserve(barOp.getInputs().size());
+    indexedValues.reserve(statementOp.getInputs().size());
     { // 1.a. produce loads from input memrefs
-      SmallVector<Value> inputOperands = barOp.getInputOperands();
+      SmallVector<Value> inputOperands = statementOp.getInputOperands();
       for (size_t i = 0; i < inputOperands.size(); i++) {
         // read the map that corresponds with the current inputOperand. It seems
         // like this would be better using the subscript "[]" operator, but
         // indexingMaps doesn't provide one.
-        auto map = fixMap(*(readMaps.begin() + i));
+        auto map = *(readMaps.begin() + i);
         auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
         indexedValues.push_back(
             builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
@@ -286,10 +294,10 @@ private:
     }
 
     // 1.b. Emit load for output memrefs
-    SmallVector<Value> outputOperands = barOp.getOutputOperands();
+    SmallVector<Value> outputOperands = statementOp.getOutputOperands();
     for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map = fixMap(*(writeMaps.begin() + i));
+      AffineMap map = *(writeMaps.begin() + i);
 
       SmallVector<Value> indexing =
           makeCanonicalAffineApplies(builder, loc, map, ivs);
@@ -298,7 +306,7 @@ private:
     }
 
     // TODO: there's no validation that the region has a block.
-    auto &block = barOp.getBody().front();
+    auto &block = statementOp.getBody().front();
 
     // 2. inline statement
     BlockAndValueMapping map; // holds a mapping between values.
@@ -313,7 +321,7 @@ private:
     SmallVector<Value> outputBuffers;
     for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map = fixMap(*(writeMaps.begin() + i));
+      AffineMap map = *(writeMaps.begin() + i);
       indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, ivs));
       outputBuffers.push_back(outputOperands[i]);
     }
@@ -416,16 +424,6 @@ private:
     Value iv = map.lookupOrDefault(operand.get());
     ivs.push_back(iv);
   }
-
-  // fixMap composes a map from iteration space tuple to something with the
-  // inverse function for any transformations done to the iteration space to get
-  // to the execution schedule. Loops are generated from the execution schedule.
-  AffineMap fixMap(AffineMap fromIterationSpace) {
-    if (inverseMap) {
-      fromIterationSpace = fromIterationSpace.compose(*inverseMap);
-    }
-    return fromIterationSpace;
-  }
 };
 
 /// relationForOperand builds an IEGenLib Relation string representation from an
@@ -498,14 +496,33 @@ public:
       }
 
       // create IEGenLib statement and add to IEGenLib computation
+      // NOTE: intentially leaking s here. Lots of stuff inside IEGenLib doesn't
+      // handle memory properly and I don't have time to fix all that.
       Stmt *s = new Stmt("", statement.getIterationSpace().str(),
                          statement.getExecutionSchedule().str(), reads, writes);
-      AffineMap inverseMap =
-          createInverse(s->getExecutionSchedule(), s, rewriter);
       computation.addStmt(s);
 
+      auto sc =
+          StatementContext(rewriter.getContext(), statement,
+                           s->getIterationSpace(), s->getExecutionSchedule());
+      LLVM_DEBUG(llvm::dbgs()
+                 << "inverse after execution schedule: "
+                 << sc.executionScheduleToIterationSpace() << "\n");
+
+      // LLVM_DEBUG(llvm::dbgs()
+      //            << "Adding fake transformation ================\n");
+      // LLVM_DEBUG(llvm::dbgs()
+      //            << "transform: {[i,k,l,j] -> [k,i,l,j]}"
+      //            << "\n");
+      // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
+      // computation.addTransformation(0, transform);
+      // sc.addTransformation(transform);
+      // LLVM_DEBUG(llvm::dbgs()
+      //            << "inverse after transform: " <<
+      //            sc.executionScheduleToIterationSpace() << "\n");
+
       // store off MLIR statement
-      statements.push_back({statement, inverseMap});
+      statements.push_back(std::move(sc));
     }
 
     // // skew
