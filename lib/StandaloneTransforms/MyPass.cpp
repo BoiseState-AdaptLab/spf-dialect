@@ -117,6 +117,13 @@ static SmallVector<Value> makeCanonicalAffineApplies(OpBuilder &builder,
   return res;
 }
 
+struct StatementContext {
+  standalone::BarOp statementOp;
+  AffineMap inverseMap;
+  StatementContext(standalone::BarOp statement, AffineMap inverseMap)
+      : statementOp(statement), inverseMap(inverseMap) {}
+};
+
 struct Walker : public sparser::VisitorBase {
   mlir::OpBuilder &builder;
   std::unordered_map<std::string, mlir::Value> symbols;
@@ -126,7 +133,7 @@ struct Walker : public sparser::VisitorBase {
   // something better. IDK.
   llvm::Optional<mlir::Operation *> maybeOp;
   standalone::ComputationOp computationOp;
-  std::vector<standalone::BarOp> statementOps;
+  std::vector<StatementContext> statements;
   llvm::Optional<mlir::AffineMap> inverseMap;
   std::vector<mlir::Value> ivs; // induction variables
   int loopLevel = 0;
@@ -134,17 +141,17 @@ struct Walker : public sparser::VisitorBase {
 public:
   explicit Walker(mlir::OpBuilder &builder,
                   standalone::ComputationOp computationOp,
-                  std::vector<standalone::BarOp> statementOps,
+                  std::vector<StatementContext> statements,
                   llvm::Optional<mlir::AffineMap> inverseMap =
                       llvm::Optional<mlir::AffineMap>())
-      : builder(builder), computationOp(computationOp),
-        statementOps(statementOps), inverseMap(inverseMap) {
+      : builder(builder), computationOp(computationOp), statements(statements),
+        inverseMap(inverseMap) {
 
     // populate ufNameToRegion TODO: ufs should be functions stored in the
     // symbol table. They definitely shouldn't be read off the first statement
     // like this. This is bad.
-    auto ufs = statementOps[0].getUfs();
-    auto ufNames = statementOps[0].getUfNames();
+    auto ufs = statements[0].statementOp.getUfs();
+    auto ufNames = statements[0].statementOp.getUfNames();
     for (auto &attr : llvm::enumerate(ufNames)) {
       std::string ufName = attr.value().dyn_cast_or_null<StringAttr>().str();
       // This *might* be sketchy... I think all regions are stored in the main
@@ -156,8 +163,9 @@ public:
     // populate symbols TODO: symbols should hang off computation not statement,
     // for now I'm just assuming that the symbols are the same and reading them
     // off the first op. This is definitely not a reasonable thing to do.
-    SmallVector<Value> symbolOperands = statementOps[0].getSymbolOperands();
-    auto symbolNames = statementOps[0].getSymbolNames();
+    SmallVector<Value> symbolOperands =
+        statements[0].statementOp.getSymbolOperands();
+    auto symbolNames = statements[0].statementOp.getSymbolNames();
     for (auto &attr : llvm::enumerate(symbolNames)) {
       std::string symbolName =
           attr.value().dyn_cast_or_null<StringAttr>().str();
@@ -207,7 +215,8 @@ private:
       statement->accept(*this);
     }
 
-    // As we're not inside the loop anymore, this isn't a valid induction variable.
+    // As we're not inside the loop anymore, this isn't a valid induction
+    // variable.
     ivs.pop_back();
 
     // reset insertion point for next statement
@@ -255,7 +264,7 @@ private:
     auto loc = computationOp->getLoc();
 
     // get the statement being called
-    auto barOp = statementOps[call->statementNumber];
+    auto barOp = statements[call->statementNumber].statementOp;
 
     // TODO: apply fixMap with llvm::map_range(
     auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
@@ -389,7 +398,7 @@ private:
     // inputs (%b_coord_0, %b_coord_1) and the generated induction
     // variable to the arguments to the UF (%uf_b_coord_0, uf_b_coord_1,
     // %z).
-    SmallVector<Value> ufArgs = statementOps[0].getUFInputOperands();
+    SmallVector<Value> ufArgs = statements[0].statementOp.getUFInputOperands();
     ufArgs.insert(ufArgs.end(), ivs.begin(), ivs.end());
     BlockAndValueMapping map; // holds a mapping between values.
     map.map(/*from*/ ufBlock.getArguments(),
@@ -448,7 +457,7 @@ public:
     Computation computation; // IEGenLib computation (MLIR computationOp is
                              // directly analogous)
 
-    std::vector<standalone::BarOp> statements;
+    std::vector<StatementContext> statements;
     // Run through MLIR statements in MLIR computationOp and populate IEGenLib
     // computation.
     for (auto &op : computationOp.getBody().front()) {
@@ -456,14 +465,14 @@ public:
         return emitError(op.getLoc(),
                          "A computation can only contain statements");
       }
-      standalone::BarOp barOp = cast<standalone::BarOp>(op);
+      standalone::BarOp statement = cast<standalone::BarOp>(op);
 
       // Build up reads and writes
       ReadWrite reads;
       ReadWrite writes;
       { // create reads for inputs
-        auto readMaps = barOp.getReads().getAsValueRange<AffineMapAttr>();
-        for (size_t i = 0; i < barOp.getInputOperands().size(); i++) {
+        auto readMaps = statement.getReads().getAsValueRange<AffineMapAttr>();
+        for (size_t i = 0; i < statement.getInputOperands().size(); i++) {
           AffineMap map = *(readMaps.begin() + i);
           std::string read = relationForOperand(map);
 
@@ -475,8 +484,8 @@ public:
         }
       }
       { // create reads/writes for outputs
-        auto writeMaps = barOp.getWrites().getAsValueRange<AffineMapAttr>();
-        for (size_t i = 0; i < barOp.getOutputOperands().size(); i++) {
+        auto writeMaps = statement.getWrites().getAsValueRange<AffineMapAttr>();
+        for (size_t i = 0; i < statement.getOutputOperands().size(); i++) {
           AffineMap map = *(writeMaps.begin() + i);
           // The += operator counts as both read and write.
           std::string read_write = relationForOperand(map);
@@ -489,12 +498,14 @@ public:
       }
 
       // create IEGenLib statement and add to IEGenLib computation
-      Stmt *s = new Stmt("", barOp.getIterationSpace().str(),
-                         barOp.getExecutionSchedule().str(), reads, writes);
+      Stmt *s = new Stmt("", statement.getIterationSpace().str(),
+                         statement.getExecutionSchedule().str(), reads, writes);
+      AffineMap inverseMap =
+          createInverse(s->getExecutionSchedule(), s, rewriter);
       computation.addStmt(s);
 
       // store off MLIR statement
-      statements.push_back(barOp);
+      statements.push_back({statement, inverseMap});
     }
 
     // // skew
@@ -507,15 +518,6 @@ public:
 
     LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
     LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
-
-    // LLVM_DEBUG(llvm::dbgs() << "Adding fake transformation
-    // ================\n"); LLVM_DEBUG(llvm::dbgs() << "transform: {[i,k,l,j]
-    // -> [k,i,l,j]}"
-    //                         << "\n");
-    // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
-    // computation.addTransformation(0, transform);
-    // AffineMap inverseMap = createInverse(transform, s0, rewriter);
-    // LLVM_DEBUG(llvm::dbgs() << "inverse map: " << inverseMap << "\n");
 
     LLVM_DEBUG(llvm::dbgs() << "codeJen ===================================\n");
     std::string codeJen = computation.codeJen();

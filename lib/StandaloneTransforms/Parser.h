@@ -366,7 +366,7 @@ public:
   std::vector<std::unique_ptr<SymbolOrInt>> args;
 
   explicit StatementCallAST(Location loc, int statementNumber,
-                   std::vector<std::unique_ptr<SymbolOrInt>> &&args)
+                            std::vector<std::unique_ptr<SymbolOrInt>> &&args)
       : AST(std::move(loc)), statementNumber(statementNumber),
         args(std::move(args)){};
 
@@ -381,7 +381,8 @@ public:
   void visit(LoopAST *loop) override {
     ss << std::string(indent, ' ');
 
-    ss << "loop{start:" << loop->start
+    ss << "loop{inductionVar:" << loop->inductionVar
+       << ", start:" << loop->start
        << ", stop:" << dumpSymbolOrInt(loop->stop.get())
        << ", step:" << loop->step << ", body:[\n";
     indent += 2;
@@ -400,7 +401,7 @@ public:
   void visit(StatementCallAST *call) override {
     ss << std::string(indent, ' ');
 
-    ss << "call{statementNumber:" << call->statementNumber <<", args:[";
+    ss << "call{statementNumber:" << call->statementNumber << ", args:[";
     int first = true;
     for (auto &symbolOrInt : call->args) {
       if (first) {
@@ -588,7 +589,8 @@ private:
     // ';'
     EXPECT_AND_CONSUME(tok_semicolon, context);
 
-    return std::make_unique<StatementCallAST>(loc, statementNumber, std::move(args));
+    return std::make_unique<StatementCallAST>(loc, statementNumber,
+                                              std::move(args));
   }
 
   std::unique_ptr<AST> parseLoop() {

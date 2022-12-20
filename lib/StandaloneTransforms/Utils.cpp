@@ -71,9 +71,18 @@ mlir::AffineMap createInverse(Relation *transform, Stmt *statement,
   //   In our example, we would generate the LHS for our permute relation
   //   inverse by applying the original relation to [i,j] and producing:
   //     [j,i]
-  std::string inverseLHS = transform->Apply(statement->getIterationSpace())
-                               ->getTupleDecl()
-                               .toString();
+  auto newIterSpace = transform->Apply(statement->getIterationSpace());
+  // The MLIR parser below doesn't like ints in maps like [a, 0, b] -> [a,b],
+  // those are common when inverting an execution schedule for example.
+  // vOmegaReplacer replaces 0 or other ints with variable names. It presumably
+  // does other stuff too, I don't actually know much about it.
+  VisitorChangeUFsForOmega *vOmegaReplacer = new VisitorChangeUFsForOmega();
+  newIterSpace->acceptVisitor(vOmegaReplacer);
+  std::string inverseLHS = newIterSpace->getTupleDecl().toString();
+
+  delete vOmegaReplacer;
+  delete newIterSpace;
+
   // For th RHS:
   //   It's a little trickier, under the hood the relation we're inverting:
   //     {[i,j]->[j,i]}
