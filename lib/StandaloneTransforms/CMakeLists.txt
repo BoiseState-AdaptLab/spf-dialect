@@ -1,7 +1,6 @@
 add_mlir_library(StandaloneTransforms
   MyPass.cpp
   Printer.h
-  Printer.cpp
   Utils.h
   Utils.cpp
 
