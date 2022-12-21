@@ -35,6 +35,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <cassert>
 #include <code_gen/CG.h>
 #include <code_gen/codegen_error.h>
 #include <cstddef>
@@ -128,7 +129,7 @@ struct Walker : public sparser::VisitorBase {
   llvm::Optional<mlir::Operation *> maybeOp;
   standalone::ComputationOp computationOp;
   std::vector<StatementContext> statements;
-  std::vector<mlir::Value> ivs; // induction variables
+  std::unordered_map<std::string, mlir::Value> ivs; // induction variables
   int loopLevel = 0;
 
 public:
@@ -198,8 +199,10 @@ private:
       maybeOp = forOp;
     }
 
+    assert(ivs.find(loop->inductionVar) == symbols.end() &&
+           "an induction variable should never be reused in new loop");
     // store off induction variable
-    ivs.push_back(forOp.getInductionVar());
+    ivs[loop->inductionVar] = forOp.getInductionVar();
 
     // generate code for body of loop
     builder.setInsertionPointToStart(forOp.getBody());
@@ -209,7 +212,7 @@ private:
 
     // As we're not inside the loop anymore, this isn't a valid induction
     // variable.
-    ivs.pop_back();
+    ivs.erase(loop->inductionVar);
 
     // reset insertion point for next statement
     builder.setInsertionPointAfter(forOp);
@@ -253,6 +256,31 @@ private:
     LLVM_DEBUG(llvm::dbgs() << "call"
                             << "\n");
 
+    // Here we build up MLIR arguments to the statement by finding the
+    // corresponding generated MLIR value for each argument in the Omega AST.
+    std::vector<mlir::Value> args;
+    for (auto &arg : call->args) {
+      llvm::TypeSwitch<sparser::SymbolOrInt *>(arg.get())
+          .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
+            assert(symbol->increment == 0 &&
+                   "don't know what to do with increment in statement call");
+            assert(!symbol->symbol.empty() &&
+                   ivs.find(symbol->symbol) != ivs.end() &&
+                   "can't find induction variable for statement call variable");
+
+            args.push_back(ivs[symbol->symbol]);
+          })
+          .Case<sparser::Int>([&](sparser::Int *integer) {
+            args.push_back(builder.create<mlir::arith::ConstantIndexOp>(
+                computationOp.getLoc(), integer->val));
+          })
+          .Default([&](sparser::SymbolOrInt *symbolOrInt) {
+            LLVM_DEBUG(llvm::errs() << "unknown SymbolOrInt,kind<"
+                                    << symbolOrInt->getKind() << ">\n");
+            exit(1);
+          });
+    }
+
     auto loc = computationOp->getLoc();
 
     int statementIndex = call->statementIndex;
@@ -287,7 +315,7 @@ private:
         // like this would be better using the subscript "[]" operator, but
         // indexingMaps doesn't provide one.
         auto map = *(readMaps.begin() + i);
-        auto indexing = makeCanonicalAffineApplies(builder, loc, map, ivs);
+        auto indexing = makeCanonicalAffineApplies(builder, loc, map, args);
         indexedValues.push_back(
             builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
       }
@@ -300,7 +328,7 @@ private:
       AffineMap map = *(writeMaps.begin() + i);
 
       SmallVector<Value> indexing =
-          makeCanonicalAffineApplies(builder, loc, map, ivs);
+          makeCanonicalAffineApplies(builder, loc, map, args);
       indexedValues.push_back(
           builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
     }
@@ -322,7 +350,7 @@ private:
     for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
       AffineMap map = *(writeMaps.begin() + i);
-      indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, ivs));
+      indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, args));
       outputBuffers.push_back(outputOperands[i]);
     }
     Operation *terminator = block.getTerminator();
@@ -407,7 +435,31 @@ private:
     // variable to the arguments to the UF (%uf_b_coord_0, uf_b_coord_1,
     // %z).
     SmallVector<Value> ufArgs = statements[0].statementOp.getUFInputOperands();
-    ufArgs.insert(ufArgs.end(), ivs.begin(), ivs.end());
+
+    // Here we build up MLIR arguments to the UF by finding the corresponding
+    // generated MLIR value for each argument in the Omega AST.
+    for (auto &arg : ufAssignment->args) {
+      llvm::TypeSwitch<sparser::SymbolOrInt *>(arg.get())
+          .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
+            assert(symbol->increment == 0 &&
+                   "don't know what to do with increment in statement call");
+            assert(!symbol->symbol.empty() &&
+                   ivs.find(symbol->symbol) != ivs.end() &&
+                   "can't find induction variable for statement call variable");
+
+            ufArgs.push_back(ivs[symbol->symbol]);
+          })
+          .Case<sparser::Int>([&](sparser::Int *integer) {
+            ufArgs.push_back(builder.create<mlir::arith::ConstantIndexOp>(
+                computationOp.getLoc(), integer->val));
+          })
+          .Default([&](sparser::SymbolOrInt *symbolOrInt) {
+            LLVM_DEBUG(llvm::errs() << "unknown SymbolOrInt,kind<"
+                                    << symbolOrInt->getKind() << ">\n");
+            exit(1);
+          });
+    }
+
     BlockAndValueMapping map; // holds a mapping between values.
     map.map(/*from*/ ufBlock.getArguments(),
             /*to*/ ufArgs);
@@ -422,7 +474,7 @@ private:
     Operation *terminator = ufBlock.getTerminator();
     OpOperand &operand = terminator->getOpOperands()[0];
     Value iv = map.lookupOrDefault(operand.get());
-    ivs.push_back(iv);
+    ivs[ufAssignment->inductionVar] = iv;
   }
 };
 
