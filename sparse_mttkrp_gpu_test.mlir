@@ -118,7 +118,8 @@ module {
               symbolNames = ["NNZ", "I", "J", "K", "L"],
               iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
               executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
-              iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}"
+              iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
+              transforms = []
           } : (index, index, index, index, index,
               memref<?xindex>, memref<?xindex>,
               memref<?xindex>, memref<?xf64>,

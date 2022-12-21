@@ -66,7 +66,8 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
                          StrAttr:$iterationSpace,
                          StrAttr:$executionSchedule,
                          AffineMapArrayAttr:$reads,
-                         AffineMapArrayAttr:$writes);
+                         AffineMapArrayAttr:$writes,
+                         ArrayAttr:$transforms);
 
     let extraClassDeclaration = [{
         mlir::linalg::OpOperandVector getSymbolOperands();

@@ -155,7 +155,8 @@ module {
                     symbolNames = ["I", "J", "K", "L"],
                     executionSchedule = "{[j, i,k,l]->[j,i,k,l]}",
                     iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
-                    iterationSpace = "{[j,i,k,l] : 0<=j<J and 0<=i<I and 0<=k<K and 0<=l<L}"
+                    iterationSpace = "{[j,i,k,l] : 0<=j<J and 0<=i<I and 0<=k<K and 0<=l<L}",
+                    transforms = []
                 } : (index,index,index,index,memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
         }) : () -> ()
 

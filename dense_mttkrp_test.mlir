@@ -38,9 +38,10 @@ module {
                     operand_segment_sizes = dense<[4,0,3,1]> : vector<4xi32>,
                     ufNames = [],
                     symbolNames = ["I", "J", "K", "L"],
-                    executionSchedule = "{[i,k,l,j]->[i,k,l,j]}",
+                    executionSchedule = "{[i,k,l,j]->[0,i,0,k,0,l,0,j,0]}",
                     iteratorTypes = ["reduction", "reduction", "reduction", "reduction", "reduction"],
-                    iterationSpace = "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}"
+                    iterationSpace = "{[i,k,l,j] : 0<=i<I and 0<=k<K and 0<=l<L and 0<=j<J}",
+                    transforms = ["{[0,j,0,i,0,k,0,l,0]->[0,i,0,j,0,k,0,l,0]}"]
                 } : (index,index,index,index,memref<?x?x?xf64>, memref<?x?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
         }) : () -> ()
 

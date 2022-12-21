@@ -507,6 +507,7 @@ public:
     Computation computation; // IEGenLib computation (MLIR computationOp is
                              // directly analogous)
 
+    int statementIndex = 0;
     std::vector<StatementContext> statements;
     // Run through MLIR statements in MLIR computationOp and populate IEGenLib
     // computation.
@@ -554,27 +555,22 @@ public:
                          statement.getExecutionSchedule().str(), reads, writes);
       computation.addStmt(s);
 
-      auto sc =
+      auto statementContext =
           StatementContext(rewriter.getContext(), statement,
                            s->getIterationSpace(), s->getExecutionSchedule());
-      LLVM_DEBUG(llvm::dbgs()
-                 << "inverse after execution schedule: "
-                 << sc.executionScheduleToIterationSpace() << "\n");
 
-      // LLVM_DEBUG(llvm::dbgs()
-      //            << "Adding fake transformation ================\n");
-      // LLVM_DEBUG(llvm::dbgs()
-      //            << "transform: {[i,k,l,j] -> [k,i,l,j]}"
-      //            << "\n");
-      // auto transform = new Relation("{[i,k,l,j] -> [k,i,l,j]}");
-      // computation.addTransformation(0, transform);
-      // sc.addTransformation(transform);
-      // LLVM_DEBUG(llvm::dbgs()
-      //            << "inverse after transform: " <<
-      //            sc.executionScheduleToIterationSpace() << "\n");
+      // Add any transformations
+      for (auto &attr : statement.getTransforms()) {
+        std::string transform = attr.dyn_cast_or_null<StringAttr>().str();
+        Relation *relation = new Relation(transform);
+        computation.addTransformation(statementIndex, relation);
+        statementContext.addTransformation(relation);
+        // NOTE: intentionally leaking relation
+      }
 
-      // store off MLIR statement
-      statements.push_back(std::move(sc));
+      statements.push_back(std::move(statementContext));
+
+      statementIndex++;
     }
 
     // // skew
