@@ -8,7 +8,6 @@
 int main(int argc, char *argv[]) {
   int X = 3;
   int T = 1;
-  {
 #undef s0
 #undef s_0
 #undef s1
@@ -39,7 +38,6 @@ if (X >= 1) {
 #undef s_0
 #undef s1
 #undef s_1
-  }
 //   printf("=======\n");
 //   {
 // #undef s0

@@ -43,7 +43,7 @@ int main() {
     auto parser = mlir::standalone::parser::Parser(lexer);
     auto ast = parser.parseProgram();
     if (ast) {
-      ast->dump();
+      std::cout << ast->dump();
     }
   }
 }

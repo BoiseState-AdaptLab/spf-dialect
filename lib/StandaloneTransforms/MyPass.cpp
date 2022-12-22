@@ -124,9 +124,6 @@ struct Walker : public sparser::VisitorBase {
   std::unordered_map<std::string, mlir::Value> symbols;
   std::unordered_map<std::string, mlir::Region *> ufNameToRegion;
 
-  // TODO: this is really only used for error checking, could use a bool or
-  // something better. IDK.
-  llvm::Optional<mlir::Operation *> maybeOp;
   standalone::ComputationOp computationOp;
   std::vector<StatementContext> statements;
   std::unordered_map<std::string, mlir::Value> ivs; // induction variables
@@ -166,12 +163,22 @@ public:
     }
   }
 
-  llvm::Optional<mlir::Operation *> walk(std::unique_ptr<sparser::Program> p) {
+  void dumpItAll() __attribute__((noinline, used)) {
+    LLVM_DEBUG({
+      // Find the top-level operation.
+      auto *topLevelOp = computationOp.getOperation();
+      while (auto *parentOp = topLevelOp->getParentOp()) {
+        topLevelOp = parentOp;
+      }
+      topLevelOp->print(llvm::dbgs(), OpPrintingFlags().printGenericOpForm());
+    });
+  }
+
+  void codeGen(std::unique_ptr<sparser::Program> p) {
     LLVM_DEBUG(llvm::dbgs() << "Walker ====================================\n");
     for (auto &statement : p->statements) {
       statement->accept(*this);
     }
-    return maybeOp;
   }
 
 private:
@@ -193,11 +200,6 @@ private:
 
     scf::ForOp forOp =
         builder.create<scf::ForOp>(computationOp.getLoc(), start, stop, step);
-
-    // if this is the top level loop store it off to return
-    if (!maybeOp) {
-      maybeOp = forOp;
-    }
 
     assert(ivs.find(loop->inductionVar) == symbols.end() &&
            "an induction variable should never be reused in new loop");
@@ -264,11 +266,20 @@ private:
           .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
             assert(symbol->increment == 0 &&
                    "don't know what to do with increment in statement call");
-            assert(!symbol->symbol.empty() &&
-                   ivs.find(symbol->symbol) != ivs.end() &&
+
+            bool isIV = ivs.find(symbol->symbol) != ivs.end();
+            bool isSymbol = symbols.find(symbol->symbol) != symbols.end();
+
+            assert(!symbol->symbol.empty() && (isIV || isSymbol) &&
                    "can't find induction variable for statement call variable");
 
-            args.push_back(ivs[symbol->symbol]);
+            assert(!(isIV && isSymbol) && "no idea why this would ever happen");
+
+            if (isIV) {
+              args.push_back(ivs[symbol->symbol]);
+            } else {
+              args.push_back(symbols[symbol->symbol]);
+            }
           })
           .Case<sparser::Int>([&](sparser::Int *integer) {
             args.push_back(builder.create<mlir::arith::ConstantIndexOp>(
@@ -594,13 +605,10 @@ public:
       LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
     }
 
-    auto loop =
-        Walker(rewriter, computationOp, statements, llvm::Optional<AffineMap>())
-            .walk(std::move(simpleAST));
+    // Walk ast and generate MLIR based on Omega AST
+    Walker(rewriter, computationOp, statements, llvm::Optional<AffineMap>())
+        .codeGen(std::move(simpleAST));
 
-    // if (!loop) {
-    //   return failure();
-    // }
     rewriter.eraseOp(computationOp);
     LLVM_DEBUG(llvm::dbgs() << "===========================================\n");
     return success();
@@ -618,8 +626,9 @@ void MyPass::runOnOperation() {
   populateStandaloneToSomethingConversionPatterns(patterns);
   ConversionTarget target(getContext());
   target.addLegalDialect<scf::SCFDialect, arith::ArithmeticDialect,
-                         vector::VectorDialect, memref::MemRefDialect>();
-  // target.addIllegalOp<standalone::BarOp>();
+                         vector::VectorDialect, memref::MemRefDialect,
+                         AffineDialect>();
+  target.addIllegalOp<standalone::BarOp, standalone::ComputationOp>();
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
     signalPassFailure();
