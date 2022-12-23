@@ -132,9 +132,7 @@ struct Walker : public sparser::VisitorBase {
 public:
   explicit Walker(mlir::OpBuilder &builder,
                   standalone::ComputationOp computationOp,
-                  std::vector<StatementContext> statements,
-                  llvm::Optional<mlir::AffineMap> inverseMap =
-                      llvm::Optional<mlir::AffineMap>())
+                  std::vector<StatementContext> statements)
       : builder(builder), computationOp(computationOp), statements(statements) {
 
     // populate ufNameToRegion TODO: ufs should be functions stored in the
@@ -163,6 +161,7 @@ public:
     }
   }
 
+  // This function is very useful for debugging purposes
   void dumpItAll() __attribute__((noinline, used)) {
     LLVM_DEBUG({
       // Find the top-level operation.
@@ -194,7 +193,22 @@ private:
 
     auto start = builder.create<mlir::arith::ConstantIndexOp>(
         computationOp.getLoc(), loop->start);
-    auto stop = symbols[stopString];
+
+    // Create mutable AffineMap for applying increment to stop symbol
+    auto map = MutableAffineMap(
+        AffineMap::getMultiDimIdentityMap(1, builder.getContext()));
+
+    // Update map output to include increment
+    auto result = map.getResult(0);
+    map.setResult(0, result + loop->stop->increment);
+
+    assert(map.getNumResults() == 1 && "map should return ");
+
+    // create stop by applying the map
+    auto stop = makeCanonicalAffineApplies(builder, computationOp->getLoc(),
+                                           map.getAffineMap(),
+                                           {symbols[stopString]})[0];
+
     auto step = builder.create<mlir::arith::ConstantIndexOp>(
         computationOp.getLoc(), loop->step);
 
@@ -309,7 +323,7 @@ private:
     // from omega generated statement calls to where to read or write out of
     // memref.
     auto inverse =
-        statements[statementIndex].executionScheduleToIterationSpace();
+        statements[statementIndex].getExecutionScheduleToIterationSpace();
     auto readMaps = llvm::map_range(
         statementOp.getReads().getAsValueRange<AffineMapAttr>(),
         [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
@@ -584,14 +598,6 @@ public:
       statementIndex++;
     }
 
-    // // skew
-    // computation.addTransformation(0, new
-    // Relation("{[a,b,c,d]->[a,b,x,d]:x=c-1}"));
-
-    // // fuse (this could also be done with `computation.fuse(0,1,3)`)
-    // computation.addTransformation(0, new Relation("{[a,b,c,d]->[a,0,c,0]}"));
-    // computation.addTransformation(1, new Relation("{[a,b,c,d]->[a,0,c,1]}"));
-
     LLVM_DEBUG(llvm::dbgs() << "IEGenLib codeGen ==========================\n");
     LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
 
@@ -605,9 +611,17 @@ public:
       LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
     }
 
+    LLVM_DEBUG(llvm::dbgs() << "mapping functions =========================\n");
+    for (auto &statement : llvm::enumerate(statements)) {
+      LLVM_DEBUG(llvm::dbgs()
+                 << "statement: " << statement.index()
+                 << ", executionScheduleToIterationSpace(AffineMap): "
+                 << statement.value().getExecutionScheduleToIterationSpace()
+                 << "\n");
+    }
+
     // Walk ast and generate MLIR based on Omega AST
-    Walker(rewriter, computationOp, statements, llvm::Optional<AffineMap>())
-        .codeGen(std::move(simpleAST));
+    Walker(rewriter, computationOp, statements).codeGen(std::move(simpleAST));
 
     rewriter.eraseOp(computationOp);
     LLVM_DEBUG(llvm::dbgs() << "===========================================\n");

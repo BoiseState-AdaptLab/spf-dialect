@@ -331,8 +331,8 @@ public:
 class LoopAST : public AST {
 public:
   std::string inductionVar;
-  int start;
-  std::unique_ptr<Symbol> stop;
+  int start;                    // start expected to be inclusive
+  std::unique_ptr<Symbol> stop; // stop expected to be exclusive
   int step;
   std::vector<std::unique_ptr<AST>> block;
 
@@ -632,8 +632,18 @@ private:
     lexer.consume(tok_identifier);
 
     // TODO: handle other cases
-    // `<=`
-    EXPECT_AND_CONSUME(tok_less_equal, context);
+    // (`<=` | `<`)
+    if (lexer.getCurToken() != tok_less_equal &&
+        lexer.getCurToken() != tok_less) {
+      return parseError<AST>("'<=', or '<'", context);
+    }
+    int increment = 0;
+    if (lexer.getCurToken() == tok_less) {
+      lexer.consume(tok_less);
+    } else { // tok_less_equal
+      increment += 1;
+      lexer.consume(tok_less_equal);
+    }
 
     // TODO: handle other cases, this could be an int too
     // `T`
@@ -643,24 +653,23 @@ private:
     lexer.consume(tok_identifier);
 
     // checking for a `- 1` or similar
-    int increment = 0;
     if (lexer.getCurToken() != tok_semicolon) {
       if (lexer.getCurToken() != tok_plus && lexer.getCurToken() != tok_minus) {
         return parseError<AST>("';','-', or '+'", context);
       }
 
-      int increment_sign;
+      int sign;
       if (lexer.getCurToken() == tok_minus) {
-        increment_sign = -1;
+        sign = -1;
         lexer.consume(tok_minus);
-      } else if (lexer.getCurToken() == tok_plus) {
-        increment_sign = 1;
+      } else { // tok_plus
+        sign = 1;
         lexer.consume(tok_plus);
       }
 
       if (lexer.getCurToken() != tok_int)
         return parseError<AST>("int", context);
-      increment = increment_sign * lexer.getValue();
+      increment += sign * lexer.getValue();
       lexer.consume(tok_int);
     }
     auto stop = std::make_unique<Symbol>(lexer.lastLocation,

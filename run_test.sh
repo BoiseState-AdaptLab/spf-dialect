@@ -25,28 +25,28 @@ build/bin/standalone-opt no_transform_multi_statement_test.mlir \
     --shared-libs=build/lib/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
-# echo  "EXPECTED OUTPUT ========================="
-# build/jacobi/jacobi-transformed-c-print-example
-# echo  "OUTPUT =================================="
-# build/bin/standalone-opt transformed_multi_statement_test.mlir \
-#   -my-pass \
-#   -lower-affine \
-#   -convert-vector-to-scf \
-#   -convert-scf-to-cf \
-#   -gpu-to-llvm \
-#   -convert-vector-to-llvm \
-#   -convert-memref-to-llvm \
-#   -convert-complex-to-standard \
-#   -convert-math-to-llvm \
-#   -convert-complex-to-llvm \
-#   -convert-math-to-libm \
-#   -convert-func-to-llvm \
-#   -reconcile-unrealized-casts \
-#   | ../llvm-project/build/bin/mlir-cpu-runner \
-#     --entry-point-result=void \
-#     --shared-libs=build/lib/libRuntime.so \
-#     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
-#     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
+echo  "EXPECTED OUTPUT ========================="
+build/jacobi/jacobi-transformed-c-print-example
+echo  "OUTPUT =================================="
+build/bin/standalone-opt transformed_multi_statement_test.mlir \
+  -my-pass \
+  -lower-affine \
+  -convert-vector-to-scf \
+  -convert-scf-to-cf \
+  -gpu-to-llvm \
+  -convert-vector-to-llvm \
+  -convert-memref-to-llvm \
+  -convert-complex-to-standard \
+  -convert-math-to-llvm \
+  -convert-complex-to-llvm \
+  -convert-math-to-libm \
+  -convert-func-to-llvm \
+  -reconcile-unrealized-casts \
+  | ../llvm-project/build/bin/mlir-cpu-runner \
+    --entry-point-result=void \
+    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
+    --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "EXPECTED OUTPUT ========================="
 echo  "( ( 16075, 21930, 28505, 35800, 43815 ),"
 echo  "  ( 10000, 14225, 19180, 24865, 31280 ) )"

@@ -52,8 +52,8 @@ module @my_module {
    	// 	memref.store %inew, %i[%c0] : memref<1xindex>
 		// }
 
-    %T = arith.constant 2 : index
-    %X = arith.constant 4 : index
+    %T = arith.constant 1 : index
+    %X = arith.constant 3 : index
 
 		// t_vals
     %t_vals = memref.alloc() : memref<2xindex>

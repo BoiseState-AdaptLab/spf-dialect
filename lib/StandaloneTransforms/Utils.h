@@ -72,7 +72,7 @@ public:
   ///
   /// TODO: AffineMap has an inverse fuction. Transformations might be applied
   /// as AffineMaps. This could all just be replaced with that.
-  mlir::AffineMap executionScheduleToIterationSpace() {
+  mlir::AffineMap getExecutionScheduleToIterationSpace() {
     // To construct the inverse relation we must construct a LHS and RHS.
     // For the LHS:
     //   since the inverse relation executes on the output of the relation we're
@@ -140,14 +140,6 @@ public:
     return mlir::parseAttribute(ss.str(), context)
         .cast<mlir::AffineMapAttr>()
         .getValue();
-
-    // // The full inverse will be the composition of this inverse with any
-    // // previously applied.
-    // inverse = inverse.compose(thisInverse);
-
-    // // Any future transformation will be operating on the output of this
-    // // transformation.
-    // input = output;
   }
 
   explicit StatementContext(mlir::MLIRContext *context,
