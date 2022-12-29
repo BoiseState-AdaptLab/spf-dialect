@@ -8,6 +8,8 @@ build/jacobi/jacobi-no-transform-c-print-example
 echo  "OUTPUT =================================="
 build/bin/standalone-opt no_transform_multi_statement_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -convert-vector-to-scf \
   -convert-scf-to-cf \
@@ -30,6 +32,8 @@ build/jacobi/jacobi-transformed-c-print-example
 echo  "OUTPUT =================================="
 build/bin/standalone-opt transformed_multi_statement_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -convert-vector-to-scf \
   -convert-scf-to-cf \
@@ -53,6 +57,8 @@ echo  "  ( 10000, 14225, 19180, 24865, 31280 ) )"
 echo  "DENSE-CPU================================"
 build/bin/standalone-opt dense_mttkrp_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -convert-vector-to-scf \
   -convert-scf-to-cf \
@@ -72,6 +78,8 @@ build/bin/standalone-opt dense_mttkrp_test.mlir \
 echo  "SPARSE-CPU==============================="
 build/bin/standalone-opt sparse_mttkrp_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -convert-vector-to-scf \
   -convert-scf-to-cf \
@@ -92,6 +100,8 @@ build/bin/standalone-opt sparse_mttkrp_test.mlir \
 echo  "DENSE-GPU================================"
 build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -gpu-map-parallel-loops \
   -convert-parallel-loops-to-gpu \
@@ -121,6 +131,8 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
 echo  "SPARSE-GPU==============================="
 build/bin/standalone-opt sparse_mttkrp_gpu_test.mlir \
   -my-pass \
+  -inline \
+  -cse \
   -lower-affine \
   -gpu-map-parallel-loops \
   -convert-parallel-loops-to-gpu \
