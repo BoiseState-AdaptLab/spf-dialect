@@ -72,6 +72,7 @@ module {
                    writes = [
                        affine_map<(j, z, i, k, l) -> (i, j)>
                    ],
+                   // symbols,ufInputs,inputs,outputs
                    operand_segment_sizes = dense<[5,3,3,1]> : vector<4xi32>,
                    ufNames = ["UFi", "UFk", "UFl"],
                    symbolNames = ["NNZ", "I", "J", "K", "L"],

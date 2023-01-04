@@ -35,6 +35,7 @@ module {
                     writes = [
                         affine_map<(i, k, l, j) -> (i, j)>
                     ],
+                    // symbols,ufInputs,inputs,outputs
                     operand_segment_sizes = dense<[4,0,3,1]> : vector<4xi32>,
                     ufNames = [],
                     symbolNames = ["I", "J", "K", "L"],
