@@ -3,20 +3,13 @@
 // Which is part of the LLVM Project, under the Apache License v2.0 with LLVM
 // Exceptions. See https://llvm.org/LICENSE.txt for license information.
 
-#include "mlir/ExecutionEngine/CRunnerUtils.h"
+#include "Runtime/runtime.h"
+#include <cassert>
 #include <cctype>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <vector>
-
-/// This type is used in the public API at all places where MLIR expects
-/// values with the built-in type "index". For now, we simply assume that
-/// type is 64-bit, but targets with different "index" bit widths should
-/// link with an alternatively built runtime support library.
-// TODO: support such targets?
-using index_type = uint64_t;
 
 // This macro helps minimize repetition of this idiom, as well as ensuring
 // we have some additional output indicating where the error is coming from.
@@ -97,18 +90,6 @@ static void readExtFROSTTHeader(FILE *file, char *filename, char *line,
   fgets(line, kColWidth, file); // end of line
 }
 
-struct COO {
-  COO(uint64_t nnz, uint64_t rank) {
-    coord =
-        std::vector<std::vector<uint64_t>>(rank, std::vector<uint64_t>(nnz));
-    values = std::vector<double>(nnz);
-  }
-
-public:
-  std::vector<std::vector<uint64_t>> coord;
-  std::vector<double> values;
-};
-
 extern "C" { // these are the symbols that MLIR will actually call
 
 void *_mlir_ciface_read_coo(char *filename) {
@@ -137,7 +118,7 @@ void *_mlir_ciface_read_coo(char *filename) {
     dims[i] = idata[i + 2];
   }
 
-  COO *coo = new COO(nnz, rank);
+  COO *coo = new COO(nnz, rank, std::move(dims));
 
   std::vector<std::vector<index_type>> &coord = coo->coord;
   std::vector<double> &values = coo->values;
@@ -186,7 +167,6 @@ char *getTensorFilename(index_type id) {
   char *env = getenv(var);
   if (!env)
     FATAL("Environment variable %s is not set\n", var);
-  printf("filename: %s\n", env);
   return env;
 }
 

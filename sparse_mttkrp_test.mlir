@@ -126,8 +126,8 @@ module {
                 memref.store %v, %c[%k, %j] : memref<?x?xf64>
             }
         }
-        // %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
-        // call @output_memref_f64(%unranked_c) : (memref<*xf64>) -> ()
+        %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
+        call @printMemrefF64(%unranked_c) : (memref<*xf64>) -> ()
 
         %d = memref.alloc(%L, %J) : memref<?x?xf64>
         scf.for %l = %c0 to %L step %c1 {
@@ -139,8 +139,8 @@ module {
                 memref.store %v, %d[%l, %j] : memref<?x?xf64>
             }
         }
-        // %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
-        // call @output_memref_f64(%unranked_d) : (memref<*xf64>) -> ()
+        %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
+        call @printMemrefF64(%unranked_d) : (memref<*xf64>) -> () //
 
         %a = memref.alloc(%I, %J) : memref<?x?xf64>
         scf.for %i = %c0 to %I step %c1 {
@@ -148,8 +148,8 @@ module {
                 memref.store %f0, %a[%i, %j] : memref<?x?xf64>
             }
         }
-        // %unranked_a = memref.cast %a : memref<?x?xf64> to memref<*xf64>
-        // call @output_memref_f64(%unranked_a) : (memref<*xf64>) -> ()
+        %unranked_a_before = memref.cast %a : memref<?x?xf64> to memref<*xf64>
+        call @printMemrefF64(%unranked_a_before) : (memref<*xf64>) -> ()
 
         // Call kernel.
         %out = call @sparse_mttkrp(%nnz, %I, %J, %K, %L,
