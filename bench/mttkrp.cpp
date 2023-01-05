@@ -1,5 +1,9 @@
+
+#include <climits>
+
 #include "Runtime/runtime.h"
 #include "mlir/ExecutionEngine/CRunnerUtils.h"
+#include "mlir/ExecutionEngine/MemRefUtils.h"
 #include "mlir/ExecutionEngine/RunnerUtils.h"
 
 #include <algorithm>
@@ -8,7 +12,17 @@
 #include <vector>
 
 extern "C" {
-void sparse_mttkrp(uint64_t nnz, uint64_t I, uint64_t J, uint64_t K, uint64_t L,
+void sparse_mttkrp_extra_stuff(uint64_t nnz, uint64_t I, uint64_t J, uint64_t K,
+                               uint64_t L,
+                               StridedMemRefType<uint64_t, 1> coord_0,
+                               StridedMemRefType<uint64_t, 1> coord_1,
+                               StridedMemRefType<uint64_t, 1> coord_2,
+                               StridedMemRefType<double, 1> values,
+                               StridedMemRefType<double, 2> c,
+                               StridedMemRefType<double, 2> d,
+                               StridedMemRefType<double, 2> a);
+
+void sparse_mttkrp(uint64_t nnz, uint64_t J,
                    StridedMemRefType<uint64_t, 1> coord_0,
                    StridedMemRefType<uint64_t, 1> coord_1,
                    StridedMemRefType<uint64_t, 1> coord_2,
@@ -69,95 +83,87 @@ void iegenlibMTTKRP(int NNZ, int J, uint64_t *UFi, uint64_t *UFk, uint64_t *UFl,
 
 enum test {
   test_mlir,
+  test_mlir_extra,
   test_iegen,
 };
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-void mttkrp(test which, char *filename) {
+void mttkrp(test whichTest, char *filename) {
   COO *coo = (COO *)_mlir_ciface_read_coo(filename);
   assert(coo->rank == 3 && "mttkrp requires rank 3 tensor");
+
+  int64_t I = coo->dims[0];
+  int64_t J = 5;
+  int64_t K = coo->dims[1];
+  int64_t L = coo->dims[2];
+  int64_t NNZ = coo->nnz;
 
   // These functions look weird because they are also used as a runtime
   // functions called by MLIR code. I don't fully understand it but they have to
   // look a certain way.
-  StridedMemRefType<uint64_t, 1> bCoord0;
-  _mlir_ciface_coords(&bCoord0, coo, 0);
-  StridedMemRefType<uint64_t, 1> bCoord1;
-  _mlir_ciface_coords(&bCoord1, coo, 1);
-  StridedMemRefType<uint64_t, 1> bCoord2;
-  _mlir_ciface_coords(&bCoord2, coo, 2);
-  StridedMemRefType<double, 1> bVals;
-  _mlir_ciface_values(&bVals, coo);
+  // StridedMemRefType<uint64_t, 1> bCoord0;
 
-  uint64_t I = coo->dims[0];
-  uint64_t J = 5;
-  uint64_t K = coo->dims[1];
-  uint64_t L = coo->dims[2];
-  uint64_t NNZ = coo->nnz;
+  mlir::OwningMemRef<uint64_t, 1> bCoord0(
+      {NNZ}, {NNZ}, [&](uint64_t &elt, llvm::ArrayRef<int64_t> indices) {
+        elt = coo->coord[0][indices[0]];
+      });
+  mlir::OwningMemRef<uint64_t, 1> bCoord1(
+      {NNZ}, {NNZ}, [&](uint64_t &elt, llvm::ArrayRef<int64_t> indices) {
+        elt = coo->coord[1][indices[0]];
+      });
+  mlir::OwningMemRef<uint64_t, 1> bCoord2(
+      {NNZ}, {NNZ}, [&](uint64_t &elt, llvm::ArrayRef<int64_t> indices) {
+        elt = coo->coord[2][indices[0]];
+      });
+  mlir::OwningMemRef<double, 1> bVals(
+      {NNZ}, {NNZ}, [&](double &elt, llvm::ArrayRef<int64_t> indices) {
+        elt = coo->values[indices[0]];
+      });
 
-  // Construct c matrix
-  std::vector<double> cData = std::vector<double>(K * J);
-  for (uint64_t k = 0; k < K; k++) {
-    for (uint64_t j = 0; j < J; j++) {
-      cData[k * J + j] = k * J + j;
-    }
-  }
-  StridedMemRefType<double, 2> c;
-  c.basePtr = c.data = cData.data();
-  c.offset = 0;
-  c.sizes[0] = K;
-  c.sizes[1] = J;
-  c.strides[0] = J;
-  c.strides[1] = 1;
+  // // _mlir_ciface_coords(&*bCoord0, coo, 0);
+  // StridedMemRefType<uint64_t, 1> bCoord1;
+  // _mlir_ciface_coords(&bCoord1, coo, 1);
+  // StridedMemRefType<uint64_t, 1> bCoord2;
+  // _mlir_ciface_coords(&bCoord2, coo, 2);
+  // StridedMemRefType<double, 1> bVals;
+  // _mlir_ciface_values(&bVals, coo);
 
+  auto init = [=](double &elt, llvm::ArrayRef<int64_t> indices) {
+    assert(indices.size() == 2);
+    elt = indices[0] * J + indices[1];
+  };
+
+  // Construct matrices
+  mlir::OwningMemRef<double, 2> c({K, J}, {K, J}, init);
   {
-    UnrankedMemRefType<double> unranked{2, (void *)&c};
+    UnrankedMemRefType<double> unranked{2, &*c};
     _mlir_ciface_printMemrefF64(&unranked);
   }
 
   // Construct d matrix
-  std::vector<double> dData = std::vector<double>(L * J);
-  for (uint64_t l = 0; l < L; l++) {
-    for (uint64_t j = 0; j < J; j++) {
-      dData[l * J + j] = l * J + j;
-    }
-  }
-  StridedMemRefType<double, 2> d;
-  d.basePtr = d.data = dData.data();
-  d.offset = 0;
-  d.sizes[0] = L;
-  d.sizes[1] = J;
-  d.strides[0] = J;
-  d.strides[1] = 1;
-
+  mlir::OwningMemRef<double, 2> d({L, J}, {L, J}, init);
   {
-    UnrankedMemRefType<double> unranked{2, (void *)&d};
+    UnrankedMemRefType<double> unranked{2, &*d};
     _mlir_ciface_printMemrefF64(&unranked);
   }
 
-  std::vector<double> aData = std::vector<double>(I * J);
-  std::fill(aData.begin(), aData.end(), 0.0);
-
-  StridedMemRefType<double, 2> a;
-  a.basePtr = a.data = aData.data();
-  a.offset = 0;
-  a.sizes[0] = I;
-  a.sizes[1] = J;
-  a.strides[0] = J;
-  a.strides[1] = 1;
-
+  mlir::OwningMemRef<double, 2> a({I, J}, {I, J});
   {
-    UnrankedMemRefType<double> unranked{2, (void *)&a};
+    UnrankedMemRefType<double> unranked{2, &*a};
     _mlir_ciface_printMemrefF64(&unranked);
   }
 
-  switch (which) {
-  case test_mlir:
-    sparse_mttkrp(NNZ, I, J, K, L, bCoord0, bCoord1, bCoord2, bVals, c, d, a);
+  switch (whichTest) {
+  case test_mlir_extra:
+    sparse_mttkrp_extra_stuff(NNZ, I, J, K, L, *bCoord0, *bCoord1, *bCoord2,
+                              *bVals, *c, *d, *a);
     break;
   case test_iegen:
-    iegenlibMTTKRP(NNZ, J, bCoord0.data, bCoord1.data, bCoord2.data, bVals.data,
-                   c.data, d.data, a.data);
+    iegenlibMTTKRP(NNZ, J, bCoord0->data, bCoord1->data, bCoord2->data,
+                   bVals->data, c->data, d->data, a->data);
+    break;
+  case test_mlir:
+    sparse_mttkrp(NNZ, J, *bCoord0, *bCoord1, *bCoord2, *bVals, *c, *d, *a);
     break;
   }
 
@@ -166,7 +172,7 @@ void mttkrp(test which, char *filename) {
   // printf("time: %lu\n", tEndMttkrpCoo - tStartMttkrpCoo);
 
   {
-    UnrankedMemRefType<double> unranked{2, (void *)&a};
+    UnrankedMemRefType<double> unranked{2, &*a};
     _mlir_ciface_printMemrefF64(&unranked);
   }
 }
@@ -195,8 +201,14 @@ int main() {
 
   // read b tensor from file
   char *filename = getTensorFilename(0);
-  printf("MLIR OUTPUT =============================\n");
-  mttkrp(test_mlir, filename);
+  printf("MLIR (extra stuff) OUTPUT ===============\n");
+  mttkrp(test_mlir_extra, filename);
   printf("IEGEN OUTPUT ============================\n");
   mttkrp(test_iegen, filename);
+  // This runs fine when the function is called from MLIR but fails when called
+  // from C++ not sure why, the generated code after lowering out of spf dialect
+  // looks the same just with more arguments. This seems like an interesting
+  // debugging odyssey when I have the time.
+  // printf("MLIR OUTPUT =============================\n");
+  // mttkrp(test_mlir, filename);
 }

@@ -11,12 +11,21 @@ macro(create_object_file_and_append object_file_list mlir_file)
   # https://stackoverflow.com/a/56586927/3217397
   list(GET FILE_PARTS 0 FILE_NAME_NO_EXTENSION)
 
-	# compile benchmark to mlir llvm dialect
-	add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.mlir
+	# lower benchmark out of mlir spf dialect
+	set(PARTIAL_LOWERING_FILENAME ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_partial_lowering.mlir)
+	add_custom_command(OUTPUT ${PARTIAL_LOWERING_FILENAME}
 										DEPENDS ${mlir_file}
-										COMMAND standalone-opt sparse_mttkrp.mlir
+										COMMAND standalone-opt ${mlir_file}
 														-my-pass
 														-inline
+														-o ${PARTIAL_LOWERING_FILENAME}
+										WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bench)
+
+	# optimize benchmark and lower to mlir llvm dialect
+	set(FULL_LOWERING_FILENAME ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.mlir)
+	add_custom_command(OUTPUT ${FULL_LOWERING_FILENAME}
+										DEPENDS ${PARTIAL_LOWERING_FILENAME}
+										COMMAND standalone-opt ${PARTIAL_LOWERING_FILENAME}
 														-cse
 														-lower-affine
 														-convert-vector-to-scf
@@ -30,35 +39,43 @@ macro(create_object_file_and_append object_file_list mlir_file)
 														-convert-math-to-libm
 														-convert-func-to-llvm
 														-reconcile-unrealized-casts
-														-o ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.mlir
+														-o ${FULL_LOWERING_FILENAME}
 										WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bench)
 
 	# translate from mlir llvm dialect to llvm bytecode
-	add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.bc
-										DEPENDS ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.mlir
+	set(BYTECODE_FILENAME ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.bc)
+	add_custom_command(OUTPUT ${BYTECODE_FILENAME}
+										DEPENDS ${FULL_LOWERING_FILENAME}
 										COMMAND mlir-translate
 														-mlir-to-llvmir
-														-o ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.bc
-														${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.mlir
+														-o ${BYTECODE_FILENAME}
+														${FULL_LOWERING_FILENAME}
 										WORKING_DIRECTORY ${LLVM_BUILD_BINARY_DIR}/bin)
 
 	# compile llvm bytecode to object file
-	add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.o
-										DEPENDS ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.bc
+	set(OBJECT_FILE_FILENAME ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.o)
+	add_custom_command(OUTPUT ${OBJECT_FILE_FILENAME}
+										DEPENDS ${BYTECODE_FILENAME}
 										COMMAND llc
 														-filetype=obj
 														-O3
-														-o ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.o
-														${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.bc
+														-o ${OBJECT_FILE_FILENAME}
+														${BYTECODE_FILENAME}
 										WORKING_DIRECTORY ${LLVM_BUILD_BINARY_DIR}/bin)
 
 	# append to global list for later use in creating executable
-	list(APPEND ${object_file_list} ${PROJECT_BINARY_DIR}/bench/${FILE_NAME_NO_EXTENSION}_output.o)
+	list(APPEND ${object_file_list} ${OBJECT_FILE_FILENAME})
 endmacro()
 
 # create benchmarks ================================================================================
 set(MLIR_BENCHMARK_OBJECT_FILES)
 create_object_file_and_append(MLIR_BENCHMARK_OBJECT_FILES sparse_mttkrp.mlir)
+create_object_file_and_append(MLIR_BENCHMARK_OBJECT_FILES sparse_mttkrp_extra_stuff.mlir)
 
 add_executable(bench ${MLIR_BENCHMARK_OBJECT_FILES} mttkrp.cpp)
-target_link_libraries(bench mlir_c_runner_utils mlir_runner_utils Runtime)
+target_link_libraries(bench
+											mlir_c_runner_utils
+											mlir_runner_utils
+											Runtime
+											LLVMSupport
+											)

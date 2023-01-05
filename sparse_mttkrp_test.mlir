@@ -36,17 +36,14 @@ module {
     }
 
     func.func @sparse_mttkrp(%NNZ : index,
-                             %I: index,
                              %J: index,
-                             %K: index,
-                             %L: index,
                              %argb_coord_0 : memref<?xindex>,
                              %argb_coord_1 : memref<?xindex>,
                              %argb_coord_2 : memref<?xindex>,
                              %argb_values : memref<?xf64>,
                              %argc: memref<?x?xf64>,
                              %argd: memref<?x?xf64>,
-                             %arga: memref<?x?xf64>) -> memref<?x?xf64> {
+                             %arga: memref<?x?xf64>) -> () {
 
         "standalone.computation"() ({
             // for(int z = 0; z < NNZ; z++) {
@@ -57,7 +54,7 @@ module {
             //   for (int j = 0; j < J; j++)
             //     A[i,j] += val*D[l,j]*C[k,j];
             // }
-            "standalone.bar"(%NNZ, %I, %J, %K, %L, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+            "standalone.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
             ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
             %0 = arith.mulf %b_i_k_l, %d_l_j : f64
             %1 = arith.mulf %0, %c_k_j : f64
@@ -73,21 +70,21 @@ module {
                        affine_map<(j, z, i, k, l) -> (i, j)>
                    ],
                    // symbols,ufInputs,inputs,outputs
-                   operand_segment_sizes = dense<[5,3,3,1]> : vector<4xi32>,
+                   operand_segment_sizes = dense<[2,3,3,1]> : vector<4xi32>,
                    ufNames = ["UFi", "UFk", "UFl"],
-                   symbolNames = ["NNZ", "I", "J", "K", "L"],
+                   symbolNames = ["NNZ", "J"],
                    iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
                    executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
                    iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
                    transforms = []
-               } : (index, index, index, index, index,
+               } : (index, index,
                    memref<?xindex>, memref<?xindex>,
                    memref<?xindex>, memref<?xf64>,
                    memref<?x?xf64>, memref<?x?xf64>,
                    memref<?x?xf64>) -> ()
         }) : () -> ()
 
-        return %arga : memref<?x?xf64>
+        return
     }
 
     func.func @main() {
@@ -127,8 +124,8 @@ module {
                 memref.store %v, %c[%k, %j] : memref<?x?xf64>
             }
         }
-        %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
-        call @printMemrefF64(%unranked_c) : (memref<*xf64>) -> ()
+        // %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
+        // call @printMemrefF64(%unranked_c) : (memref<*xf64>) -> ()
 
         %d = memref.alloc(%L, %J) : memref<?x?xf64>
         scf.for %l = %c0 to %L step %c1 {
@@ -140,8 +137,8 @@ module {
                 memref.store %v, %d[%l, %j] : memref<?x?xf64>
             }
         }
-        %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
-        call @printMemrefF64(%unranked_d) : (memref<*xf64>) -> () //
+        // %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
+        // call @printMemrefF64(%unranked_d) : (memref<*xf64>) -> () //
 
         %a = memref.alloc(%I, %J) : memref<?x?xf64>
         scf.for %i = %c0 to %I step %c1 {
@@ -149,18 +146,18 @@ module {
                 memref.store %f0, %a[%i, %j] : memref<?x?xf64>
             }
         }
-        %unranked_a_before = memref.cast %a : memref<?x?xf64> to memref<*xf64>
-        call @printMemrefF64(%unranked_a_before) : (memref<*xf64>) -> ()
+        // %unranked_a_before = memref.cast %a : memref<?x?xf64> to memref<*xf64>
+        // call @printMemrefF64(%unranked_a_before) : (memref<*xf64>) -> ()
 
         // Call kernel.
-        %out = call @sparse_mttkrp(%nnz, %I, %J, %K, %L,
-                                   %b_coord_0, %b_coord_1,
-                                   %b_coord_2, %b_values,
-                                   %c, %d, %a) : (index, index, index, index, index,
-                                                  memref<?xindex>, memref<?xindex>,
-                                                  memref<?xindex>, memref<?xf64>,
-                                                  memref<?x?xf64>, memref<?x?xf64>,
-                                                  memref<?x?xf64>) -> memref<?x?xf64>
+        call @sparse_mttkrp(%nnz, %J,
+                            %b_coord_0, %b_coord_1,
+                            %b_coord_2, %b_values,
+                            %c, %d, %a) : (index, index,
+                                           memref<?xindex>, memref<?xindex>,
+                                           memref<?xindex>, memref<?xf64>,
+                                           memref<?x?xf64>, memref<?x?xf64>,
+                                           memref<?x?xf64>) -> ()
 
         // Expected output from  mttkrp_b.tns:
         // ( ( 16075, 21930, 28505, 35800, 43815 ), ( 10000, 14225, 19180, 24865, 31280 ) )
