@@ -16,6 +16,7 @@
 #include "mlir/IR/AffineExpr.h"
 #include "mlir/IR/AffineMap.h"
 #include "mlir/IR/Attributes.h"
+#include "mlir/IR/Block.h"
 #include "mlir/IR/BlockAndValueMapping.h"
 #include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/MLIRContext.h"
@@ -197,16 +198,66 @@ private:
     auto step = builder.create<mlir::arith::ConstantIndexOp>(
         computationOp.getLoc(), loop->step);
 
-    scf::ForOp forOp =
-        builder.create<scf::ForOp>(computationOp.getLoc(), start, stop, step);
+    // This really relies on an implementation detail of omega. The induction
+    // variables generated are t1, t2, ... with the numerical bit coming from
+    // what index this is in the the execution schedule. We're assuming that the
+    // user has set up the iterator types to correspond with the (possibly
+    // transformed) execution schedule. This isn't the nicest API in the world,
+    // it could definitely be improved, but I need to get my degree done so it's
+    // not going to be right now.
+    std::string t;
+    std::copy_if(loop->inductionVar.begin(), loop->inductionVar.end(),
+                 std::back_inserter(t),
+                 [](char ch) { return '0' <= ch && ch <= '9'; });
+    // omega 1 indexes "loop->level_", hence the -1
+    int level = std::stoi(t) - 1;
+    // TODO move iterator types to
+    auto thing = statements[0].statementOp.getIteratorTypes();
+
+    // iteratorType will be used to determine if parallel loops are generated.
+    // Default to non parallel loops.
+    StringAttr iteratorType;
+    if (thing.size() > level) {
+      iteratorType = thing[level].dyn_cast_or_null<StringAttr>();
+    }
+
+    // Variables set in either branch of the parallel loop vs non-parallel conditional
+    mlir::Value iv;
+    // The block the loop was inserted into
+    mlir::Block *original = builder.getInsertionBlock();
+    mlir::Block::iterator afterLoop;
+    mlir::Block *loopBody;
+
+    // There could be a templated generic add loop function, but there doesn't
+    // seem to be a a common API between ParallelOp and ForOp. There is a
+    // LoopLike Interface but it seems like it doesn't ahve everything we need.
+    // Maybe what we need could be added upstream?
+    if (iteratorType &&
+        iteratorType.getValue() ==
+            "parallel") { // add parallel loop, and update walker state
+      scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
+          computationOp.getLoc(), mlir::ValueRange({start}),
+          mlir::ValueRange(stop), mlir::ValueRange({step}));
+
+      iv = parallelOp.getInductionVars()[0];
+      afterLoop = ++Block::iterator(parallelOp);
+      loopBody = parallelOp.getBody();
+    } else { // add regular for loop, and update walker state
+      scf::ForOp forOp =
+          builder.create<scf::ForOp>(computationOp.getLoc(), start, stop, step);
+
+      iv = forOp.getInductionVar();
+      afterLoop = ++Block::iterator(forOp);
+      loopBody = forOp.getBody();
+    }
 
     assert(ivs.find(loop->inductionVar) == symbols.end() &&
            "an induction variable should never be reused in new loop");
     // store off induction variable
-    ivs[loop->inductionVar] = forOp.getInductionVar();
+    ivs[loop->inductionVar] = iv;
 
     // generate code for body of loop
-    builder.setInsertionPointToStart(forOp.getBody());
+    builder.setInsertionPointToStart(loopBody);
     for (auto &statement : loop->block) {
       statement->accept(*this);
     }
@@ -216,7 +267,7 @@ private:
     ivs.erase(loop->inductionVar);
 
     // reset insertion point for next statement
-    builder.setInsertionPointAfter(forOp);
+    builder.setInsertionPoint(original, afterLoop);
   }
 
   /// Much of this function adapted from `emitScalarImplementation` fuction in

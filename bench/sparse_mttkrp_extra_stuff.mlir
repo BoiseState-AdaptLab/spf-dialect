@@ -69,7 +69,7 @@ func.func public @sparse_mttkrp_extra_stuff(%NNZ : index,
                operand_segment_sizes = dense<[5,3,3,1]> : vector<4xi32>,
                ufNames = ["UFi", "UFk", "UFl"],
                symbolNames = ["NNZ", "I", "J", "K", "L"],
-               iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
+               iteratorTypes = ["reduction", "reduction", "reduction", "reduction", "reduction"],
                executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
                iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
                transforms = []

@@ -98,10 +98,6 @@ void mttkrp(test whichTest, char *filename) {
   int64_t L = coo->dims[2];
   int64_t NNZ = coo->nnz;
 
-  // These functions look weird because they are also used as a runtime
-  // functions called by MLIR code. I don't fully understand it but they have to
-  // look a certain way.
-  // StridedMemRefType<uint64_t, 1> bCoord0;
 
   mlir::OwningMemRef<uint64_t, 1> bCoord0(
       {NNZ}, {NNZ}, [&](uint64_t &elt, llvm::ArrayRef<int64_t> indices) {
@@ -119,14 +115,6 @@ void mttkrp(test whichTest, char *filename) {
       {NNZ}, {NNZ}, [&](double &elt, llvm::ArrayRef<int64_t> indices) {
         elt = coo->values[indices[0]];
       });
-
-  // // _mlir_ciface_coords(&*bCoord0, coo, 0);
-  // StridedMemRefType<uint64_t, 1> bCoord1;
-  // _mlir_ciface_coords(&bCoord1, coo, 1);
-  // StridedMemRefType<uint64_t, 1> bCoord2;
-  // _mlir_ciface_coords(&bCoord2, coo, 2);
-  // StridedMemRefType<double, 1> bVals;
-  // _mlir_ciface_values(&bVals, coo);
 
   auto init = [=](double &elt, llvm::ArrayRef<int64_t> indices) {
     assert(indices.size() == 2);
