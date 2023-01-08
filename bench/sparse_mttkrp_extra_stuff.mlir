@@ -50,7 +50,7 @@ func.func public @sparse_mttkrp_extra_stuff(%NNZ : index,
         //   for (int j = 0; j < J; j++)
         //     A[i,j] += val*D[l,j]*C[k,j];
         // }
-        "standalone.bar"(%NNZ, %I, %J, %K, %L, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+        "standalone.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
         ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
         %0 = arith.mulf %b_i_k_l, %d_l_j : f64
         %1 = arith.mulf %0, %c_k_j : f64
@@ -66,14 +66,14 @@ func.func public @sparse_mttkrp_extra_stuff(%NNZ : index,
                    affine_map<(j, z, i, k, l) -> (i, j)>
                ],
                // symbols,ufInputs,inputs,outputs
-               operand_segment_sizes = dense<[5,3,3,1]> : vector<4xi32>,
+               operand_segment_sizes = dense<[2,3,3,1]> : vector<4xi32>,
                ufNames = ["UFi", "UFk", "UFl"],
-               symbolNames = ["NNZ", "I", "J", "K", "L"],
+               symbolNames = ["NNZ", "J"],
                iteratorTypes = ["reduction", "reduction", "reduction", "reduction", "reduction"],
                executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
                iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
                transforms = []
-           } : (index, index, index, index, index,
+           } : (index, index,
                memref<?xindex>, memref<?xindex>,
                memref<?xindex>, memref<?xf64>,
                memref<?x?xf64>, memref<?x?xf64>,

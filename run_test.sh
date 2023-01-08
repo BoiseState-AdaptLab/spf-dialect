@@ -24,7 +24,7 @@ build/bin/standalone-opt no_transform_multi_statement_test.mlir \
   -reconcile-unrealized-casts \
   | ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "EXPECTED OUTPUT ========================="
@@ -48,7 +48,7 @@ build/bin/standalone-opt transformed_multi_statement_test.mlir \
   -reconcile-unrealized-casts \
   | ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "EXPECTED OUTPUT ========================="
@@ -94,7 +94,7 @@ build/bin/standalone-opt sparse_mttkrp_test.mlir \
   -reconcile-unrealized-casts \
   | TENSOR0="mttkrp_b.tns" ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "DENSE-GPU================================"
@@ -124,7 +124,7 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
   -reconcile-unrealized-casts \
   | TENSOR0="mttkrp_b.tns" ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_cuda_runtime.so
@@ -155,7 +155,8 @@ build/bin/standalone-opt sparse_mttkrp_gpu_test.mlir \
   -reconcile-unrealized-casts \
   | TENSOR0="mttkrp_b.tns" ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libCUDARuntime.so \
+    --shared-libs=build/lib/Runtime/libRuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_cuda_runtime.so

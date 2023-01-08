@@ -4,6 +4,7 @@ module {
     func.func private @coords(!llvm.ptr<i8>, index) -> memref<?xindex> attributes {llvm.emit_c_interface}
     func.func private @read_coo(!llvm.ptr<i8>) -> !llvm.ptr<i8> attributes {llvm.emit_c_interface}
     func.func private @values(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
+    func.func private @rtclock() -> f64
 
     func.func @UFi(%uf_argb_coord_0 : memref<?xindex>,
                     %uf_argb_coord_1 : memref<?xindex>,
@@ -96,12 +97,19 @@ module {
         %c1 = arith.constant 1 : index
         %c2 = arith.constant 2 : index
 
-        // Dimensions of matrices for mttkrp_b
+        // dimensions of matrices for mttkrp_b
         %I = arith.constant 2 : index
         %J = arith.constant 5 : index
         %K = arith.constant 3 : index
         %L = arith.constant 4 : index
         %nnz = arith.constant 17 : index
+
+        // // dimensions of matrices for nell-2-modified.tns
+        // %I = arith.constant 12092 : index
+        // %J = arith.constant 500 : index
+        // %K = arith.constant 9184 : index
+        // %L = arith.constant 28818 : index
+        // %nnz = arith.constant 5879419 : index
 
         // Read the sparse B input from a file.
         %filename = call @getTensorFilename(%c0) : (index) -> !llvm.ptr<i8>
@@ -149,6 +157,8 @@ module {
         // %unranked_a_before = memref.cast %a : memref<?x?xf64> to memref<*xf64>
         // call @printMemrefF64(%unranked_a_before) : (memref<*xf64>) -> ()
 
+        %t0 = call @rtclock() : () -> f64
+
         // Call kernel.
         call @sparse_mttkrp(%nnz, %J,
                             %b_coord_0, %b_coord_1,
@@ -158,6 +168,12 @@ module {
                                            memref<?xindex>, memref<?xf64>,
                                            memref<?x?xf64>, memref<?x?xf64>,
                                            memref<?x?xf64>) -> ()
+
+        %t1 = call @rtclock() : () -> f64
+        %t1024 = arith.subf %t1, %t0 : f64
+
+        // Print timings.
+        vector.print %t1024 : f64
 
         // Expected output from  mttkrp_b.tns:
         // ( ( 16075, 21930, 28505, 35800, 43815 ), ( 10000, 14225, 19180, 24865, 31280 ) )
