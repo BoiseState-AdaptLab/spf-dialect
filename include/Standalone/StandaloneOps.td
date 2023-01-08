@@ -15,7 +15,7 @@ include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
-def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
+def Standalone_FooOp : Standalone_Op<"foo", [Pure,
                                              SameOperandsAndResultType]> {
     let summary = "Illustrates how to define an operation.";
     let description = [{
@@ -42,7 +42,7 @@ def Standalone_FooOp : Standalone_Op<"foo", [NoSideEffect,
     }];
 }
 
-def Standalone_YieldOp : Standalone_Op<"yield", [NoSideEffect, ReturnLike, Terminator]>,
+def Standalone_YieldOp : Standalone_Op<"yield", [Pure, ReturnLike, Terminator]>,
     Arguments<(ins Variadic<AnyType>:$values)> {
   let summary = "TODO";
   let description = [{
@@ -70,10 +70,10 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
                          ArrayAttr:$transforms);
 
     let extraClassDeclaration = [{
-        mlir::linalg::OpOperandVector getSymbolOperands();
-        mlir::linalg::OpOperandVector getUFInputOperands();
-        mlir::linalg::OpOperandVector getInputOperands();
-        mlir::linalg::OpOperandVector getOutputOperands();
+        mlir::OpOperandVector getSymbolOperands();
+        mlir::OpOperandVector getUFInputOperands();
+        mlir::OpOperandVector getInputOperands();
+        mlir::OpOperandVector getOutputOperands();
     }];
 
     let regions = (region AnyRegion:$body, VariadicRegion<AnyRegion>:$ufs);

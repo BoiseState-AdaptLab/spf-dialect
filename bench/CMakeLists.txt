@@ -79,3 +79,5 @@ target_link_libraries(bench
 											Runtime
 											LLVMSupport
 											)
+
+target_compile_options(bench PUBLIC "-O3")

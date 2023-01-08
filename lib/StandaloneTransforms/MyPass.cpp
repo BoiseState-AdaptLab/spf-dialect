@@ -7,7 +7,7 @@
 #include "iegenlib.h"
 #include "mlir/AsmParser/AsmParser.h"
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
-#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
@@ -609,7 +609,7 @@ void MyPass::runOnOperation() {
   RewritePatternSet patterns(&getContext());
   populateStandaloneToSomethingConversionPatterns(patterns);
   ConversionTarget target(getContext());
-  target.addLegalDialect<scf::SCFDialect, arith::ArithmeticDialect,
+  target.addLegalDialect<scf::SCFDialect, arith::ArithDialect,
                          vector::VectorDialect, memref::MemRefDialect,
                          AffineDialect, func::FuncDialect>();
   target.addIllegalOp<standalone::BarOp, standalone::ComputationOp>();

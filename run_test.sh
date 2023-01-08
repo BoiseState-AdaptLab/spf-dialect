@@ -112,8 +112,8 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
   -arith-bufferize \
   -finalizing-bufferize \
   -gpu-kernel-outlining \
-  -pass-pipeline='gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin)' \
-  -gpu-to-llvm \
+  | build/bin/standalone-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
+  | build/bin/standalone-opt -gpu-to-llvm \
   -convert-vector-to-llvm \
   -convert-memref-to-llvm \
   -convert-complex-to-standard \
@@ -143,7 +143,8 @@ build/bin/standalone-opt sparse_mttkrp_gpu_test.mlir \
   -arith-bufferize \
   -finalizing-bufferize \
   -gpu-kernel-outlining \
-  -pass-pipeline='gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin)' \
+  | build/bin/standalone-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
+  | build/bin/standalone-opt -gpu-async-region \
   -gpu-to-llvm \
   -convert-vector-to-llvm \
   -convert-memref-to-llvm \

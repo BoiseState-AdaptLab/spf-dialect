@@ -91,7 +91,7 @@ module @my_module {
 							],
 							writes = [],
             	// symbols,ufInputs,inputs,outputs
-							operand_segment_sizes = dense<[2,0,2,0]> : vector<4xi32>,
+							operand_segment_sizes = array<i32: 2,0,2,0>,
 							ufNames = [],
 							symbolNames = ["T", "X"],
 							iteratorTypes = ["reduction", "reduction"],
@@ -123,7 +123,7 @@ module @my_module {
 							],
 							writes = [],
             	// symbols,ufInputs,inputs,outputs
-							operand_segment_sizes = dense<[2,0,2,0]> : vector<4xi32>,
+							operand_segment_sizes = array<i32: 2,0,2,0>,
 							ufNames = [],
 							symbolNames = ["T", "X"],
 							iteratorTypes = ["reduction", "reduction"],

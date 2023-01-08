@@ -25,7 +25,7 @@
 // https://mlir.llvm.org/docs/Dialects/Affine/#integer-sets and then symbols
 // could be passed the normal way they are with that construct. But, that's
 // going to have to be future work.
-mlir::linalg::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
+mlir::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
   // BarOp has variadic number of input and output parameters. There's a problem
   // with this, how are we to know where to break between operation parameters
   // intended to be fall in the input bucket vs output bucket. The
@@ -34,7 +34,7 @@ mlir::linalg::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
   // tablegen generates `getInputs` and `getOutputs` functions that read the
   // appropriate numer of operands based on this attribute.
   int64_t numSymbols = this->getSymbols().size();
-  mlir::linalg::OpOperandVector result;
+  mlir::OpOperandVector result;
   result.reserve(numSymbols);
   llvm::transform(this->getOperation()->getOpOperands().take_front(numSymbols),
                   std::back_inserter(result),
@@ -44,12 +44,12 @@ mlir::linalg::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
 
 // UFIntputOperands are used as arguments to the provided UFs but not as
 // arguments to the statement/.
-mlir::linalg::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
+mlir::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
   // UF inputs come after symbols in the operand list, make sure to skip those.
   int64_t numSymbols = this->getSymbols().size();
 
   int64_t numUFInputs = this->getUfInputs().size();
-  mlir::linalg::OpOperandVector result;
+  mlir::OpOperandVector result;
   result.reserve(numUFInputs);
   llvm::transform(this->getOperation()
                       ->getOpOperands()
@@ -61,14 +61,14 @@ mlir::linalg::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
 }
 
 // Items read from inputs will be arguments to the statement.
-mlir::linalg::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
+mlir::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
   int64_t numInputs = this->getInputs().size();
   // Regular inputs come after uf inputs and symbols in the operand list, make
   // sure to skip those.
   int64_t numSymbols = this->getSymbols().size();
   int64_t numUFInputs = this->getUfInputs().size();
   int64_t toSkip = numSymbols + numUFInputs;
-  mlir::linalg::OpOperandVector result;
+  mlir::OpOperandVector result;
   // TODO: this is copy pasted from the equivalent linalg op. I don't know what
   // the point of this transform thing is. I think it might just be an obnoxious
   // way to do a for loop and push back onto result.
@@ -82,9 +82,9 @@ mlir::linalg::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
 }
 
 // Each execution of a statement will write to something in the output
-mlir::linalg::OpOperandVector mlir::standalone::BarOp::getOutputOperands() {
+mlir::OpOperandVector mlir::standalone::BarOp::getOutputOperands() {
   int64_t numOutputs = this->getOutputs().size();
-  mlir::linalg::OpOperandVector result;
+  mlir::OpOperandVector result;
   result.reserve(numOutputs);
   llvm::transform(this->getOperation()->getOpOperands().take_back(numOutputs),
                   std::back_inserter(result),
