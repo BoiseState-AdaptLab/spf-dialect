@@ -152,11 +152,11 @@ set(mlir_benchmark_object_files)
 append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp.mlir sparse_mttkrp)
 append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp.mlir sparse_mttkrp)
 
-add_library(pasta SHARED IMPORTED)
-set_target_properties(pasta PROPERTIES
-                IMPORTED_LOCATION "/home/aaronstgeorge/Dev/c++/pasta/build/libPASTA.so"
-                INTERFACE_INCLUDE_DIRECTORIES "/home/aaronstgeorge/Dev/c++/pasta/include"
-                )
+# add_library(pasta SHARED IMPORTED)
+# set_target_properties(pasta PROPERTIES
+#                 IMPORTED_LOCATION "/home/aaronstgeorge/Dev/c++/pasta/build/libPASTA.so"
+#                 INTERFACE_INCLUDE_DIRECTORIES "/home/aaronstgeorge/Dev/c++/pasta/include"
+#                 )
 
 add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)
 target_link_libraries(bench
@@ -166,7 +166,7 @@ target_link_libraries(bench
         GPURuntime
         CPURuntime
         LLVMSupport
-        pasta
+        # pasta
         )
 
 # target_compile_options(bench PUBLIC "-O3")

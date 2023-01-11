@@ -32,10 +32,10 @@ const char *color[] = {"\033[0m",  "\033[31m", "\033[32m",
 
 // Returns value if <key> is present in map otherwise returns <ifAbsent>.
 template <typename T>
-T defaultIfAbsent(std::map<std::string, T> &map, char *key, T ifAbsent) {
+T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
   T out;
   if (map.find(key) != map.end()) {
-    out = map[key];
+    out = map.at(key);
   } else {
     out = ifAbsent;
   }
@@ -57,6 +57,26 @@ void printUsage(char *programName) {
             << color[reset];
 }
 
+// what platform to run benchmark on e.g. cpu, gpu
+enum Platform : int { cpu = 0, nvidia_gpu = 1, platform_not_found };
+static const std::map<std::string, Platform> stringToPlatform{
+    {"cpu", cpu}, {"gpu", nvidia_gpu}};
+
+// what benchmark to run (possibly with an optimization) e.g. mttkrp,
+// tiled_mttkrp
+enum Benchmark : int { mttkrp = 0, benchmark_not_found = -1 };
+static const std::map<std::string, Benchmark> stringToBenchmark{
+    {"mttkrp", mttkrp}};
+
+//  what was used to implement the benchmark e.g. MLIR, IEGenLib, or PASTA
+enum Implementation : int {
+  mlir = 0,
+  iegenlib = 1,
+  implementation_not_found = -1
+};
+static const std::map<std::string, Implementation> stringToImplementation{
+    {"mlir", mlir}, {"iegenlib", iegenlib}};
+
 int main(int argc, char *argv[]) {
   if (argc != 5) {
     printUsage(argv[0]);
@@ -74,25 +94,6 @@ int main(int argc, char *argv[]) {
   if (getenv("DEBUG")) {
     debug = true;
   }
-
-  // what platform to run benchmark on e.g. cpu, gpu
-  enum Platform : int { cpu = 0, nvidia_gpu = 1, platform_not_found };
-  std::map<std::string, Platform> stringToPlatform{{"cpu", cpu},
-                                                   {"gpu", nvidia_gpu}};
-
-  // what benchmark to run (possibly with an optimization) e.g. mttkrp,
-  // tiled_mttkrp
-  enum Benchmark : int { mttkrp = 0, benchmark_not_found = -1 };
-  std::map<std::string, Benchmark> stringToBenchmark{{"mttkrp", mttkrp}};
-
-  //  what was used to implement the benchmark e.g. MLIR, IEGenLib, or PASTA
-  enum Implementation : int {
-    mlir = 0,
-    iegenlib = 1,
-    implementation_not_found = -1
-  };
-  std::map<std::string, Implementation> stringToImplementation{
-      {"mlir", mlir}, {"iegenlib", iegenlib}};
 
   // read benchmark out of command line arguments
   Benchmark benchmark;

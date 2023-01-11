@@ -17,12 +17,12 @@
 
 #include "benchmarks.h"
 
-#define PASTA_INDEX_TYPEWIDTH 64
-#define PASTA_VALUE_TYPEWIDTH 64
-#include "pasta.h"
+// #define PASTA_INDEX_TYPEWIDTH 64
+// #define PASTA_VALUE_TYPEWIDTH 64
+// #include "pasta.h"
 
-#include "includes/sptensors.h"
-#include "includes/types.h"
+// #include "includes/sptensors.h"
+// #include "includes/types.h"
 
 #include <algorithm>
 #include <cstdint>
