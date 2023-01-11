@@ -1,9 +1,10 @@
-add_library(Runtime
+add_library(CPURuntime
   SHARED
-	runtime.cpp
+	CPURuntime.cpp
 )
 
-add_library(CUDARuntime
+add_library(GPURuntime
   SHARED
-	runtime.cu
+	GPURuntime.cu
+	CPURuntime
 )

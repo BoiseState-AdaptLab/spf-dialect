@@ -1,43 +1,37 @@
-func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
-                %uf_argb_coord_1 : memref<?xindex>,
-                %uf_argb_coord_2 : memref<?xindex>,
-                %j :index,
-                %z: index)-> index {
+module {
+  func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
+                  %uf_argb_coord_1 : memref<?xindex>,
+                  %uf_argb_coord_2 : memref<?xindex>,
+                  %j :index,
+                  %z: index)-> index {
 
-    %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
-    return %i : index
-}
+      %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
+      return %i : index
+  }
 
-func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
-                %uf_argb_coord_1 : memref<?xindex>,
-                %uf_argb_coord_2 : memref<?xindex>,
-                %j : index,
-                %z : index) -> index {
+  func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
+                  %uf_argb_coord_1 : memref<?xindex>,
+                  %uf_argb_coord_2 : memref<?xindex>,
+                  %j : index,
+                  %z : index) -> index {
 
-    %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
-    return %k : index
-}
+      %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
+      return %k : index
+  }
 
-func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
-                %uf_argb_coord_1 : memref<?xindex>,
-                %uf_argb_coord_2 : memref<?xindex>,
-                %j : index,
-                %z : index) -> index {
+  func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
+                  %uf_argb_coord_1 : memref<?xindex>,
+                  %uf_argb_coord_2 : memref<?xindex>,
+                  %j : index,
+                  %z : index) -> index {
 
-    %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
-    return %l : index
-}
+      %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
+      return %l : index
+  }
 
-func.func public @sparse_mttkrp(%NNZ : index,
-                                %J: index,
-                                %argb_coord_0 : memref<?xindex>,
-                                %argb_coord_1 : memref<?xindex>,
-                                %argb_coord_2 : memref<?xindex>,
-                                %argb_values : memref<?xf64>,
-                                %argc: memref<?x?xf64>,
-                                %argd: memref<?x?xf64>,
-                                %arga: memref<?x?xf64>) -> () {
-
+  func.func public @sparse_mttkrp(%NNZ : index, %J : index, %b_coord_0 : memref<?xindex>, %b_coord_1 : memref<?xindex>,
+                          %b_coord_2 : memref<?xindex>, %b_values : memref<?xf64>, %c: memref<?x?xf64>,
+                          %d: memref<?x?xf64>, %a: memref<?x?xf64>) -> () attributes {llvm.emit_c_interface} {
     "standalone.computation"() ({
         // for(int z = 0; z < NNZ; z++) {
         //   i=UFi(z);
@@ -47,7 +41,7 @@ func.func public @sparse_mttkrp(%NNZ : index,
         //   for (int j = 0; j < J; j++)
         //     A[i,j] += val*D[l,j]*C[k,j];
         // }
-        "standalone.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+        "standalone.bar"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
         ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
         %0 = arith.mulf %b_i_k_l, %d_l_j : f64
         %1 = arith.mulf %0, %c_k_j : f64
@@ -63,7 +57,7 @@ func.func public @sparse_mttkrp(%NNZ : index,
                    affine_map<(j, z, i, k, l) -> (i, j)>
                ],
                // symbols,ufInputs,inputs,outputs
-               operand_segment_sizes = dense<[2,3,3,1]> : vector<4xi32>,
+               operand_segment_sizes = array<i32: 2,3,3,1>,
                ufNames = ["UFi", "UFk", "UFl"],
                symbolNames = ["NNZ", "J"],
                iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
@@ -78,4 +72,5 @@ func.func public @sparse_mttkrp(%NNZ : index,
     }) : () -> ()
 
     return
+  }
 }

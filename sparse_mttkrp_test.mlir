@@ -6,7 +6,7 @@ module {
 	func.func private @values(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
 	func.func private @rtclock() -> f64
 
-	func.func @UFi(%uf_argb_coord_0 : memref<?xindex>,
+	func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
 									%uf_argb_coord_1 : memref<?xindex>,
 									%uf_argb_coord_2 : memref<?xindex>,
 									%j :index,
@@ -16,7 +16,7 @@ module {
 			return %i : index
 	}
 
-	func.func @UFk(%uf_argb_coord_0 : memref<?xindex>,
+	func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
 									%uf_argb_coord_1 : memref<?xindex>,
 									%uf_argb_coord_2 : memref<?xindex>,
 									%j : index,
@@ -26,7 +26,7 @@ module {
 			return %k : index
 	}
 
-	func.func @UFl(%uf_argb_coord_0 : memref<?xindex>,
+	func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
 									%uf_argb_coord_1 : memref<?xindex>,
 									%uf_argb_coord_2 : memref<?xindex>,
 									%j : index,

@@ -3,10 +3,11 @@
 // Which is part of the LLVM Project, under the Apache License v2.0 with LLVM
 // Exceptions. See https://llvm.org/LICENSE.txt for license information.
 
-#include "Runtime/runtime.h"
+#include "Runtime/CPURuntime.h"
 #include <cassert>
 #include <cctype>
 #include <cinttypes>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -114,13 +115,13 @@ void *_mlir_ciface_read_coo(char *filename) {
   uint64_t nnz = idata[1];
 
   auto dims = std::vector<uint64_t>(rank);
-  for (index_type i = 0; i < rank; i++) {
+  for (uint64_t i = 0; i < rank; i++) {
     dims[i] = idata[i + 2];
   }
 
   COO *coo = new COO(nnz, rank, std::move(dims));
 
-  std::vector<std::vector<index_type>> &coord = coo->coord;
+  std::vector<std::vector<uint64_t>> &coord = coo->coord;
   std::vector<double> &values = coo->values;
 
   // Read file into vectors
@@ -142,9 +143,9 @@ void *_mlir_ciface_read_coo(char *filename) {
   return coo;
 }
 
-void _mlir_ciface_coords(StridedMemRefType<index_type, 1> *ref, void *coo,
-                         index_type dim) {
-  std::vector<index_type> &v = static_cast<COO *>(coo)->coord[dim];
+void _mlir_ciface_coords(StridedMemRefType<uint64_t, 1> *ref, void *coo,
+                         uint64_t dim) {
+  std::vector<uint64_t> &v = static_cast<COO *>(coo)->coord[dim];
   ref->basePtr = ref->data = v.data();
   ref->offset = 0;
   ref->sizes[0] = v.size();
@@ -161,7 +162,7 @@ void _mlir_ciface_values(StridedMemRefType<double, 1> *ref, void *coo) {
 
 /// Helper method to read a sparse tensor filename from the environment,
 /// defined with the naming convention ${TENSOR0}, ${TENSOR1}, etc.
-char *getTensorFilename(index_type id) {
+char *getTensorFilename(uint64_t id) {
   char var[80];
   sprintf(var, "TENSOR%" PRIu64, id);
   char *env = getenv(var);
@@ -170,8 +171,8 @@ char *getTensorFilename(index_type id) {
   return env;
 }
 
-void _mlir_ciface_printStatementCalls(UnrankedMemRefType<index_type> *store) {
-  auto m = DynamicMemRefType<index_type>(*store);
+void _mlir_ciface_printStatementCalls(UnrankedMemRefType<uint64_t> *store) {
+  auto m = DynamicMemRefType<uint64_t>(*store);
   for (int i = 0; i < m.sizes[0]; i++) {
     printf("s%ld(", m.data[i * m.sizes[1]]);
     for (int j = 1; j < m.sizes[1]; j++) {
