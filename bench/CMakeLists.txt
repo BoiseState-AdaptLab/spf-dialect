@@ -115,7 +115,7 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
 
     create_partial_lowering(partial_lowering_filename ${file_name_no_extension} ${mlir_file})
 
-    set(gpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_gpu_output.mlir)
+    set(gpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_gpu_pipeline_output.mlir)
     add_custom_command(OUTPUT ${gpu_pipeline_filename}
                     DEPENDS ${partial_lowering_filename}
                     COMMAND standalone-opt ${partial_lowering_filename}

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <utility>
 
 #include "benchmarks.h"
 
@@ -95,8 +96,8 @@ int main(int argc, char *argv[]) {
   // iterations is set via environment variable. TODO: environment variables
   // aren't very discoverable, improve the interface.
   int64_t iterations = 5;
-  if (getenv("ITERS")) {
-    iterations = std::stol(getenv("ITERS"));
+  if (getenv("ITERATIONS")) {
+    iterations = std::stol(getenv("ITERATIONS"));
   }
 
   // read benchmark out of command line arguments
@@ -134,13 +135,17 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  auto not_implemented = [](bool debug, int _, char *__) -> int64_t {
+  auto not_implemented = [](bool debug, int _, char *__,
+                            const char *name) -> int64_t {
     if (debug) {
-      std::cout << "not implemented\n";
+      std::cout << name << " =====\nnot implemented\n=====\n";
     }
     return -1;
   };
 
+  using namespace std::placeholders;
+  auto gpu_mttkrp_iegenlib =
+      std::bind(not_implemented, _1, _2, _3, "gpu_mttkrp_iegenlib");
   // benchmarks stored in Platform x Benchmark x Implementation vector
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{
       // CPU,
@@ -151,15 +156,13 @@ int main(int argc, char *argv[]) {
       // GPU
       {
           // MLIR,                  IEGENLIB
-          {gpu_mttkrp_mlir, not_implemented}, // MTTKRP
+          {gpu_mttkrp_mlir, gpu_mttkrp_iegenlib}, // MTTKRP
       },
   };
 
-  printf("iterations: %ld \n", iterations);
-
   // call the benchmark
-  auto time =
-      benchmarks[platform][benchmark][implementation](debug, iterations, argFilename);
+  auto time = benchmarks[platform][benchmark][implementation](debug, iterations,
+                                                              argFilename);
 
   // output
   std::cout << argPlatform << ", " << argBenchmark << ", " << argImplementation

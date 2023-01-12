@@ -1,5 +1,5 @@
 module {
-    func.func private @milliTime() -> i64 attributes {llvm.emit_c_interface}
+    func.func private @milliTime() -> i64
 
     func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
                            %uf_argb_coord_1 : memref<?xindex>,

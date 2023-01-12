@@ -94,7 +94,7 @@ static void readExtFROSTTHeader(FILE *file, char *filename, char *line,
 
 extern "C" { // these are the symbols that MLIR will actually call
 
-extern "C" int64_t _mlir_ciface_milliTime() {
+extern "C" int64_t milliTime() {
   auto now = std::chrono::high_resolution_clock::now();
   auto duration = now.time_since_epoch();
   auto milliseconds =

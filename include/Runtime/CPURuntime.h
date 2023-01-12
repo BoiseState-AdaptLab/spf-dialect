@@ -31,7 +31,7 @@ public:
 };
 
 extern "C" {
-int64_t _mlir_ciface_milliTime();
+int64_t milliTime();
 
 void *_mlir_ciface_read_coo(char *filename);
 
