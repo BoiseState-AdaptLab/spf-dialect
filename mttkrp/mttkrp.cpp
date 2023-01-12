@@ -1,5 +1,5 @@
 #include "iegenlib.h"
-#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include <code_gen/CG.h>
 #include <code_gen/codegen_error.h>
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
 
   mlir::MLIRContext context;
   context.getOrLoadDialect<mlir::scf::SCFDialect>();
-  context.getOrLoadDialect<mlir::arith::ArithmeticDialect>();
+  context.getOrLoadDialect<mlir::arith::ArithDialect>();
 
   mlir::OpBuilder builder(&context);
 
