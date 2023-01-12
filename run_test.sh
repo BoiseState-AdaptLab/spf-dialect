@@ -124,7 +124,7 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
   -reconcile-unrealized-casts \
   | TENSOR0="mttkrp_b.tns" ../llvm-project/build/bin/mlir-cpu-runner \
     --entry-point-result=void \
-    --shared-libs=build/lib/Runtime/libRuntime.so \
+    --shared-libs=build/lib/Runtime/libCPURuntime.so \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_cuda_runtime.so

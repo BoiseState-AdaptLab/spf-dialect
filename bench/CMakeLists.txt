@@ -84,12 +84,13 @@ macro(append_cpu_pipeline_object_file object_file_list mlir_file benchmark_name)
 
     create_partial_lowering(partial_lowering_filename ${file_name_no_extension} ${mlir_file})
 
-    set(cpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_cpu_output.mlir)
+    set(cpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_cpu_pipeline_output.mlir)
     add_custom_command(OUTPUT ${cpu_pipeline_filename}
             DEPENDS ${partial_lowering_filename}
             COMMAND standalone-opt ${partial_lowering_filename}
             -inline
             -cse
+            -loop-invariant-code-motion
             -lower-affine
             -convert-vector-to-scf
             -convert-scf-to-cf
@@ -140,7 +141,7 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
                     -convert-complex-to-llvm
                     -convert-math-to-libm
                     -convert-func-to-llvm
-                -reconcile-unrealized-casts
+                    -reconcile-unrealized-casts
                     -o ${gpu_pipeline_filename}
                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bench)
 

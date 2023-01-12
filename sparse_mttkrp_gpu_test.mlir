@@ -4,7 +4,6 @@ module {
 	func.func private @coords_gpu(!llvm.ptr<i8>, index) -> memref<?xindex> attributes {llvm.emit_c_interface}
 	func.func private @read_coo(!llvm.ptr<i8>) -> !llvm.ptr<i8> attributes {llvm.emit_c_interface}
 	func.func private @values_gpu(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
-	func.func private @rtclock() -> f64
 
 	func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
 								 %uf_argb_coord_1 : memref<?xindex>,
@@ -70,7 +69,6 @@ module {
 							],
 							// symbols,ufInputs,inputs,outputs
 							operand_segment_sizes = array<i32: 2,3,3,1>,
-							ufNames = ["UFi", "UFk", "UFl"],
 							symbolNames = ["NNZ", "J"],
 							iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
 							executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
@@ -155,9 +153,6 @@ module {
 		%d_a = gpu.alloc(%I, %J) : memref<?x?xf64>
 		gpu.memcpy %d_a, %a : memref<?x?xf64>, memref<?x?xf64>
 
-
-		%t0 = call @rtclock() : () -> f64
-
 		// Call kernel.
 		call @sparse_mttkrp(%nnz, %J,
 												%b_coord_0, %b_coord_1,
@@ -167,12 +162,6 @@ module {
 																						memref<?xindex>, memref<?xf64>,
 																						memref<?x?xf64>, memref<?x?xf64>,
 																						memref<?x?xf64>) -> ()
-
-		%t1 = call @rtclock() : () -> f64
-		%t1024 = arith.subf %t1, %t0 : f64
-
-		// Print timings.
-		vector.print %t1024 : f64
 
 		// copy memory back onto CPU
 		gpu.memcpy %a, %d_a : memref<?x?xf64>, memref<?x?xf64>

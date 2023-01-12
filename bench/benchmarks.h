@@ -2,10 +2,12 @@
 #ifndef BENCHMARKS_H
 #define BENCHMARKS_H
 
-double cpu_mttkrp_iegenlib(bool debug, char *filename);
+#include <cstdint>
 
-double cpu_mttkrp_mlir(bool debug, char *filename);
+int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename);
 
-double gpu_mttkrp_mlir(bool debug, char *filename);
+int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename);
+
+int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename);
 
 #endif // BENCHMARKS_H

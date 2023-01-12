@@ -31,12 +31,14 @@ public:
 };
 
 extern "C" {
-char *getTensorFilename(uint64_t id);
+int64_t _mlir_ciface_milliTime();
+
 void *_mlir_ciface_read_coo(char *filename);
+
 void _mlir_ciface_coords(StridedMemRefType<uint64_t, 1> *ref, void *coo,
                          uint64_t dim);
+
 void _mlir_ciface_values(StridedMemRefType<double, 1> *ref, void *coo);
-int64_t _mlir_ciface_nanoTime();
 }
 
 #endif // CPU_RUNTIME_H

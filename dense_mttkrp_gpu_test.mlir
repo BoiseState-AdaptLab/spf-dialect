@@ -37,7 +37,6 @@ module {
 					],
 					// symbols,ufInputs,inputs,outputs
 					operand_segment_sizes = array<i32: 4,0,3,1>,
-					ufNames = [],
 					symbolNames = ["I", "J", "K", "L"],
 					executionSchedule = "{[j, i,k,l]->[j,i,k,l]}",
 					iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],

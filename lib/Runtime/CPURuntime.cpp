@@ -6,6 +6,7 @@
 #include "Runtime/CPURuntime.h"
 #include <cassert>
 #include <cctype>
+#include <chrono>
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
@@ -92,6 +93,14 @@ static void readExtFROSTTHeader(FILE *file, char *filename, char *line,
 }
 
 extern "C" { // these are the symbols that MLIR will actually call
+
+extern "C" int64_t _mlir_ciface_milliTime() {
+  auto now = std::chrono::high_resolution_clock::now();
+  auto duration = now.time_since_epoch();
+  auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+  return milliseconds.count();
+}
 
 void *_mlir_ciface_read_coo(char *filename) {
   FILE *file = fopen(filename, "r");

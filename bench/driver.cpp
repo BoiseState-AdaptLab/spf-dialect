@@ -1,16 +1,10 @@
 #include <algorithm>
-#include <cassert>
-#include <climits>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
-#include <functional>
-#include <iomanip>
+#include <filesystem>
 #include <iostream>
 #include <map>
-#include <tuple>
-#include <utility>
-#include <vector>
+#include <string>
 
 #include "benchmarks.h"
 
@@ -45,7 +39,8 @@ T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
 
 // these functions will be named platform_benchmark_implementation e.g.
 // cpu_tiledMTTKRP_mlir
-typedef std::function<double(bool debug, char *filename)> BenchmarkFunction;
+typedef std::function<int64_t(bool debug, int iterations, char *filename)>
+    BenchmarkFunction;
 
 void printUsage(char *programName) {
   std::cerr << color[red] << "Expected 4 arguments\n"
@@ -78,21 +73,30 @@ static const std::map<std::string, Implementation> stringToImplementation{
     {"mlir", mlir}, {"iegenlib", iegenlib}};
 
 int main(int argc, char *argv[]) {
+  char *argProgramName = argv[0];
+
   if (argc != 5) {
-    printUsage(argv[0]);
+    printUsage(argProgramName);
     exit(1);
   }
 
-  char *programName = argv[0];
-  char *filename = argv[1];
-  char *argPlatform = argv[2];
-  char *argBenchmark = argv[3];
-  char *argImplementation = argv[4];
+  char *argPlatform = argv[1];
+  char *argBenchmark = argv[2];
+  char *argImplementation = argv[3];
+  char *argFilename = argv[4];
 
-  // debug flag is set via environment variable
+  // debug flag is set via environment variable. TODO: environment variables
+  // aren't very discoverable, improve the interface.
   bool debug = false;
   if (getenv("DEBUG")) {
     debug = true;
+  }
+
+  // iterations is set via environment variable. TODO: environment variables
+  // aren't very discoverable, improve the interface.
+  int64_t iterations = 5;
+  if (getenv("ITERS")) {
+    iterations = std::stol(getenv("ITERS"));
   }
 
   // read benchmark out of command line arguments
@@ -103,7 +107,8 @@ int main(int argc, char *argv[]) {
     std::cerr << color[red] << "\"" << argBenchmark
               << "\" benchmark not found\n"
               << color[reset];
-    printUsage(programName);
+
+    printUsage(argProgramName);
     exit(1);
   }
 
@@ -115,7 +120,7 @@ int main(int argc, char *argv[]) {
     std::cerr << color[red] << "\"" << argImplementation
               << "\" implementation not found\n"
               << color[reset];
-    printUsage(programName);
+    printUsage(argProgramName);
     exit(1);
   }
 
@@ -125,11 +130,11 @@ int main(int argc, char *argv[]) {
                                   platform_not_found)) == platform_not_found) {
     std::cerr << color[red] << "\"" << argPlatform << "\" platform not found\n"
               << color[reset];
-    printUsage(programName);
+    printUsage(argProgramName);
     exit(1);
   }
 
-  auto not_implemented = [](bool debug, char *_) -> double {
+  auto not_implemented = [](bool debug, int _, char *__) -> int64_t {
     if (debug) {
       std::cout << "not implemented\n";
     }
@@ -150,8 +155,16 @@ int main(int argc, char *argv[]) {
       },
   };
 
-  // Call the benchmark
-  benchmarks[platform][benchmark][implementation](debug, filename);
+  printf("iterations: %ld \n", iterations);
+
+  // call the benchmark
+  auto time =
+      benchmarks[platform][benchmark][implementation](debug, iterations, argFilename);
+
+  // output
+  std::cout << argPlatform << ", " << argBenchmark << ", " << argImplementation
+            << ", " << std::filesystem::path(argFilename).filename().string()
+            << ", " << time << "\n";
 
   return 0;
 }

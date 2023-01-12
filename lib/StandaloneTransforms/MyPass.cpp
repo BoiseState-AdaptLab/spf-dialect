@@ -221,7 +221,8 @@ private:
       iteratorType = thing[level].dyn_cast_or_null<StringAttr>();
     }
 
-    // Variables set in either branch of the parallel loop vs non-parallel conditional
+    // Variables set in either branch of the parallel loop vs non-parallel
+    // conditional
     mlir::Value iv;
     // The block the loop was inserted into
     mlir::Block *original = builder.getInsertionBlock();
@@ -432,7 +433,10 @@ private:
     SmallVector<Value> ufArgs = statements[0].statementOp.getUFInputOperands();
 
     // Here we build up MLIR arguments to the UF by finding the corresponding
-    // generated MLIR value for each argument in the Omega AST.
+    // generated MLIR value for each argument in the Omega AST. Omega has a
+    // strange quirk, it will always generate a UF call that takes all the loops
+    // generated so far. The UF functions that fulfill the interface must take
+    // those arguments as well.
     for (auto &arg : ufAssignment->args) {
       llvm::TypeSwitch<sparser::SymbolOrInt *>(arg.get())
           .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {

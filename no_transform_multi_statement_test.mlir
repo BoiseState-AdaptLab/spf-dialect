@@ -92,7 +92,6 @@ module @my_module {
 							writes = [],
 							// symbols,ufInputs,inputs,outputs
 							operand_segment_sizes = array<i32: 2,0,2,0>,
-							ufNames = [],
 							symbolNames = ["T", "X"],
 							iteratorTypes = ["reduction", "reduction"],
 							executionSchedule = "{[t,x]->[t,0,x,0]}",
@@ -124,7 +123,6 @@ module @my_module {
 							writes = [],
 							// symbols,ufInputs,inputs,outputs
 							operand_segment_sizes = array<i32: 2,0,2,0>,
-							ufNames = [],
 							symbolNames = ["T", "X"],
 							iteratorTypes = ["reduction", "reduction"],
 							executionSchedule = "{[t,x]->[t,1,x,0]}",

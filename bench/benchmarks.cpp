@@ -1,20 +1,9 @@
+#include <cstdint>
+#include <functional>
+#include <ratio>
 
 #include "Runtime/CPURuntime.h"
 #include "Runtime/GPURuntime.h"
-#include "mlir/ExecutionEngine/CRunnerUtils.h"
-#include "mlir/ExecutionEngine/MemRefUtils.h"
-#include "mlir/ExecutionEngine/RunnerUtils.h"
-#include <cassert>
-#include <climits>
-#include <cstdlib>
-#include <cuda_device_runtime_api.h>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <tuple>
-#include <utility>
-
 #include "benchmarks.h"
 
 // #define PASTA_INDEX_TYPEWIDTH 64
@@ -24,20 +13,15 @@
 // #include "includes/sptensors.h"
 // #include "includes/types.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <cstdio>
-#include <vector>
-
 extern "C" {
-void _mlir_ciface_sparse_mttkrp_cpu(uint64_t NNZ, uint64_t J,
-                                    StridedMemRefType<uint64_t, 1> *coord_0,
-                                    StridedMemRefType<uint64_t, 1> *coord_1,
-                                    StridedMemRefType<uint64_t, 1> *coord_2,
-                                    StridedMemRefType<double, 1> *values,
-                                    StridedMemRefType<double, 2> *c,
-                                    StridedMemRefType<double, 2> *d,
-                                    StridedMemRefType<double, 2> *a);
+int64_t _mlir_ciface_sparse_mttkrp_cpu(uint64_t NNZ, uint64_t J,
+                                       StridedMemRefType<uint64_t, 1> *coord_0,
+                                       StridedMemRefType<uint64_t, 1> *coord_1,
+                                       StridedMemRefType<uint64_t, 1> *coord_2,
+                                       StridedMemRefType<double, 1> *values,
+                                       StridedMemRefType<double, 2> *c,
+                                       StridedMemRefType<double, 2> *d,
+                                       StridedMemRefType<double, 2> *a);
 void _mlir_ciface_sparse_mttkrp_gpu(uint64_t NNZ, uint64_t J,
                                     StridedMemRefType<uint64_t, 1> *coord_0,
                                     StridedMemRefType<uint64_t, 1> *coord_1,
@@ -160,9 +144,9 @@ public:
 };
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-double cpu_mttkrp_iegenlib(bool debug, char *filename) {
+int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
   if (debug) {
-		std::cout << "cpu mttkrp iegenlib =====\n";
+    std::cout << "cpu mttkrp iegenlib =====\n";
   }
 
   DataForCpuMttkrp data(filename, 5);
@@ -181,7 +165,11 @@ double cpu_mttkrp_iegenlib(bool debug, char *filename) {
 
   uint64_t t1, t2, t3, t4, t5;
 
-// Generated code ==============================
+  int64_t totalTime = 0;
+  auto start = _mlir_ciface_milliTime();
+  for (int64_t i = 0; i < iterations; i++) {
+    // Generated code ==============================
+
 #undef s0
 #undef s_0
 #define s_0(z, i, k, l, j) A(i, j) += B(z) * D(l, j) * C(k, j)
@@ -197,22 +185,22 @@ double cpu_mttkrp_iegenlib(bool debug, char *filename) {
 #define UFl(t0) UFl[t0]
 #define UFl_2(__tv0) UFl(__tv0)
 
-  t1 = 0;
-  t2 = 0;
-  t3 = 0;
-  t4 = 0;
-  t5 = 0;
+    t1 = 0;
+    t2 = 0;
+    t3 = 0;
+    t4 = 0;
+    t5 = 0;
 
-  if (J >= 1) {
-    for (t1 = 0; t1 <= NNZ - 1; t1++) {
-      t2 = UFi_0(t1);
-      t3 = UFk_1(t1);
-      t4 = UFl_2(t1);
-      for (t5 = 0; t5 <= J - 1; t5++) {
-        s0(t1, t2, t3, t4, t5);
+    if (J >= 1) {
+      for (t1 = 0; t1 <= NNZ - 1; t1++) {
+        t2 = UFi_0(t1);
+        t3 = UFk_1(t1);
+        t4 = UFl_2(t1);
+        for (t5 = 0; t5 <= J - 1; t5++) {
+          s0(t1, t2, t3, t4, t5);
+        }
       }
     }
-  }
 
 #undef s0
 #undef s_0
@@ -220,46 +208,61 @@ double cpu_mttkrp_iegenlib(bool debug, char *filename) {
 #undef UFk_1
 #undef UFl_2
 
+    // =============================================
+    auto stop = _mlir_ciface_milliTime();
+    totalTime += stop - start;
+  }
+
   if (debug) {
     data.dump();
   }
 
-  return 1;
+  return totalTime / iterations;
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-double gpu_mttkrp_mlir(bool debug, char *filename) {
+int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
   if (debug) {
-		std::cout << "gpu mttkrp mlir =====\n";
+    std::cout << "gpu mttkrp mlir =====\n";
   }
 
   DataForGpuMttkrp data(filename, 5);
 
-  _mlir_ciface_sparse_mttkrp_gpu(data.NNZ, data.J, &data.bCoord0, &data.bCoord1,
-                                 &data.bCoord2, &data.bValues, &data.c, &data.d,
-                                 &data.a);
+  int64_t totalTime = 0;
+  for (int64_t i = 0; i < iterations; i++) {
+    auto start = _mlir_ciface_milliTime();
+    _mlir_ciface_sparse_mttkrp_gpu(data.NNZ, data.J, &data.bCoord0,
+                                   &data.bCoord1, &data.bCoord2, &data.bValues,
+                                   &data.c, &data.d, &data.a);
+    auto stop = _mlir_ciface_milliTime();
+    totalTime += stop - start;
+  }
 
   if (debug) {
     DataForCpuMttkrp(data).dump();
   }
 
-  return 1.0;
+  return totalTime / iterations;
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-double cpu_mttkrp_mlir(bool debug, char *filename) {
+int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
   if (debug) {
-		std::cout << "cpu mttkrp mlir =====\n";
+    std::cout << "cpu mttkrp mlir =====\n";
   }
 
   DataForCpuMttkrp data(filename, 5);
 
-  _mlir_ciface_sparse_mttkrp_cpu(data.NNZ, data.J, &data.bCoord0, &data.bCoord1,
-                                 &data.bCoord2, &data.bValues, &data.c, &data.d,
-                                 &data.a);
+  int64_t totalTime = 0;
+  for (int64_t i = 0; i < iterations; i++) {
+    totalTime += _mlir_ciface_sparse_mttkrp_cpu(
+        data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
+        &data.bValues, &data.c, &data.d, &data.a);
+  }
+
   if (debug) {
     data.dump();
   }
 
-  return 1;
+  return totalTime / iterations;
 }
