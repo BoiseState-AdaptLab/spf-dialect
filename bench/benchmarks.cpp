@@ -7,13 +7,6 @@
 #include "Runtime/GPURuntime.h"
 #include "benchmarks.h"
 
-// #define PASTA_INDEX_TYPEWIDTH 64
-// #define PASTA_VALUE_TYPEWIDTH 64
-// #include "pasta.h"
-
-// #include "includes/sptensors.h"
-// #include "includes/types.h"
-
 extern "C" {
 int64_t _mlir_ciface_sparse_mttkrp_cpu(uint64_t NNZ, uint64_t J,
                                        StridedMemRefType<uint64_t, 1> *coord_0,

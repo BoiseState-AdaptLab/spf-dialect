@@ -43,16 +43,6 @@ T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
 typedef std::function<int64_t(bool debug, int iterations, char *filename)>
     BenchmarkFunction;
 
-void printUsage(char *programName) {
-  std::cerr << color[red] << "Expected 4 arguments\n"
-            << color[green] << "Usage: " << programName
-            << " <filename (should be in matrix market exchange, or "
-               "FROSST with extended header format)> "
-               "<platform: cpu nvidia-gpu> <benchmark: coo_mttkrp> "
-               "<implementation: mlir, iegenlib, pasta>\n"
-            << color[reset];
-}
-
 // what platform to run benchmark on e.g. cpu, gpu
 enum Platform : int { cpu = 0, nvidia_gpu = 1, platform_not_found };
 static const std::map<std::string, Platform> stringToPlatform{
@@ -64,7 +54,7 @@ enum Benchmark : int { mttkrp = 0, benchmark_not_found = -1 };
 static const std::map<std::string, Benchmark> stringToBenchmark{
     {"mttkrp", mttkrp}};
 
-//  what was used to implement the benchmark e.g. MLIR, IEGenLib, or PASTA
+//  what was used to implement the benchmark e.g. MLIR or IEGenLib
 enum Implementation : int {
   mlir = 0,
   iegenlib = 1,
@@ -72,6 +62,16 @@ enum Implementation : int {
 };
 static const std::map<std::string, Implementation> stringToImplementation{
     {"mlir", mlir}, {"iegenlib", iegenlib}};
+
+void printUsage(char *programName) {
+  std::cerr << color[red] << "Expected 4 arguments\n"
+            << color[green] << "Usage: " << programName
+            << " <filename (should be in matrix market exchange, or "
+               "FROSST with extended header format)> "
+               "<platform: cpu gpu> <benchmark: mttkrp> "
+               "<implementation: mlir, iegenlib>\n"
+            << color[reset];
+}
 
 int main(int argc, char *argv[]) {
   char *argProgramName = argv[0];
@@ -150,12 +150,12 @@ int main(int argc, char *argv[]) {
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{
       // CPU,
       {
-          // MLIR,                  IEGENLIB
+          // MLIR,          IEGENLIB
           {cpu_mttkrp_mlir, cpu_mttkrp_iegenlib}, // MTTKRP
       },
       // GPU
       {
-          // MLIR,                  IEGENLIB
+          // MLIR,          IEGENLIB
           {gpu_mttkrp_mlir, gpu_mttkrp_iegenlib}, // MTTKRP
       },
   };

@@ -149,35 +149,20 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
 endmacro()
 
 # create benchmarks ================================================================================
-set(PASTA_BUILD_DIR CACHE PATH "build directory for pasta")
-set(PASTA_INCLUDE_DIR CACHE PATH "include directory for pasta")
 
-# pasta is required to build bench
-if(PASTA_BUILD_DIR AND PASTA_INCLUDE_DIR)
-    # set up pasta library
-    add_library(pasta SHARED IMPORTED)
-    set_target_properties(pasta PROPERTIES
-                    IMPORTED_LOCATION ${PASTA_BUILD_DIR}/libPASTA.so
-                    INTERFACE_INCLUDE_DIRECTORIES ${PASTA_INCLUDE_DIR}
-                    )
+# create object files for MLIR benchmarks
+set(mlir_benchmark_object_files)
+append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_cpu.mlir sparse_mttkrp)
+append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_gpu.mlir sparse_mttkrp)
 
-    # create object files for MLIR benchmarks
-    set(mlir_benchmark_object_files)
-    append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_cpu.mlir sparse_mttkrp)
-    append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_gpu.mlir sparse_mttkrp)
-
-    # create bench executable
-    add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)
-    target_compile_options(bench PUBLIC "-O3")
-    target_link_libraries(bench
-            mlir_c_runner_utils
-            mlir_runner_utils
-            mlir_cuda_runtime
-            GPURuntime
-            CPURuntime
-            LLVMSupport
-            pasta
-            )
-else()
-    message(WARNING "PASTA_BUILD_DIR or PASTA_INCLUDE_DIR not defined, not building benchmarks")
-endif()
+# create bench executable
+add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)
+target_compile_options(bench PUBLIC "-O3")
+target_link_libraries(bench
+        mlir_c_runner_utils
+        mlir_runner_utils
+        mlir_cuda_runtime
+        GPURuntime
+        CPURuntime
+        LLVMSupport
+        )
