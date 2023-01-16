@@ -50,9 +50,9 @@ static const std::map<std::string, Platform> stringToPlatform{
 
 // what benchmark to run (possibly with an optimization) e.g. mttkrp,
 // tiled_mttkrp
-enum Benchmark : int { mttkrp = 0, benchmark_not_found = -1 };
+enum Benchmark : int { mttkrp = 0, ttm = 1, benchmark_not_found = -1 };
 static const std::map<std::string, Benchmark> stringToBenchmark{
-    {"mttkrp", mttkrp}};
+    {"mttkrp", mttkrp}, {"ttm", ttm}};
 
 //  what was used to implement the benchmark e.g. MLIR or IEGenLib
 enum Implementation : int {
@@ -66,10 +66,10 @@ static const std::map<std::string, Implementation> stringToImplementation{
 void printUsage(char *programName) {
   std::cerr << color[red] << "Expected 4 arguments\n"
             << color[green] << "Usage: " << programName
-            << " <filename (should be in matrix market exchange, or "
-               "FROSST with extended header format)> "
-               "<platform: cpu gpu> <benchmark: mttkrp> "
-               "<implementation: mlir, iegenlib>\n"
+            << "<platform: cpu gpu> <benchmark: mttkrp ttm> "
+               "<implementation: mlir, iegenlib> "
+               "<filename (should be in matrix market exchange, or "
+               "FROSST with extended header format)>\n"
             << color[reset];
 }
 
@@ -146,17 +146,23 @@ int main(int argc, char *argv[]) {
   using namespace std::placeholders;
   auto gpu_mttkrp_iegenlib =
       std::bind(not_implemented, _1, _2, _3, "gpu_mttkrp_iegenlib");
+  auto gpu_ttm_iegenlib =
+      std::bind(not_implemented, _1, _2, _3, "gpu_ttm_iegenlib");
+  auto cpu_ttm_mlir = std::bind(not_implemented, _1, _2, _3, "cpu_ttm_mlir");
+  auto gpu_ttm_mlir = std::bind(not_implemented, _1, _2, _3, "gpu_ttm_mlir");
   // benchmarks stored in Platform x Benchmark x Implementation vector
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{
       // CPU,
       {
           // MLIR,          IEGENLIB
           {cpu_mttkrp_mlir, cpu_mttkrp_iegenlib}, // MTTKRP
+          {cpu_ttm_mlir, cpu_ttm_iegenlib},       // TTM
       },
       // GPU
       {
           // MLIR,          IEGENLIB
           {gpu_mttkrp_mlir, gpu_mttkrp_iegenlib}, // MTTKRP
+          {gpu_ttm_mlir, gpu_ttm_iegenlib},       // MTTKRP
       },
   };
 

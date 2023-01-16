@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <ratio>
+#include <vector>
 
 #include "Runtime/CPURuntime.h"
 #include "Runtime/GPURuntime.h"
@@ -47,9 +48,9 @@ public:
   const uint64_t K;
   const uint64_t L;
 
-  DataForCpuMttkrp(char *filename, uint64_t J)
+  DataForCpuMttkrp(char *filename, uint64_t inJ)
       : bData((COO *)_mlir_ciface_read_coo(filename)), NNZ(bData->nnz),
-        I(bData->dims[0]), J(J), K(bData->dims[1]), L(bData->dims[2]) {
+        I(bData->dims[0]), J(inJ), K(bData->dims[1]), L(bData->dims[2]) {
 
     assert(bData->rank == 3 && "mttkrp requires rank 3 tensor");
     _mlir_ciface_coords(&bCoord0, bData, 0);
@@ -138,6 +139,110 @@ public:
   }
 };
 } // anonymous namespace
+
+// areCoordsEqualExceptMode returns true if coords are equal in all modes
+// <exceptMode>
+bool areCoordsEqualExceptMode(COO &coo, uint64_t exceptMode, uint64_t i,
+                              uint64_t j) {
+  for (uint64_t mode = 0; mode < coo.rank; mode++) {
+    if (mode != exceptMode) {
+      auto one = coo.coord[mode][i];
+      auto two = coo.coord[mode][j];
+      if (one != two) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+std::vector<uint64_t> fiberidx(COO &sortedCoo, uint64_t constantMode) {
+  std::vector<uint64_t> out;
+  uint64_t lastIdx = sortedCoo.nnz;
+  for (uint64_t i = 0; i < sortedCoo.nnz; i++) {
+    if (lastIdx == sortedCoo.nnz ||
+        !areCoordsEqualExceptMode(sortedCoo, constantMode, lastIdx, i)) {
+      lastIdx = i;
+      out.push_back(i);
+    }
+  }
+  out.push_back(sortedCoo.nnz);
+  return out;
+}
+
+int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
+  COO *Xdata = (COO *)_mlir_ciface_read_coo(filename);
+
+  Xdata->dump(std::cout);
+  Xdata->sortIndicesModeLast(0);
+  std::cout << "============================================\n";
+  Xdata->dump(std::cout);
+
+  std::vector<uint64_t> fb = fiberidx(*Xdata, 0);
+
+  bool first = true;
+  std::cout << "fg: [";
+  for (auto i : fb) {
+    if (first) {
+      first = false;
+    } else {
+      std::cout << ", ";
+    }
+    std::cout << i;
+  }
+  std::cout << "]\n";
+
+  uint64_t NNZ = 5;
+  uint64_t NCOLS = 5;
+
+  uint64_t t1, t2, t3, t4, t5, t6;
+
+  // Generated code ==============================
+
+#undef s0
+#undef s_0
+#define s_0(z, ib, ie, j, r, k) Y(i, k) += X(j) * U(r, k)
+#define s0(z, ib, ie, j, r, k) s_0(z, ib, ie, j, r, k);
+
+#undef UFib_0
+#undef UFie_1
+#undef UFr_2
+#define UFib(t0) UFib[t0]
+#define UFib_0(__tv0) UFib(__tv0)
+#define UFie(t0) UFie[t0]
+#define UFie_1(__tv0) UFie(__tv0)
+#define UFr(t0) UFr[t0]
+#define UFr_2(__tv0, __tv1, __tv2, __tv3) UFr(__tv3)
+
+  t1 = 0;
+  t2 = 0;
+  t3 = 0;
+  t4 = 0;
+  t5 = 0;
+  t6 = 0;
+
+  if (NCOLS >= 1) {
+    for (t1 = 0; t1 <= NNZ - 1; t1++) {
+      t2 = UFib_0(t1);
+      t3 = UFie_1(t1);
+      for (t4 = UFib_0(t1); t4 <= UFie_1(t1); t4++) {
+        t5 = UFr_2(t1, t2, t3, t4);
+        for (t6 = 0; t6 <= NCOLS - 1; t6++) {
+          s0(t1, t2, t3, t4, t5, t6);
+        }
+      }
+    }
+  }
+
+#undef s0
+#undef s_0
+#undef UFib_0
+#undef UFie_1
+#undef UFr_2
+
+  // =============================================
+  return 0;
+}
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
 int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
