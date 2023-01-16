@@ -28,6 +28,8 @@ int64_t _mlir_ciface_sparse_mttkrp_gpu(uint64_t NNZ, uint64_t J,
 }
 
 namespace {
+
+// variable names from http://tensor-compiler.org/docs/data_analytics
 class DataForCpuMttkrp {
   COO *bData;
   std::vector<double> cData;
@@ -138,7 +140,6 @@ public:
     impl::printMemRef(this->a);
   }
 };
-} // anonymous namespace
 
 // areCoordsEqualExceptMode returns true if coords are equal in all modes
 // <exceptMode>
@@ -177,7 +178,8 @@ bool areCoordsEqualExceptMode(COO &coo, uint64_t exceptMode, uint64_t i,
 //    non-constant dimensions that are the same for index 1 and 2 differ at mode
 //    2: 2 to 3)
 //  - As fiber 2 is the last fiber it ends at the last index +1;
-std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo, uint64_t constantMode) {
+std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo,
+                                            uint64_t constantMode) {
   std::vector<uint64_t> out;
   uint64_t lastIdx = sortedCoo.nnz;
   for (uint64_t i = 0; i < sortedCoo.nnz; i++) {
@@ -191,130 +193,198 @@ std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo, uint64_t constantMod
   return out;
 }
 
-int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
-  COO *Xdata = (COO *)_mlir_ciface_read_coo(filename);
+// variable names from PASTA paper: https://arxiv.org/abs/1902.03317
+class DataForCpuTTM {
+  COO *xData;
+  std::vector<uint64_t> fptrData;
+  std::vector<double> uData;
+  std::vector<double> yData;
 
-  uint64_t constantMode = 0;
+public:
+  uint64_t Mf; // number of n-mode fibers
+  const uint64_t I;
+  const uint64_t J;
+  const uint64_t K;
+  const uint64_t R;
+  StridedMemRefType<uint64_t, 1> fptr; // the beginnings of each X mode-n fiber
+  StridedMemRefType<uint64_t, 1>
+      xConstantCoord; // the coordinates in dimension <constantMode>
+  StridedMemRefType<double, 1> xValues;
+  StridedMemRefType<double, 2> u;
+  StridedMemRefType<double, 2> y;
 
-  Xdata->dump(std::cout);
-  Xdata->sortIndicesModeLast(0);
-  std::cout << "============================================\n";
-  Xdata->dump(std::cout);
+  DataForCpuTTM(char *filename, uint64_t constantMode, uint64_t inR)
+      : xData((COO *)_mlir_ciface_read_coo(filename)), I(xData->dims[0]),
+        J(xData->dims[1]), K(xData->dims[2]), R(inR) {
+    assert(xData->rank == 3 && "ttm only supports rank 3 tensor");
+    assert(constantMode < 3 && "constant mode dimension not in bounds");
 
-  std::vector<uint64_t> fiberStartStop = fiberStartStopIndices(*Xdata, constantMode);
+    uint64_t constantModeDimSize = xData->dims[constantMode];
 
-  bool first = true;
-  std::cout << "fg: [";
-  for (auto i : fiberStartStop) {
-    if (first) {
-      first = false;
-    } else {
-      std::cout << ", ";
-    }
-    std::cout << i;
-  }
-  std::cout << "]\n";
+    // read data from x into memrefs
+    _mlir_ciface_coords(&xConstantCoord, xData, constantMode);
+    _mlir_ciface_values(&xValues, xData);
 
-  uint64_t NFIBERS = fiberStartStop.size() -1;
+    // Sort data lexigraphically with constant mode considered the last. We need
+    // to do this to be able to calculate fibers.
+    xData->sortIndicesModeLast(constantMode);
 
-  uint64_t NCOLS = 2;
+    // construct data for fptr
+    fptrData = fiberStartStopIndices(*xData, constantMode);
+    Mf = fptrData.size() - 1;
+    fptr.basePtr = fptr.data = fptrData.data();
+    fptr.offset = 0;
+    fptr.sizes[0] = fptrData.size();
+    fptr.strides[0] = 1;
 
-    // Construct U matrix
-    StridedMemRefType<double, 2> u;
-    auto un = Xdata->dims[constantMode];
-    auto um = NCOLS;
-    auto uData = std::vector<double>(un * um);
-    for (uint64_t i = 0; i < un; i++) {
-      for (uint64_t j = 0; j < um; j++) {
-        uData[i * um + j] = i * um + j;
+    // construct data for u matrix
+    uData = std::vector<double>(constantModeDimSize * R);
+    for (uint64_t i = 0; i < constantModeDimSize; i++) {
+      for (uint64_t j = 0; j < R; j++) {
+        uData[i * R + j] = i * R + j;
       }
     }
     u.basePtr = u.data = uData.data();
     u.offset = 0;
-    u.sizes[0] = un;
-    u.sizes[1] = um;
-    u.strides[0] = um;
+    u.sizes[0] = constantModeDimSize;
+    u.sizes[1] = R;
+    u.strides[0] = R;
     u.strides[1] = 1;
 
-    // Construct Y matrix
-    StridedMemRefType<double, 2> y;
-    auto yn = NFIBERS;
-    auto ym = NCOLS;
-    auto yData = std::vector<double>(NFIBERS * NCOLS);
+    // construct data for y matrix
+    //
+    // y is stored "semi-sparsely" which meas that dense fibers are stored at
+    // sparse coordinates.
+    //
+    // Ex:
+    //  this semi-sparse matrix:
+    //      ndims:
+    //      2x3x4
+    //      inds:
+    //      sptIndexVector length: 11
+    //      0       0       0       1       1       1       1       2       2 2
+    //      2 sptIndexVector length: 11 0       2       3       0       1 2 3 0
+    //      1       2       3 values: 11 x 2 matrix 154.00  231.00 20.00   33.00
+    //      92.00   201.00
+    //      122.00  183.00
+    //      106.00  170.00
+    //      6.00    109.00
+    //      150.00  225.00
+    //      0.00    66.00
+    //      44.00   127.00
+    //      36.00   67.00
+    //      0.00    43.00
+    //  corresponds to this dense matrix:
+    //      [[[154.   0.  20.  92.]
+    //        [122. 106.   6. 150.]
+    //        [  0.  44.  36.   0.]]
+    //
+    //       [[231.   0.  33. 201.]
+    //        [183. 170. 109. 225.]
+    //        [ 66. 127.  67.  43.]]]
+    yData = std::vector<double>(Mf * R);
     std::fill(yData.begin(), yData.end(), 0.0);
     y.basePtr = y.data = yData.data();
     y.offset = 0;
-    y.sizes[0] = yn;
-    y.sizes[1] = ym;
-    y.strides[0] = ym;
+    y.sizes[0] = Mf;
+    y.sizes[1] = R;
+    y.strides[0] = R;
     y.strides[1] = 1;
+  }
 
-#define Y(i, k) y.data[i * NCOLS + k]
-#define X(z) Xdata->values[z]
-#define U(r, k) u.data[r * NCOLS + k]
+  ~DataForCpuTTM() { delete xData; }
 
-  uint64_t *UFib = fiberStartStop.data();
+  void dump() {
+    std::cout << "I: " << this->I << "\n";
+    std::cout << "J: " << this->J << "\n";
+    std::cout << "K: " << this->K << "\n";
+    std::cout << "R: " << this->R << "\n";
+    std::cout << "Mf: " << this->Mf << "\n";
+    std::cout << "xConstantCoord:\n";
+    impl::printMemRef(this->xConstantCoord);
+    std::cout << "xValues:\n";
+    impl::printMemRef(this->xValues);
+    std::cout << "fptr:\n";
+    impl::printMemRef(this->fptr);
+    std::cout << "u:\n";
+    impl::printMemRef(this->u);
+    std::cout << "y:\n";
+    impl::printMemRef(this->y);
+  }
+};
+} // anonymous namespace
 
-  uint64_t *UFr = Xdata->coord[constantMode].data();
+int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
+  auto data = DataForCpuTTM(filename, 0, 2);
+
+  uint64_t R = data.R;
+  uint64_t Mf = data.Mf;
+
+  uint64_t *UFfptr = data.fptr.data;
+  uint64_t *UFr = data.xConstantCoord.data;
+
+#define Y(i, k) data.y.data[i * R + k]
+#define X(z) data.xValues.data[z]
+#define U(r, k) data.u.data[r * R + k]
 
   uint64_t t1, t2, t3, t4, t5, t6;
 
-  // Generated code ==============================
+  int64_t totalTime = 0;
+  auto start = milliTime();
+  for (int64_t i = 0; i < iterations; i++) {
+    // Generated code ==============================
 
 #undef s0
 #undef s_0
-#define s_0(z, ib, ie, j, r, k)   Y(z,k) += X(j) * U(r,k)
-#define s0(z, ib, ie, j, r, k)   s_0(z, ib, ie, j, r, k);
+#define s_0(z, ib, ie, j, r, k) Y(z, k) += X(j) * U(r, k)
+#define s0(z, ib, ie, j, r, k) s_0(z, ib, ie, j, r, k);
 
-#undef UFib_0
-#undef UFib_1
+#undef UFfptr_0
+#undef UFfptr_1
 #undef UFr_2
-#define UFib(t0) UFib[t0]
-#define UFib_0(__tv0) UFib(__tv0)
-#define UFib_1(__tv0) UFib(__tv0 + 1)
+#define UFfptr(t0) UFfptr[t0]
+#define UFfptr_0(__tv0) UFfptr(__tv0)
+#define UFfptr_1(__tv0) UFfptr(__tv0 + 1)
 #define UFr(t0) UFr[t0]
 #define UFr_2(__tv0, __tv1, __tv2, __tv3) UFr(__tv3)
 
-t1 = 0;
-t2 = 0;
-t3 = 0;
-t4 = 0;
-t5 = 0;
-t6 = 0;
+    t1 = 0;
+    t2 = 0;
+    t3 = 0;
+    t4 = 0;
+    t5 = 0;
+    t6 = 0;
 
-if (NCOLS >= 1) {
-  for(t1 = 0; t1 <= NFIBERS-1; t1++) {
-    t2=UFib_0(t1);
-    t3=UFib_1(t1);
-    for(t4 = UFib_0(t1); t4 <= UFib_1(t1)-1; t4++) {
-      t5=UFr_2(t1,t2,t3,t4);
-      for(t6 = 0; t6 <= NCOLS-1; t6++) {
-        s0(t1,t2,t3,t4,t5,t6);
+    if (R >= 1) {
+      for (t1 = 0; t1 <= Mf - 1; t1++) {
+        t2 = UFfptr_0(t1);
+        t3 = UFfptr_1(t1);
+        for (t4 = UFfptr_0(t1); t4 <= UFfptr_1(t1) - 1; t4++) {
+          t5 = UFr_2(t1, t2, t3, t4);
+          for (t6 = 0; t6 <= R - 1; t6++) {
+            s0(t1, t2, t3, t4, t5, t6);
+          }
+        }
       }
     }
-  }
-}
 
 #undef s0
 #undef s_0
-#undef UFib_0
-#undef UFib_1
+#undef UFfptr_0
+#undef UFfptr_1
 #undef UFr_2
 
-  // =============================================
-
-  first = true;
-  std::cout << "y: [";
-  for (auto i : y) {
-    if (first) {
-      first = false;
-    } else {
-      std::cout << ", ";
-    }
-    std::cout << i;
+    // =============================================
+    auto stop = milliTime();
+    totalTime += stop - start;
   }
-  std::cout << "]\n";
-  return 0;
+
+  if (debug) {
+    data.dump();
+    std::cout << "=====\n";
+  }
+
+  return totalTime / iterations;
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
