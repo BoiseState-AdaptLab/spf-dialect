@@ -4,4 +4,9 @@ target_link_options(parser PRIVATE -fno-omit-frame-pointer -fsanitize=address)
 
 target_link_libraries(parser
         LLVMSupport
+        iegenlib
+        gmp
+        isl
+        codegen
+        omega
         )

@@ -174,34 +174,52 @@ public:
   }
 
 private:
+  mlir::Value getValue(sparser::SymbolOrInt *s) {
+    mlir::Value out;
+    llvm::TypeSwitch<sparser::SymbolOrInt *>(s)
+        .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
+          if (symbol->symbol.empty() ||
+              symbols.find(symbol->symbol) == symbols.end()) {
+            std::cerr << "err: symbol not found!" << std::endl;
+            exit(1);
+          }
+
+          out = symbols[symbol->symbol];
+
+          // If there's an increment apply it via affine map
+          if (symbol->increment != 0) {
+            // Create mutable AffineMap for applying increment to stop symbol
+            auto map = MutableAffineMap(
+                AffineMap::getMultiDimIdentityMap(1, builder.getContext()));
+
+            // Update map output to include increment
+            auto result = map.getResult(0);
+            map.setResult(0, result + symbol->increment);
+
+            assert(map.getNumResults() == 1 &&
+                   "map should return single result");
+
+            out = makeCanonicalAffineApplies(builder, computationOp->getLoc(),
+                                             map.getAffineMap(), {out})[0];
+          }
+        })
+        .Case<sparser::Int>([&](sparser::Int *integer) {
+          out = builder.create<mlir::arith::ConstantIndexOp>(
+              computationOp.getLoc(), integer->val);
+        })
+        .Default([&](sparser::SymbolOrInt *symbolOrInt) {
+          LLVM_DEBUG(llvm::errs() << "unknown SymbolOrInt,kind<"
+                                  << symbolOrInt->getKind() << ">\n");
+          exit(1);
+        });
+    return out;
+  }
+
   void visit(sparser::LoopAST *loop) override {
     LLVM_DEBUG(llvm::dbgs() << "loop"
                             << "\n");
-    auto stopString = loop->stop->symbol;
-    if (stopString.empty() || symbols.find(stopString) == symbols.end()) {
-      std::cerr << "err: "
-                << "oh no!" << std::endl;
-      exit(1);
-    }
-
-    auto start = builder.create<mlir::arith::ConstantIndexOp>(
-        computationOp.getLoc(), loop->start);
-
-    // Create mutable AffineMap for applying increment to stop symbol
-    auto map = MutableAffineMap(
-        AffineMap::getMultiDimIdentityMap(1, builder.getContext()));
-
-    // Update map output to include increment
-    auto result = map.getResult(0);
-    map.setResult(0, result + loop->stop->increment);
-
-    assert(map.getNumResults() == 1 && "map should return single result");
-
-    // create stop by applying the map
-    auto stop = makeCanonicalAffineApplies(builder, computationOp->getLoc(),
-                                           map.getAffineMap(),
-                                           {symbols[stopString]})[0];
-
+    mlir::Value start = getValue(loop->start.get());
+    mlir::Value stop = getValue(loop->stop.get());
     auto step = builder.create<mlir::arith::ConstantIndexOp>(
         computationOp.getLoc(), loop->step);
 
@@ -484,7 +502,8 @@ std::string relationForOperand(AffineMap map) {
   return read;
 };
 
-std::unique_ptr<standalone::parser::Program> parse(std::tuple<std::string, VisitorChangeUFsForOmega*> input) {
+std::unique_ptr<standalone::parser::Program>
+parse(std::tuple<std::string, VisitorChangeUFsForOmega *> input) {
   auto lexer = standalone::parser::Lexer(std::move(std::get<0>(input)));
   auto parser = standalone::parser::Parser(lexer, std::get<1>(input));
   return parser.parseProgram();
@@ -571,7 +590,8 @@ public:
     LLVM_DEBUG(llvm::dbgs() << computation.codeGen());
 
     LLVM_DEBUG(llvm::dbgs() << "codeJen ===================================\n");
-    std::tuple<std::string, VisitorChangeUFsForOmega*> codeJen = computation.codeJen();
+    std::tuple<std::string, VisitorChangeUFsForOmega *> codeJen =
+        computation.codeJen();
     LLVM_DEBUG(llvm::dbgs() << std::get<0>(codeJen));
 
     LLVM_DEBUG(llvm::dbgs() << "parse =====================================\n");
