@@ -623,6 +623,8 @@ private:
     for (uint i = 0; i < v->numArgs(); i++) {
       int increment = 0;
       std::string symbol = "t";
+      // 't' and '-1' would be terms in the first argument to the UF call
+      // `UF(t0-1,t1,t2)`
       for (auto term : v->getParamExp(i)->getTermList()) {
         if (term->type() == "TupleVarTerm") {
           // tvloc is the position of the variable in the transformed execution
@@ -632,7 +634,7 @@ private:
           symbol +=
               std::to_string(static_cast<TupleVarTerm *>(term)->tvloc() + 1);
         } else if (term->isConst()) {
-          // TODO: handle constants
+          increment = term->coefficient();
         } else {
           return parseError<AST>(
               "uf arguments of either constants or tuple variables", context);
