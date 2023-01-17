@@ -8,7 +8,6 @@ module {
 	func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
 								 %uf_argb_coord_1 : memref<?xindex>,
 								 %uf_argb_coord_2 : memref<?xindex>,
-								 %j :index,
 								 %z: index)-> index {
 			%i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
 			return %i : index
@@ -17,7 +16,6 @@ module {
 	func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
 								 %uf_argb_coord_1 : memref<?xindex>,
 								 %uf_argb_coord_2 : memref<?xindex>,
-								 %j : index,
 								 %z : index) -> index {
 			%k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
 			return %k : index
@@ -26,7 +24,6 @@ module {
 	func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
 								 %uf_argb_coord_1 : memref<?xindex>,
 								 %uf_argb_coord_2 : memref<?xindex>,
-								 %j : index,
 								 %z : index) -> index {
 			%l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
 			return %l : index

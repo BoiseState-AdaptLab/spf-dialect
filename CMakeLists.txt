@@ -37,7 +37,7 @@ add_definitions(${LLVM_DEFINITIONS})
 include(ExternalProject)
 ExternalProject_Add(iegenlib_in
         GIT_REPOSITORY "https://github.com/BoiseState-AdaptLab/IEGenLib.git"
-        GIT_TAG "6f834cf671dc1fd7ef22dbd607f079e2cc62cffd"
+        GIT_TAG "ad14a4fe6f078e0cc3e0c3944843ff14f9785269"
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/IEGenLib
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/lib/installed
                    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

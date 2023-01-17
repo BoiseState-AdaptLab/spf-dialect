@@ -2,7 +2,6 @@ add_mlir_library(StandaloneTransforms
   MyPass.cpp
   Printer.h
   Utils.h
-  Utils.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${MLIR_MAIN_INCLUDE_DIR}/mlir/Transforms
