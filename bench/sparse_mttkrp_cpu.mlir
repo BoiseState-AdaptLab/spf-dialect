@@ -39,8 +39,9 @@ module {
             //   k=UFk(z);
             //   l=UFl(z);
             //   val=UFval(z);
-            //   for (int j = 0; j < J; j++)
+            //   for (int j = 0; j < J; j++) {
             //     A[i,j] += val*C[k,j]*D[l,j];
+            //   }
             // }
             "standalone.bar"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
                 ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):

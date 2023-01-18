@@ -4,7 +4,6 @@ module {
     func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
-                           %j :index,
                            %z: index)-> index {
 
         %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
@@ -14,7 +13,6 @@ module {
     func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
                     %uf_argb_coord_1 : memref<?xindex>,
                     %uf_argb_coord_2 : memref<?xindex>,
-                    %j : index,
                     %z : index) -> index {
 
         %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
@@ -24,7 +22,6 @@ module {
     func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
                     %uf_argb_coord_1 : memref<?xindex>,
                     %uf_argb_coord_2 : memref<?xindex>,
-                    %j : index,
                     %z : index) -> index {
 
         %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
@@ -32,18 +29,19 @@ module {
     }
 
     func.func public @sparse_mttkrp(%NNZ : index, %J : index, %b_coord_0 : memref<?xindex>, %b_coord_1 : memref<?xindex>,
-                            %b_coord_2 : memref<?xindex>, %b_values : memref<?xf64>, %c: memref<?x?xf64>,
-                            %d: memref<?x?xf64>, %a: memref<?x?xf64>) -> (i64) attributes {llvm.emit_c_interface} {
+                                    %b_coord_2 : memref<?xindex>, %b_values : memref<?xf64>, %c: memref<?x?xf64>,
+                                    %d: memref<?x?xf64>, %a: memref<?x?xf64>) -> (i64) attributes {llvm.emit_c_interface} {
 
         %start = func.call @milliTime() : () -> (i64)
         "standalone.computation"() ({
-            // for(int z = 0; z < NNZ; z++) {
-            //   i=UFi(z);
-            //   k=UFk(z);
-            //   l=UFl(z);
-            //   val=UFval(z);
-            //   for (int j = 0; j < J; j++)
-            //     A[i,j] += val*D[l,j]*C[k,j];
+            // for (int j = 0; j < J; j++)
+            //   for(int z = 0; z < NNZ; z++) {
+            //     i=UFi(z);
+            //     k=UFk(z);
+            //     l=UFl(z);
+            //     val=UFval(z);
+            //     A[i,j] += val*C[k,j]*D[l,j];
+            //   }
             // }
             "standalone.bar"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
                 ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):

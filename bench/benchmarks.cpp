@@ -208,7 +208,7 @@ public:
   const uint64_t R;
   StridedMemRefType<uint64_t, 1> fptr; // the beginnings of each X mode-n fiber
   StridedMemRefType<uint64_t, 1>
-      xConstantCoord; // the coordinates in dimension <constantMode>
+      xCoordConstant; // the coordinates in dimension <constantMode>
   StridedMemRefType<double, 1> xValues;
   StridedMemRefType<double, 2> u;
   StridedMemRefType<double, 2> y;
@@ -222,7 +222,7 @@ public:
     uint64_t constantModeDimSize = xData->dims[constantMode];
 
     // read data from x into memrefs
-    _mlir_ciface_coords(&xConstantCoord, xData, constantMode);
+    _mlir_ciface_coords(&xCoordConstant, xData, constantMode);
     _mlir_ciface_values(&xValues, xData);
 
     // Sort data lexigraphically with constant mode considered the last. We need
@@ -300,8 +300,8 @@ public:
     std::cout << "K: " << this->K << "\n";
     std::cout << "R: " << this->R << "\n";
     std::cout << "Mf: " << this->Mf << "\n";
-    std::cout << "xConstantCoord:\n";
-    impl::printMemRef(this->xConstantCoord);
+    std::cout << "xCoordConstant:\n";
+    impl::printMemRef(this->xCoordConstant);
     std::cout << "xValues:\n";
     impl::printMemRef(this->xValues);
     std::cout << "fptr:\n";
@@ -321,7 +321,7 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
   uint64_t Mf = data.Mf;
 
   uint64_t *UFfptr = data.fptr.data;
-  uint64_t *UFr = data.xConstantCoord.data;
+  uint64_t *UFr = data.xCoordConstant.data;
 
 #define Y(i, k) data.y.data[i * R + k]
 #define X(z) data.xValues.data[z]
