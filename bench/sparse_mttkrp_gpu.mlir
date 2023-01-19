@@ -5,25 +5,22 @@ module {
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
                            %z: index)-> index {
-
         %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
         return %i : index
     }
 
     func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
-                    %uf_argb_coord_1 : memref<?xindex>,
-                    %uf_argb_coord_2 : memref<?xindex>,
-                    %z : index) -> index {
-
+                           %uf_argb_coord_1 : memref<?xindex>,
+                           %uf_argb_coord_2 : memref<?xindex>,
+                           %z : index) -> index {
         %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
         return %k : index
     }
 
     func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
-                    %uf_argb_coord_1 : memref<?xindex>,
-                    %uf_argb_coord_2 : memref<?xindex>,
-                    %z : index) -> index {
-
+                           %uf_argb_coord_1 : memref<?xindex>,
+                           %uf_argb_coord_2 : memref<?xindex>,
+                           %z : index) -> index {
         %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
         return %l : index
     }
@@ -31,7 +28,6 @@ module {
     func.func public @sparse_mttkrp(%NNZ : index, %J : index, %b_coord_0 : memref<?xindex>, %b_coord_1 : memref<?xindex>,
                                     %b_coord_2 : memref<?xindex>, %b_values : memref<?xf64>, %c: memref<?x?xf64>,
                                     %d: memref<?x?xf64>, %a: memref<?x?xf64>) -> (i64) attributes {llvm.emit_c_interface} {
-
         %start = func.call @milliTime() : () -> (i64)
         "standalone.computation"() ({
             // for (int j = 0; j < J; j++)

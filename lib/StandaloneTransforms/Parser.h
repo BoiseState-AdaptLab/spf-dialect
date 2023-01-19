@@ -489,8 +489,15 @@ public:
 
     // Parse statements one at a time and accumulate in this vector.
     std::vector<std::unique_ptr<AST>> statements;
-    while (auto s = parseStatement()) {
-      statements.push_back(std::move(s));
+    while (auto statement = parseStatement()) {
+      if (!statement) {
+        // parseStatement should have already emitted a reasonable error
+        // message.
+        return nullptr;
+      }
+      statements.insert(statements.end(),
+                        std::make_move_iterator(statement->begin()),
+                        std::make_move_iterator(statement->end()));
       if (lexer.getCurToken() == tok_eof)
         break;
     }
@@ -505,19 +512,6 @@ private:
   if (lexer.getCurToken() != tok)                                              \
     return parseError<TYPE>(tok, context);                                     \
   lexer.consume(tok);
-
-  // This... is... greasy...
-  // Omega tends to generate code that looks like this:
-  //    t2=UFfptr_0(t1);
-  //    t3=UFfptr_1(t1);
-  //    for(t4 = UFfptr_0(t1); t4 <= UFfptr_1(t1)-1; t4++)
-  // This map exists so we can check if a UF call was already generated, if so
-  // we just replace the UF call in the for loop with the results of the
-  // pre-existing call. The vOmegaReplacer ensures that each uf call get's a
-  // unique name, so as long as induction variables haven't changed between the
-  // original and the to-be-replaced call this should be safe to do. I don't
-  // check that, I just assume it, because my thesis is due...
-  std::unordered_map<std::string, std::string> ufCallToResults;
 
   // The vOmegaReplacer comes from the code generation in IEGenLib. It's job is
   // to ensure that when uf's are sent into omega each uf call has a unique name
@@ -558,7 +552,12 @@ private:
 
   Lexer &lexer;
 
-  std::unique_ptr<AST> parseStatement() {
+  // next number to use when creating synthetic induction variables
+  int nextSyntheticIVUniqueNumber = 0;
+
+  typedef std::vector<std::unique_ptr<AST>> Nodes;
+
+  std::unique_ptr<Nodes> parseStatement() {
     if (lexer.getCurToken() == tok_for) { // for loop
       return parseLoop();
     } else if (lexer.getCurToken() == tok_identifier) { // some sort of call
@@ -583,40 +582,30 @@ private:
       // examples that are currently using just do some error checking that
       // isn't important. TODO: There's definitely are cases
       // where an if statement is important, parse them properly.
-      EXPECT_AND_CONSUME(AST, tok_if, "if statement")
-      EXPECT_AND_CONSUME(AST, tok_parentheses_open, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_if, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, "if statement")
       while (lexer.getCurToken() != tok_parentheses_close) {
         lexer.consume(lexer.getCurToken());
       }
-      EXPECT_AND_CONSUME(AST, tok_parentheses_close, "if statement")
-      EXPECT_AND_CONSUME(AST, tok_bracket_open, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_bracket_open, "if statement")
       auto inside = parseStatement();
-      EXPECT_AND_CONSUME(AST, tok_bracket_close, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_bracket_close, "if statement")
       return inside;
     } else {
-      return parseError<AST>("for loop or statement call", "parsing statement");
+      return parseError<Nodes>("for loop or statement call",
+                               "parsing statement");
     }
   }
 
-  std::unique_ptr<AST> parseUFAssignment(std::string &&previousIdent) {
+  std::unique_ptr<UFAssignmentAST> parseUFCall(const char *context,
+                                               std::string &&ufCall,
+                                               std::string &&inductionVar) {
     auto loc = lexer.getLastLocation();
-    auto context = "in UF assignment";
 
-    // `t1`
-    auto inductionVar = previousIdent;
-
-    // `=`
-    EXPECT_AND_CONSUME(AST, tok_equal, context);
-
-    // `UFi_0`
-    if (lexer.getCurToken() != tok_identifier)
-      return parseError<AST>(tok_identifier, context);
-
-    auto ufCallUniqueId = lexer.getId();
     // Look up the unique IEGenLIb UFCallTerm for this UF call.
-    UFCallTerm *v = vOmegaReplacer->getUFMap().at(ufCallUniqueId);
+    UFCallTerm *v = vOmegaReplacer->getUFMap().at(ufCall);
     std::string ufName = v->name();
-    lexer.consume(tok_identifier);
 
     // read uf arguments out of UFCallTerm
     std::vector<std::unique_ptr<SymbolOrInt>> args;
@@ -636,7 +625,7 @@ private:
         } else if (term->isConst()) {
           increment = term->coefficient();
         } else {
-          return parseError<AST>(
+          return parseError<UFAssignmentAST>(
               "uf arguments of either constants or tuple variables", context);
         }
       }
@@ -647,79 +636,108 @@ private:
     // We don't actually use anything besides the uf name from omega, but we
     // still need to clear the rest of the uf assignment from the lexer. We're
     // expecting something here that looks like: '(t1,t2,t3)'.
-    EXPECT_AND_CONSUME(AST, tok_parentheses_open, context);
+    EXPECT_AND_CONSUME(UFAssignmentAST, tok_parentheses_open, context);
     if (!parseArgs(context)) {
-      return parseError<AST>("argument list", context);
+      return parseError<UFAssignmentAST>("argument list", context);
     }
-    EXPECT_AND_CONSUME(AST, tok_parentheses_close, context);
-    EXPECT_AND_CONSUME(AST, tok_semicolon, context);
-
-    // Store off the result associated with unique call name for use later.
-    ufCallToResults.emplace(ufCallUniqueId, inductionVar);
+    EXPECT_AND_CONSUME(UFAssignmentAST, tok_parentheses_close, context);
 
     return std::make_unique<UFAssignmentAST>(
         loc, std::move(inductionVar), std::move(ufName), std::move(args));
   }
 
-  std::unique_ptr<AST> parseCall(std::string &&previousIdent) {
+  std::unique_ptr<Nodes> parseUFAssignment(std::string &&previousIdent) {
+    auto loc = lexer.getLastLocation();
+    auto context = "in UF assignment";
+    auto out = std::make_unique<Nodes>();
+
+    // `t1`
+    auto inductionVar = previousIdent;
+
+    // `=`
+    EXPECT_AND_CONSUME(Nodes, tok_equal, context);
+
+    // `UFi_0`
+    if (lexer.getCurToken() != tok_identifier)
+      return parseError<Nodes>(tok_identifier, context);
+
+    auto ufCall = lexer.getId();
+    lexer.consume(tok_identifier);
+
+    auto assignment =
+        parseUFCall(context, std::move(ufCall), std::move(inductionVar));
+    if (!assignment) {
+      return parseError<Nodes>("uf call", context);
+    }
+
+    EXPECT_AND_CONSUME(Nodes, tok_semicolon, context);
+    out->push_back(std::move(assignment));
+    return out;
+  }
+
+  std::unique_ptr<Nodes> parseCall(std::string &&previousIdent) {
     auto loc = lexer.getLastLocation();
     auto context = "in statement call";
+    auto out = std::make_unique<Nodes>();
 
     auto statement = std::move(previousIdent);
     statement.erase(statement.begin());
     auto statementNumber = std::stoi(statement);
 
     // '('
-    EXPECT_AND_CONSUME(AST, tok_parentheses_open, context);
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, context);
 
     // 't1,0,t2,0'
     auto argsPtr = parseArgs(context);
     if (!argsPtr) {
-      return parseError<AST>("argument list", context);
+      return parseError<Nodes>("argument list", context);
     }
     auto args = std::move(*argsPtr);
 
     // ')'
-    EXPECT_AND_CONSUME(AST, tok_parentheses_close, context);
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, context);
 
     // ';'
-    EXPECT_AND_CONSUME(AST, tok_semicolon, context);
+    EXPECT_AND_CONSUME(Nodes, tok_semicolon, context);
 
-    return std::make_unique<StatementCallAST>(loc, statementNumber,
-                                              std::move(args));
+    auto call = std::make_unique<StatementCallAST>(loc, statementNumber,
+                                                   std::move(args));
+    out->push_back(std::move(call));
+    return out;
   }
 
-  std::unique_ptr<AST> parseLoop() {
+  std::unique_ptr<Nodes> parseLoop() {
     auto loc = lexer.getLastLocation();
     auto context = "in loop";
+    auto out = std::make_unique<Nodes>();
 
     // `for`
-    EXPECT_AND_CONSUME(AST, tok_for, context);
+    EXPECT_AND_CONSUME(Nodes, tok_for, context);
 
     // `(`
-    EXPECT_AND_CONSUME(AST, tok_parentheses_open, context);
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, context);
 
     // `t1`
     if (lexer.getCurToken() != tok_identifier)
-      return parseError<AST>(tok_identifier, context);
+      return parseError<Nodes>(tok_identifier, context);
     auto inductionVar = lexer.identifierStr;
     lexer.consume(tok_identifier);
 
     // `=`
-    EXPECT_AND_CONSUME(AST, tok_equal, context);
+    EXPECT_AND_CONSUME(Nodes, tok_equal, context);
 
     // `1` || `t1(-1)+` || `uf_1(t1, t2, t3)(-1)+`
-    auto start = parseUfOrSymbolOrInt(loc, context, 0);
+    auto start = parseUfOrSymbolOrInt(loc, context, 0, *out.get());
     if (!start) {
-      return parseError<AST>("int, identifier, or known uf call", context);
+      return parseError<Nodes>("int, identifier, or known uf call", context);
     }
 
     // `;`
-    EXPECT_AND_CONSUME(AST, tok_semicolon, context);
+    EXPECT_AND_CONSUME(Nodes, tok_semicolon, context);
 
     // `t1`
     if (lexer.getCurToken() != tok_identifier)
-      return parseError<AST>("induction var", context);
+      return parseError<Nodes>("induction var", context);
     {
       auto var = lexer.getId();
       assert(var == inductionVar && "expected induction var to reman the same "
@@ -731,7 +749,7 @@ private:
     // (`<=` | `<`)
     if (lexer.getCurToken() != tok_less_equal &&
         lexer.getCurToken() != tok_less) {
-      return parseError<AST>("'<=', or '<'", context);
+      return parseError<Nodes>("'<=', or '<'", context);
     }
     int increment = 0;
     if (lexer.getCurToken() == tok_less) {
@@ -742,19 +760,19 @@ private:
     }
 
     // `1` || `t1(-1)+` || `uf_1(t1, t2, t3)(-1)+`
-    auto stop = parseUfOrSymbolOrInt(loc, context, increment);
+    auto stop = parseUfOrSymbolOrInt(loc, context, increment, *out.get());
     if (!stop) {
-      return parseError<AST>("int, identifier, or known uf call", context);
+      return parseError<Nodes>("int, identifier, or known uf call", context);
     }
 
     // `;`
     if (lexer.getCurToken() != tok_semicolon)
-      return parseError<AST>(tok_semicolon, context);
+      return parseError<Nodes>(tok_semicolon, context);
     lexer.consume(tok_semicolon);
 
     // `t1`
     if (lexer.getCurToken() != tok_identifier)
-      return parseError<AST>("induction var", context);
+      return parseError<Nodes>("induction var", context);
     {
       auto var = lexer.getId();
       assert(var == inductionVar && "expected induction var to reman the same "
@@ -765,42 +783,50 @@ private:
     // `++`
     // TODO: handle steps not communicated with ++
     if (lexer.getCurToken() != tok_increment)
-      return parseError<AST>("increment", context);
+      return parseError<Nodes>("increment", context);
     int step = 1;
     lexer.consume(tok_increment);
 
     // `)`
-    EXPECT_AND_CONSUME(AST, tok_parentheses_close, context);
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, context);
 
     // It's valid C to do `for(int i=0; i<10; i++) s(i);` but omega doesn't seem
     // to produce that so not worrying about it.
     // `{`
-    EXPECT_AND_CONSUME(AST, tok_bracket_open, context);
+    EXPECT_AND_CONSUME(Nodes, tok_bracket_open, context);
 
     std::vector<std::unique_ptr<AST>> block;
-    while (auto s = parseStatement()) {
-      block.push_back(std::move(s));
+    while (auto statement = parseStatement()) {
+      if (!statement) {
+        return parseError<Nodes>("block", context);
+      }
+      block.insert(std::end(block), std::make_move_iterator(statement->begin()),
+                   std::make_move_iterator(statement->end()));
       if (lexer.getCurToken() == tok_bracket_close)
         break;
     }
-    EXPECT_AND_CONSUME(AST, tok_bracket_close, context);
+    EXPECT_AND_CONSUME(Nodes, tok_bracket_close, context);
 
-    return std::make_unique<LoopAST>(loc, std::move(inductionVar),
-                                     std::move(start), std::move(stop), step,
-                                     std::move(block));
+    auto loop = std::make_unique<LoopAST>(loc, std::move(inductionVar),
+                                          std::move(start), std::move(stop),
+                                          step, std::move(block));
+    out->push_back(std::move(loop));
+    return out;
   }
 
-  // Handles cases: `1` || `t1` || `uf_1(t1, t2, t3)` in for loop initializer
-  //
-  // If theres a uf call here check if this uf was already called and inline
-  // the call; i.e change this:
-  //    t3=UFfptr_0(t1);
+  // parseUfOrSymbolOrInt handles cases: `1` || `t1` || `uf_1(t1, t2, t3)` in
+  // for loop initializer. It may add UFAssignment nodes to the out parameter
+  // <out> (which should be the return nodes for parse loop) in the case of
+  // UFassignments in initializer. For example, this function canonicalizes
+  // this:
   //    for(t4 = UFfptr_0(t1); t4 <= 10; t4++)
   // to this:
   //    t3=UFfptr_0(t1);
   //    for(t4 = t3; t4 <= 10; t4++)
-  std::unique_ptr<SymbolOrInt>
-  parseUfOrSymbolOrInt(Location loc, std::string &&context, int increment) {
+  // in the returned parse tree.
+  std::unique_ptr<SymbolOrInt> parseUfOrSymbolOrInt(Location loc,
+                                                    const char *context,
+                                                    int increment, Nodes &out) {
     if (lexer.getCurToken() == tok_int) { // `1`
       int value = lexer.getValue();
       lexer.consume(tok_int);
@@ -814,22 +840,32 @@ private:
     auto id = lexer.getId();
     EXPECT_AND_CONSUME(SymbolOrInt, tok_identifier, context);
 
-    // in the case of a uf call swap results of uf call for uf call
-    // `uf_1(t1, t2, t3)` -> `t4`
+    // in the case of a UF call generate a UF assignment node and swap the
+    // statement's written to variable for call expression. For example this:
+    //    for(t4 = UFfptr_0(t1); t4 <= UFfptr_1(t1); t4++)
+    // turns into:
+    //    ufAsignment{inductionVar:synthetic0, ufName: UFfptr,
+    //                args:[symbol{symbol:t1}]},
+    //    ufAsignment{inductionVar:synthetic1, ufName: UFfptr,
+    //                args:[symbol{symbol:t1,increment:1}]},
+    //    loop{inductionVar:t2, start:symbol{symbol:synthetic0},
+    //         stop:symbol{symbol:synthetic1}, step:1,
+    //         body:[ ...
     if (lexer.getCurToken() == tok_parentheses_open) {
-      if (ufCallToResults.find(id) == ufCallToResults.end()) {
-        return parseError<SymbolOrInt>("pre-existing UF call", context);
+      // create synthetic node in AST
+      std::string inductionVar =
+          "synthetic" + std::to_string(nextSyntheticIVUniqueNumber);
+      nextSyntheticIVUniqueNumber++;
+      auto assignment =
+          parseUFCall(context, std::move(id), std::move(inductionVar));
+      if (!assignment) {
+        return parseError<SymbolOrInt>("uf call", context);
       }
-
-      // consume the argument list `(t1, t2, t3)`
-      EXPECT_AND_CONSUME(SymbolOrInt, tok_parentheses_open, context);
-      if (!parseArgs(context.c_str())) {
-        return parseError<SymbolOrInt>("argument list", context);
-      }
-      EXPECT_AND_CONSUME(SymbolOrInt, tok_parentheses_close, context);
 
       // do the swap
-      id = ufCallToResults.at(id);
+      id = assignment->inductionVar;
+
+      out.push_back(std::move(assignment));
     }
 
     // checking for a `- 1` or similar
