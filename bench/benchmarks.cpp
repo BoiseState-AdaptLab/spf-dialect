@@ -9,23 +9,28 @@
 #include "benchmarks.h"
 
 extern "C" {
+int64_t _mlir_ciface_sparse_ttm_cpu(
+    uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
+    StridedMemRefType<uint64_t, 1> *x_coord_constant,
+    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
+    StridedMemRefType<double, 2> *y);
 int64_t _mlir_ciface_sparse_mttkrp_cpu(
     uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
     StridedMemRefType<uint64_t, 1> *b_coord_1,
     StridedMemRefType<uint64_t, 1> *b_coord_2,
     StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
     StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
+int64_t _mlir_ciface_sparse_ttm_gpu(
+    uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
+    StridedMemRefType<uint64_t, 1> *x_coord_constant,
+    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
+    StridedMemRefType<double, 2> *y);
 int64_t _mlir_ciface_sparse_mttkrp_gpu(
     uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
     StridedMemRefType<uint64_t, 1> *b_coord_1,
     StridedMemRefType<uint64_t, 1> *b_coord_2,
     StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
     StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
-int64_t _mlir_ciface_sparse_ttm_cpu(
-    uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
-    StridedMemRefType<uint64_t, 1> *x_coord_constant,
-    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
-    StridedMemRefType<double, 2> *y);
 }
 
 namespace {
@@ -56,6 +61,8 @@ public:
         I(bData->dims[0]), J(inJ), K(bData->dims[1]), L(bData->dims[2]) {
 
     assert(bData->rank == 3 && "mttkrp requires rank 3 tensor");
+
+    // Construct memrefs pointing into bData
     _mlir_ciface_coords(&bCoord0, bData, 0);
     _mlir_ciface_coords(&bCoord1, bData, 1);
     _mlir_ciface_coords(&bCoord2, bData, 2);
@@ -111,12 +118,13 @@ public:
 
     std::vector<double> values = copyToCpuMemRef(&src.bValues, &bValues);
 
-    bData = new COO(NNZ, 3, {I, J, K, L}, std::move(coord), std::move(values));
+    bData = new COO(NNZ, 3, {I, K, L}, std::move(coord), std::move(values));
 
     cData = copyToCpuMemRef(&src.c, &c);
     dData = copyToCpuMemRef(&src.d, &d);
     aData = copyToCpuMemRef(&src.a, &a);
   }
+
   ~DataForCpuMttkrp() { delete bData; }
 
   void dump() {
@@ -141,58 +149,6 @@ public:
     impl::printMemRef(this->a);
   }
 };
-
-// areCoordsEqualExceptMode returns true if coords are equal in all modes
-// <exceptMode>
-bool areCoordsEqualExceptMode(COO &coo, uint64_t exceptMode, uint64_t i,
-                              uint64_t j) {
-  for (uint64_t mode = 0; mode < coo.rank; mode++) {
-    if (mode != exceptMode) {
-      auto one = coo.coord[mode][i];
-      auto two = coo.coord[mode][j];
-      if (one != two) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-// fiberStartStopIndices returns the indices at which fibers in COO tensor
-// <sortedCoo> formed by holding <constantMode> constant begin and end.
-// <sortedCoo> is assumed to have been sorted lexigraphically with
-// <constantMode> considered that last mode.
-//
-// Ex: the following COO mode 3 tensor is sorted lexigraphically with mode 0
-//    (constant mode) last
-// mode: 0,1,2
-// 0|    1 0 0 : 77
-// 1|    0 0 2 : 3
-// 2|    1 0 2 : 10
-// 3|    0 0 3 : 63
-// ⬑ index
-// output will be: [0,1,3,4].
-//  - Fiber 0 starts at index 0 (always)
-//  - Fiber 0 ends (and fiber 1 starts) at index 1 (as at index 1, one two one
-//    of the non-constant dimensions from index 0 differ at mode 2: 0 to 2)
-//  - Fiber 1 (and fiber 2 starts) ends at index 3 (as at index 3 one of the two
-//    non-constant dimensions that are the same for index 1 and 2 differ at mode
-//    2: 2 to 3)
-//  - As fiber 2 is the last fiber it ends at the last index +1;
-std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo,
-                                            uint64_t constantMode) {
-  std::vector<uint64_t> out;
-  uint64_t lastIdx = sortedCoo.nnz;
-  for (uint64_t i = 0; i < sortedCoo.nnz; i++) {
-    if (lastIdx == sortedCoo.nnz ||
-        !areCoordsEqualExceptMode(sortedCoo, constantMode, lastIdx, i)) {
-      lastIdx = i;
-      out.push_back(i);
-    }
-  }
-  out.push_back(sortedCoo.nnz);
-  return out;
-}
 
 // variable names from PASTA paper: https://arxiv.org/abs/1902.03317
 class DataForCpuTTM {
@@ -222,7 +178,7 @@ public:
 
     uint64_t constantModeDimSize = xData->dims[constantMode];
 
-    // read data from x into memrefs
+    // Construct memrefs pointing into xData
     _mlir_ciface_coords(&xCoordConstant, xData, constantMode);
     _mlir_ciface_values(&xValues, xData);
 
@@ -293,6 +249,24 @@ public:
     y.strides[1] = 1;
   }
 
+  // This constructor expects src DataForGpuTTM to be populated
+  DataForCpuTTM(DataForGpuTTM &src)
+      : Mf(src.Mf), I(src.I), J(src.J), K(src.K), R(src.R) {
+
+    std::vector<std::vector<uint64_t>> coord;
+    coord.push_back(copyToCpuMemRef(&src.xCoordConstant, &xCoordConstant));
+
+    std::vector<double> values = copyToCpuMemRef(&src.xValues, &xValues);
+
+    xData = new COO(values.size(), 1,
+                    {static_cast<unsigned long>(src.xCoordConstant.sizes[0])},
+                    std::move(coord), std::move(values));
+
+    fptrData = copyToCpuMemRef(&src.fptr, &fptr);
+    uData = copyToCpuMemRef(&src.u, &u);
+    yData = copyToCpuMemRef(&src.y, &y);
+  }
+
   ~DataForCpuTTM() { delete xData; }
 
   void dump() {
@@ -315,87 +289,19 @@ public:
 };
 } // anonymous namespace
 
-int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
-  auto data = DataForCpuTTM(filename, 0, 2);
-
-  uint64_t R = data.R;
-  uint64_t Mf = data.Mf;
-
-  uint64_t *UFfptr = data.fptr.data;
-  uint64_t *UFr = data.xCoordConstant.data;
-
-#define Y(i, k) data.y.data[i * R + k]
-#define X(z) data.xValues.data[z]
-#define U(r, k) data.u.data[r * R + k]
-
-  uint64_t t1, t2, t3, t4;
-
-  int64_t totalTime = 0;
-  auto start = milliTime();
-  for (int64_t i = 0; i < iterations; i++) {
-    // Generated code ==============================
-
-#undef s0
-#undef s_0
-#define s_0(z, j, r, k) Y(z, k) += X(j) * U(r, k)
-#define s0(z, j, r, k) s_0(z, j, r, k);
-
-#undef UFfptr_1
-#undef UFfptr_2
-#undef UFr_0
-#define UFfptr(t0) UFfptr[t0]
-#define UFfptr_1(__tv0) UFfptr(__tv0)
-#define UFfptr_2(__tv0) UFfptr(__tv0 + 1)
-#define UFr(t0) UFr[t0]
-#define UFr_0(__tv0, __tv1) UFr(__tv1)
-
-    t1 = 0;
-    t2 = 0;
-    t3 = 0;
-    t4 = 0;
-
-    if (R >= 1) {
-      for (t1 = 0; t1 <= Mf - 1; t1++) {
-        for (t2 = UFfptr_1(t1); t2 <= UFfptr_2(t1) - 1; t2++) {
-          t3 = UFr_0(t1, t2);
-          for (t4 = 0; t4 <= R - 1; t4++) {
-            s0(t1, t2, t3, t4);
-          }
-        }
-      }
-    }
-
-#undef s0
-#undef s_0
-#undef UFfptr_1
-#undef UFfptr_2
-#undef UFr_0
-
-    // =============================================
-    auto stop = milliTime();
-    totalTime += stop - start;
-  }
-
+// Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
+int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
   if (debug) {
-    data.dump();
-    std::cout << "=====\n";
+    std::cout << "cpu mttkrp mlir =====\n";
   }
 
-  return totalTime / iterations;
-}
-
-int64_t cpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
-  if (debug) {
-    std::cout << "cpu ttm mlir =====\n";
-  }
-
-  DataForCpuTTM data(filename, 0, 2);
+  DataForCpuMttkrp data(filename, 5);
 
   int64_t totalTime = 0;
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_ttm_cpu(data.Mf, data.R, &data.fptr,
-                                             &data.xCoordConstant,
-                                             &data.xValues, &data.u, &data.y);
+    totalTime += _mlir_ciface_sparse_mttkrp_cpu(
+        data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
+        &data.bValues, &data.c, &data.d, &data.a);
   }
 
   if (debug) {
@@ -484,19 +390,87 @@ int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
   return totalTime / iterations;
 }
 
-// Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
+int64_t cpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
   if (debug) {
-    std::cout << "cpu mttkrp mlir =====\n";
+    std::cout << "cpu ttm mlir =====\n";
   }
 
-  DataForCpuMttkrp data(filename, 5);
+  DataForCpuTTM data(filename, 0, 2);
 
   int64_t totalTime = 0;
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_mttkrp_cpu(
-        data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
-        &data.bValues, &data.c, &data.d, &data.a);
+    totalTime += _mlir_ciface_sparse_ttm_cpu(data.Mf, data.R, &data.fptr,
+                                             &data.xCoordConstant,
+                                             &data.xValues, &data.u, &data.y);
+  }
+
+  if (debug) {
+    data.dump();
+    std::cout << "=====\n";
+  }
+
+  return totalTime / iterations;
+}
+
+int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
+  auto data = DataForCpuTTM(filename, 0, 2);
+
+  uint64_t R = data.R;
+  uint64_t Mf = data.Mf;
+
+  uint64_t *UFfptr = data.fptr.data;
+  uint64_t *UFr = data.xCoordConstant.data;
+
+#define Y(i, k) data.y.data[i * R + k]
+#define X(z) data.xValues.data[z]
+#define U(r, k) data.u.data[r * R + k]
+
+  uint64_t t1, t2, t3, t4;
+
+  int64_t totalTime = 0;
+  auto start = milliTime();
+  for (int64_t i = 0; i < iterations; i++) {
+    // Generated code ==============================
+
+#undef s0
+#undef s_0
+#define s_0(z, j, r, k) Y(z, k) += X(j) * U(r, k)
+#define s0(z, j, r, k) s_0(z, j, r, k);
+
+#undef UFfptr_1
+#undef UFfptr_2
+#undef UFr_0
+#define UFfptr(t0) UFfptr[t0]
+#define UFfptr_1(__tv0) UFfptr(__tv0)
+#define UFfptr_2(__tv0) UFfptr(__tv0 + 1)
+#define UFr(t0) UFr[t0]
+#define UFr_0(__tv0, __tv1) UFr(__tv1)
+
+    t1 = 0;
+    t2 = 0;
+    t3 = 0;
+    t4 = 0;
+
+    if (R >= 1) {
+      for (t1 = 0; t1 <= Mf - 1; t1++) {
+        for (t2 = UFfptr_1(t1); t2 <= UFfptr_2(t1) - 1; t2++) {
+          t3 = UFr_0(t1, t2);
+          for (t4 = 0; t4 <= R - 1; t4++) {
+            s0(t1, t2, t3, t4);
+          }
+        }
+      }
+    }
+
+#undef s0
+#undef s_0
+#undef UFfptr_1
+#undef UFfptr_2
+#undef UFr_0
+
+    // =============================================
+    auto stop = milliTime();
+    totalTime += stop - start;
   }
 
   if (debug) {
@@ -524,6 +498,28 @@ int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
 
   if (debug) {
     DataForCpuMttkrp(data).dump();
+    std::cout << "=====\n";
+  }
+
+  return totalTime / iterations;
+}
+
+int64_t gpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
+  if (debug) {
+    std::cout << "gpu mttkrp mlir =====\n";
+  }
+
+  DataForGpuTTM data(filename, 0, 2);
+
+  int64_t totalTime = 0;
+  for (int64_t i = 0; i < iterations; i++) {
+    totalTime += _mlir_ciface_sparse_ttm_gpu(data.Mf, data.R, &data.fptr,
+                                             &data.xCoordConstant,
+                                             &data.xValues, &data.u, &data.y);
+  }
+
+  if (debug) {
+    DataForCpuTTM(data).dump();
     std::cout << "=====\n";
   }
 

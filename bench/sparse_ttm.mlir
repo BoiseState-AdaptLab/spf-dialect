@@ -41,7 +41,7 @@ module {
                 // symbols,ufInputs,inputs,outputs
                 operand_segment_sizes = array<i32: 2,2,2,1>,
                 symbolNames = ["Mf", "R"],
-                iteratorTypes = ["recution", "reduction", "reduction", "reduction"],
+                iteratorTypes = ["parallel", "reduction", "recution", "reduction"],
                 iterationSpace = "{[f,m,k,r] : 0<=f<Mf and UFfptr(f)<=m<UFfptr(f+1) and k=UFxCoordConstant(m) and 0<=r<R}",
                 executionSchedule = "{[f,m,k,r]->[f,m,k,r]}",
                 transforms = []

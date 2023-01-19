@@ -92,6 +92,7 @@ macro(append_cpu_pipeline_object_file object_file_list mlir_file benchmark_name)
             -cse
             -loop-invariant-code-motion
             -lower-affine
+            -cse
             -convert-vector-to-scf
             -convert-scf-to-cf
             -gpu-to-llvm
@@ -120,8 +121,8 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
                     DEPENDS ${partial_lowering_filename}
                     COMMAND standalone-opt ${partial_lowering_filename}
                     -inline
-                    -cse
                     -lower-affine
+                    -cse
                     -gpu-map-parallel-loops
                     -convert-parallel-loops-to-gpu
                     -lower-affine
@@ -155,6 +156,7 @@ set(mlir_benchmark_object_files)
 append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_cpu.mlir sparse_mttkrp)
 append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_gpu.mlir sparse_mttkrp)
 append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_ttm.mlir sparse_ttm)
+append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_ttm.mlir sparse_ttm)
 
 # create bench executable
 add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)

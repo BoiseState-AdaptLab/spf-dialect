@@ -112,6 +112,9 @@ private:
   }
 };
 
+std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo,
+                                            uint64_t constantMode);
+
 extern "C" {
 int64_t milliTime();
 

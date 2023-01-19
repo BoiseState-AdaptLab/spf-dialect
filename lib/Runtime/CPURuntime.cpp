@@ -92,9 +92,61 @@ static void readExtFROSTTHeader(FILE *file, char *filename, char *line,
   fgets(line, kColWidth, file); // end of line
 }
 
+// areCoordsEqualExceptMode returns true if coords are equal in all modes
+// <exceptMode>
+bool areCoordsEqualExceptMode(COO &coo, uint64_t exceptMode, uint64_t i,
+                              uint64_t j) {
+  for (uint64_t mode = 0; mode < coo.rank; mode++) {
+    if (mode != exceptMode) {
+      auto one = coo.coord[mode][i];
+      auto two = coo.coord[mode][j];
+      if (one != two) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// fiberStartStopIndices returns the indices at which fibers in COO tensor
+// <sortedCoo> formed by holding <constantMode> constant begin and end.
+// <sortedCoo> is assumed to have been sorted lexigraphically with
+// <constantMode> considered that last mode.
+//
+// Ex: the following COO mode 3 tensor is sorted lexigraphically with mode 0
+//    (constant mode) last
+// mode: 0,1,2
+// 0|    1 0 0 : 77
+// 1|    0 0 2 : 3
+// 2|    1 0 2 : 10
+// 3|    0 0 3 : 63
+// ⬑ index
+// output will be: [0,1,3,4].
+//  - Fiber 0 starts at index 0 (always)
+//  - Fiber 0 ends (and fiber 1 starts) at index 1 (as at index 1, one two one
+//    of the non-constant dimensions from index 0 differ at mode 2: 0 to 2)
+//  - Fiber 1 (and fiber 2 starts) ends at index 3 (as at index 3 one of the two
+//    non-constant dimensions that are the same for index 1 and 2 differ at mode
+//    2: 2 to 3)
+//  - As fiber 2 is the last fiber it ends at the last index +1;
+std::vector<uint64_t> fiberStartStopIndices(COO &sortedCoo,
+                                            uint64_t constantMode) {
+  std::vector<uint64_t> out;
+  uint64_t lastIdx = sortedCoo.nnz;
+  for (uint64_t i = 0; i < sortedCoo.nnz; i++) {
+    if (lastIdx == sortedCoo.nnz ||
+        !areCoordsEqualExceptMode(sortedCoo, constantMode, lastIdx, i)) {
+      lastIdx = i;
+      out.push_back(i);
+    }
+  }
+  out.push_back(sortedCoo.nnz);
+  return out;
+}
+
 extern "C" { // these are the symbols that MLIR will actually call
 
-extern "C" int64_t milliTime() {
+int64_t milliTime() {
   auto now = std::chrono::high_resolution_clock::now();
   auto duration = now.time_since_epoch();
   auto milliseconds =

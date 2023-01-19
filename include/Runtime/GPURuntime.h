@@ -14,7 +14,7 @@ template <typename T, int N>
 std::vector<T> copyToCpuMemRef(StridedMemRefType<T, N> *srcGpuMemRef, StridedMemRefType<T, N> *destCpuMemRef);
 
 class DataForGpuMttkrp {
-  COO *coo;
+  COO *bData;
 
 public:
   StridedMemRefType<uint64_t, 1> bCoord0;
@@ -32,6 +32,26 @@ public:
 
   DataForGpuMttkrp(char *filename, uint64_t argJ);
   ~DataForGpuMttkrp();
+};
+
+class DataForGpuTTM {
+  COO *xData;
+
+public:
+  uint64_t Mf; // number of n-mode fibers
+  const uint64_t I;
+  const uint64_t J;
+  const uint64_t K;
+  const uint64_t R;
+  StridedMemRefType<uint64_t, 1> fptr; // the beginnings of each X mode-n fiber
+  StridedMemRefType<uint64_t, 1>
+      xCoordConstant; // the coordinates in dimension <constantMode>
+  StridedMemRefType<double, 1> xValues;
+  StridedMemRefType<double, 2> u;
+  StridedMemRefType<double, 2> y;
+
+  DataForGpuTTM(char *filename, uint64_t constantMode, uint64_t inR);
+  ~DataForGpuTTM();
 };
 
 #endif // GPU_RUNTIME_H
