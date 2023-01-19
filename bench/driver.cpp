@@ -148,7 +148,6 @@ int main(int argc, char *argv[]) {
       std::bind(not_implemented, _1, _2, _3, "gpu_mttkrp_iegenlib");
   auto gpu_ttm_iegenlib =
       std::bind(not_implemented, _1, _2, _3, "gpu_ttm_iegenlib");
-  auto cpu_ttm_mlir = std::bind(not_implemented, _1, _2, _3, "cpu_ttm_mlir");
   auto gpu_ttm_mlir = std::bind(not_implemented, _1, _2, _3, "gpu_ttm_mlir");
   // benchmarks stored in Platform x Benchmark x Implementation vector
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{

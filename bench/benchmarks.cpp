@@ -9,22 +9,23 @@
 #include "benchmarks.h"
 
 extern "C" {
-int64_t _mlir_ciface_sparse_mttkrp_cpu(uint64_t NNZ, uint64_t J,
-                                       StridedMemRefType<uint64_t, 1> *coord_0,
-                                       StridedMemRefType<uint64_t, 1> *coord_1,
-                                       StridedMemRefType<uint64_t, 1> *coord_2,
-                                       StridedMemRefType<double, 1> *values,
-                                       StridedMemRefType<double, 2> *c,
-                                       StridedMemRefType<double, 2> *d,
-                                       StridedMemRefType<double, 2> *a);
-int64_t _mlir_ciface_sparse_mttkrp_gpu(uint64_t NNZ, uint64_t J,
-                                       StridedMemRefType<uint64_t, 1> *coord_0,
-                                       StridedMemRefType<uint64_t, 1> *coord_1,
-                                       StridedMemRefType<uint64_t, 1> *coord_2,
-                                       StridedMemRefType<double, 1> *values,
-                                       StridedMemRefType<double, 2> *c,
-                                       StridedMemRefType<double, 2> *d,
-                                       StridedMemRefType<double, 2> *a);
+int64_t _mlir_ciface_sparse_mttkrp_cpu(
+    uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
+    StridedMemRefType<uint64_t, 1> *b_coord_1,
+    StridedMemRefType<uint64_t, 1> *b_coord_2,
+    StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
+    StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
+int64_t _mlir_ciface_sparse_mttkrp_gpu(
+    uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
+    StridedMemRefType<uint64_t, 1> *b_coord_1,
+    StridedMemRefType<uint64_t, 1> *b_coord_2,
+    StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
+    StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
+int64_t _mlir_ciface_sparse_ttm_cpu(
+    uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
+    StridedMemRefType<uint64_t, 1> *x_coord_constant,
+    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
+    StridedMemRefType<double, 2> *y);
 }
 
 namespace {
@@ -327,7 +328,7 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
 #define X(z) data.xValues.data[z]
 #define U(r, k) data.u.data[r * R + k]
 
-  uint64_t t1, t2, t3, t4, t5, t6;
+  uint64_t t1, t2, t3, t4;
 
   int64_t totalTime = 0;
   auto start = milliTime();
@@ -336,33 +337,29 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
 
 #undef s0
 #undef s_0
-#define s_0(z, ib, ie, j, r, k) Y(z, k) += X(j) * U(r, k)
-#define s0(z, ib, ie, j, r, k) s_0(z, ib, ie, j, r, k);
+#define s_0(z, j, r, k) Y(z, k) += X(j) * U(r, k)
+#define s0(z, j, r, k) s_0(z, j, r, k);
 
-#undef UFfptr_0
 #undef UFfptr_1
-#undef UFr_2
+#undef UFfptr_2
+#undef UFr_0
 #define UFfptr(t0) UFfptr[t0]
-#define UFfptr_0(__tv0) UFfptr(__tv0)
-#define UFfptr_1(__tv0) UFfptr(__tv0 + 1)
+#define UFfptr_1(__tv0) UFfptr(__tv0)
+#define UFfptr_2(__tv0) UFfptr(__tv0 + 1)
 #define UFr(t0) UFr[t0]
-#define UFr_2(__tv0, __tv1, __tv2, __tv3) UFr(__tv3)
+#define UFr_0(__tv0, __tv1) UFr(__tv1)
 
     t1 = 0;
     t2 = 0;
     t3 = 0;
     t4 = 0;
-    t5 = 0;
-    t6 = 0;
 
     if (R >= 1) {
       for (t1 = 0; t1 <= Mf - 1; t1++) {
-        t2 = UFfptr_0(t1);
-        t3 = UFfptr_1(t1);
-        for (t4 = UFfptr_0(t1); t4 <= UFfptr_1(t1) - 1; t4++) {
-          t5 = UFr_2(t1, t2, t3, t4);
-          for (t6 = 0; t6 <= R - 1; t6++) {
-            s0(t1, t2, t3, t4, t5, t6);
+        for (t2 = UFfptr_1(t1); t2 <= UFfptr_2(t1) - 1; t2++) {
+          t3 = UFr_0(t1, t2);
+          for (t4 = 0; t4 <= R - 1; t4++) {
+            s0(t1, t2, t3, t4);
           }
         }
       }
@@ -370,13 +367,35 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
 
 #undef s0
 #undef s_0
-#undef UFfptr_0
 #undef UFfptr_1
-#undef UFr_2
+#undef UFfptr_2
+#undef UFr_0
 
     // =============================================
     auto stop = milliTime();
     totalTime += stop - start;
+  }
+
+  if (debug) {
+    data.dump();
+    std::cout << "=====\n";
+  }
+
+  return totalTime / iterations;
+}
+
+int64_t cpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
+  if (debug) {
+    std::cout << "cpu ttm mlir =====\n";
+  }
+
+  DataForCpuTTM data(filename, 0, 2);
+
+  int64_t totalTime = 0;
+  for (int64_t i = 0; i < iterations; i++) {
+    totalTime += _mlir_ciface_sparse_ttm_cpu(data.Mf, data.R, &data.fptr,
+                                             &data.xCoordConstant,
+                                             &data.xValues, &data.u, &data.y);
   }
 
   if (debug) {
@@ -466,29 +485,6 @@ int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
-  if (debug) {
-    std::cout << "gpu mttkrp mlir =====\n";
-  }
-
-  DataForGpuMttkrp data(filename, 5);
-
-  int64_t totalTime = 0;
-  for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_mttkrp_gpu(
-        data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
-        &data.bValues, &data.c, &data.d, &data.a);
-  }
-
-  if (debug) {
-    DataForCpuMttkrp(data).dump();
-    std::cout << "=====\n";
-  }
-
-  return totalTime / iterations;
-}
-
-// Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
 int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
   if (debug) {
     std::cout << "cpu mttkrp mlir =====\n";
@@ -505,6 +501,29 @@ int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
 
   if (debug) {
     data.dump();
+    std::cout << "=====\n";
+  }
+
+  return totalTime / iterations;
+}
+
+// Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
+int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
+  if (debug) {
+    std::cout << "gpu mttkrp mlir =====\n";
+  }
+
+  DataForGpuMttkrp data(filename, 5);
+
+  int64_t totalTime = 0;
+  for (int64_t i = 0; i < iterations; i++) {
+    totalTime += _mlir_ciface_sparse_mttkrp_gpu(
+        data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
+        &data.bValues, &data.c, &data.d, &data.a);
+  }
+
+  if (debug) {
+    DataForCpuMttkrp(data).dump();
     std::cout << "=====\n";
   }
 

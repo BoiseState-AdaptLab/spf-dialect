@@ -154,6 +154,7 @@ endmacro()
 set(mlir_benchmark_object_files)
 append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_cpu.mlir sparse_mttkrp)
 append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_mttkrp_gpu.mlir sparse_mttkrp)
+append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_ttm.mlir sparse_ttm)
 
 # create bench executable
 add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)

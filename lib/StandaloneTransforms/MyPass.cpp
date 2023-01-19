@@ -451,25 +451,7 @@ private:
     // Here we build up MLIR arguments to the UF by finding the corresponding
     // generated MLIR value for each argument the parser identified.
     for (auto &arg : ufAssignment->args) {
-      llvm::TypeSwitch<sparser::SymbolOrInt *>(arg.get())
-          .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
-            assert(symbol->increment == 0 &&
-                   "don't know what to do with increment in a uf assignment");
-            assert(!symbol->symbol.empty() &&
-                   symbols.find(symbol->symbol) != symbols.end() &&
-                   "can't find induction variable for statement call variable");
-
-            ufArgs.push_back(symbols[symbol->symbol]);
-          })
-          .Case<sparser::Int>([&](sparser::Int *integer) {
-            ufArgs.push_back(builder.create<mlir::arith::ConstantIndexOp>(
-                computationOp.getLoc(), integer->val));
-          })
-          .Default([&](sparser::SymbolOrInt *symbolOrInt) {
-            LLVM_DEBUG(llvm::errs() << "unknown SymbolOrInt,kind<"
-                                    << symbolOrInt->getKind() << ">\n");
-            exit(1);
-          });
+      ufArgs.push_back(getValue(arg.get()));
     }
 
     // We expect that a function has been defined for any UF used in the
