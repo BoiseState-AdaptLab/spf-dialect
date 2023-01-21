@@ -44,9 +44,9 @@ typedef std::function<int64_t(bool debug, int iterations, char *filename)>
     BenchmarkFunction;
 
 // what platform to run benchmark on e.g. cpu, gpu
-enum Platform : int { cpu = 0, nvidia_gpu = 1, platform_not_found };
-static const std::map<std::string, Platform> stringToPlatform{
-    {"cpu", cpu}, {"gpu", nvidia_gpu}};
+enum Platform : int { cpu = 0, gpu = 1, platform_not_found };
+static const std::map<std::string, Platform> stringToPlatform{{"cpu", cpu},
+                                                              {"gpu", gpu}};
 
 // what benchmark to run (possibly with an optimization) e.g. mttkrp,
 // tiled_mttkrp
