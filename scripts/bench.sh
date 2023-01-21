@@ -3,8 +3,10 @@ set -euo pipefail
 
 make -C ../build bench
 
+# export ITERATIONS=1
+
 platforms=("cpu" "gpu")
-benchmarks=("mttkrp")
+benchmarks=("mttkrp" "ttm")
 implementations=("mlir" "iegenlib" )
 
 for platform in "${platforms[@]}"; do

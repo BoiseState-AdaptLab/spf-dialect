@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "benchmarks.h"
 
@@ -40,7 +41,8 @@ T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
 
 // these functions will be named platform_benchmark_implementation e.g.
 // cpu_tiledMTTKRP_mlir
-typedef std::function<int64_t(bool debug, int iterations, char *filename)>
+typedef std::function<std::vector<int64_t>(bool debug, int iterations,
+                                           char *filename)>
     BenchmarkFunction;
 
 // what platform to run benchmark on e.g. cpu, gpu
@@ -136,11 +138,11 @@ int main(int argc, char *argv[]) {
   }
 
   auto not_implemented = [](bool debug, int _, char *__,
-                            const char *name) -> int64_t {
+                            const char *name) -> std::vector<int64_t> {
     if (debug) {
       std::cout << name << " =====\nnot implemented\n=====\n";
     }
-    return -1;
+    return {-1};
   };
 
   using namespace std::placeholders;
@@ -165,13 +167,16 @@ int main(int argc, char *argv[]) {
   };
 
   // call the benchmark
-  auto time = benchmarks[platform][benchmark][implementation](debug, iterations,
-                                                              argFilename);
+  auto times = benchmarks[platform][benchmark][implementation](
+      debug, iterations, argFilename);
 
-  // output
-  std::cout << argPlatform << ", " << argBenchmark << ", " << argImplementation
-            << ", " << std::filesystem::path(argFilename).filename().string()
-            << ", " << time << "\n";
+  // dump the results in csv
+  for (auto time : times) {
+    std::cout << argPlatform << ", " << argBenchmark << ", "
+              << argImplementation << ", "
+              << std::filesystem::path(argFilename).filename().string() << ", "
+              << time << "\n";
+  }
 
   return 0;
 }

@@ -290,16 +290,17 @@ public:
 } // anonymous namespace
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> cpu_mttkrp_mlir(bool debug, int64_t iterations,
+                                     char *filename) {
   if (debug) {
     std::cout << "cpu mttkrp mlir =====\n";
   }
 
   DataForCpuMttkrp data(filename, 5);
 
-  int64_t totalTime = 0;
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_mttkrp_cpu(
+    times[i] = _mlir_ciface_sparse_mttkrp_cpu(
         data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
         &data.bValues, &data.c, &data.d, &data.a);
   }
@@ -309,11 +310,12 @@ int64_t cpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> cpu_mttkrp_iegenlib(bool debug, int64_t iterations,
+                                         char *filename) {
   if (debug) {
     std::cout << "cpu mttkrp iegenlib =====\n";
   }
@@ -334,9 +336,9 @@ int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
 
   uint64_t t1, t2, t3, t4, t5;
 
-  int64_t totalTime = 0;
-  auto start = milliTime();
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
+    auto start = milliTime();
     // Generated code ==============================
 
 #undef s0
@@ -379,7 +381,7 @@ int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
 
     // =============================================
     auto stop = milliTime();
-    totalTime += stop - start;
+    times[i] = stop - start;
   }
 
   if (debug) {
@@ -387,21 +389,22 @@ int64_t cpu_mttkrp_iegenlib(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
 
-int64_t cpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> cpu_ttm_mlir(bool debug, int64_t iterations,
+                                  char *filename) {
   if (debug) {
     std::cout << "cpu ttm mlir =====\n";
   }
 
   DataForCpuTTM data(filename, 0, 2);
 
-  int64_t totalTime = 0;
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_ttm_cpu(data.Mf, data.R, &data.fptr,
-                                             &data.xCoordConstant,
-                                             &data.xValues, &data.u, &data.y);
+    times[i] = _mlir_ciface_sparse_ttm_cpu(data.Mf, data.R, &data.fptr,
+                                           &data.xCoordConstant, &data.xValues,
+                                           &data.u, &data.y);
   }
 
   if (debug) {
@@ -409,10 +412,11 @@ int64_t cpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
 
-int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> cpu_ttm_iegenlib(bool debug, int64_t iterations,
+                                      char *filename) {
   auto data = DataForCpuTTM(filename, 0, 2);
 
   uint64_t R = data.R;
@@ -427,9 +431,9 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
 
   uint64_t t1, t2, t3, t4;
 
-  int64_t totalTime = 0;
-  auto start = milliTime();
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
+    auto start = milliTime();
     // Generated code ==============================
 
 #undef s0
@@ -470,7 +474,7 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
 
     // =============================================
     auto stop = milliTime();
-    totalTime += stop - start;
+    times[i] = stop - start;
   }
 
   if (debug) {
@@ -478,20 +482,21 @@ int64_t cpu_ttm_iegenlib(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
 
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
-int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> gpu_mttkrp_mlir(bool debug, int64_t iterations,
+                                     char *filename) {
   if (debug) {
     std::cout << "gpu mttkrp mlir =====\n";
   }
 
   DataForGpuMttkrp data(filename, 5);
 
-  int64_t totalTime = 0;
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_mttkrp_gpu(
+    times[i] = _mlir_ciface_sparse_mttkrp_gpu(
         data.NNZ, data.J, &data.bCoord0, &data.bCoord1, &data.bCoord2,
         &data.bValues, &data.c, &data.d, &data.a);
   }
@@ -501,21 +506,22 @@ int64_t gpu_mttkrp_mlir(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
 
-int64_t gpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
+std::vector<int64_t> gpu_ttm_mlir(bool debug, int64_t iterations,
+                                  char *filename) {
   if (debug) {
     std::cout << "gpu mttkrp mlir =====\n";
   }
 
   DataForGpuTTM data(filename, 0, 2);
 
-  int64_t totalTime = 0;
+  std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
-    totalTime += _mlir_ciface_sparse_ttm_gpu(data.Mf, data.R, &data.fptr,
-                                             &data.xCoordConstant,
-                                             &data.xValues, &data.u, &data.y);
+    times[i] = _mlir_ciface_sparse_ttm_gpu(data.Mf, data.R, &data.fptr,
+                                           &data.xCoordConstant, &data.xValues,
+                                           &data.u, &data.y);
   }
 
   if (debug) {
@@ -523,5 +529,5 @@ int64_t gpu_ttm_mlir(bool debug, int64_t iterations, char *filename) {
     std::cout << "=====\n";
   }
 
-  return totalTime / iterations;
+  return times;
 }
