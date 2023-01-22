@@ -34,7 +34,6 @@ int64_t _mlir_ciface_sparse_mttkrp_gpu(
 }
 
 namespace {
-
 // variable names from http://tensor-compiler.org/docs/data_analytics
 class DataForCpuMttkrp {
   COO *bData;
