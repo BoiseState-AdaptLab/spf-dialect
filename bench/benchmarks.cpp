@@ -295,7 +295,7 @@ std::vector<int64_t> cpu_mttkrp_mlir(bool debug, int64_t iterations,
     std::cout << "cpu mttkrp mlir =====\n";
   }
 
-  DataForCpuMttkrp data(filename, 5);
+  DataForCpuMttkrp data(filename, 650);
 
   std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
@@ -319,7 +319,7 @@ std::vector<int64_t> cpu_mttkrp_iegenlib(bool debug, int64_t iterations,
     std::cout << "cpu mttkrp iegenlib =====\n";
   }
 
-  DataForCpuMttkrp data(filename, 5);
+  DataForCpuMttkrp data(filename, 650);
 
 #define A(i, j) data.a.data[i * J + j]
 #define B(z) data.bValues.data[z]
@@ -491,7 +491,7 @@ std::vector<int64_t> gpu_mttkrp_mlir(bool debug, int64_t iterations,
     std::cout << "gpu mttkrp mlir =====\n";
   }
 
-  DataForGpuMttkrp data(filename, 5);
+  DataForGpuMttkrp data(filename, 650);
 
   std::vector<int64_t> times(iterations);
   for (int64_t i = 0; i < iterations; i++) {
