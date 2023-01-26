@@ -38,7 +38,12 @@ public:
 
   template <typename Container, typename UnaryFunctor>
   inline void interleaveComma(const Container &c, UnaryFunctor eachFn) const {
-    llvm::interleaveComma(c, os, eachFn);
+    llvm::interleave(c, os, eachFn, ", ");
+  }
+
+  template <typename Container, typename UnaryFunctor>
+  inline void interleaveAnd(const Container &c, UnaryFunctor eachFn) const {
+    llvm::interleave(c, os, eachFn, " and ");
   }
 
   void printAffineMap(AffineMap map);
@@ -82,11 +87,24 @@ inline void CopyPastedPrintingStuff::printAffineMap(AffineMap map) {
     os << ']';
   }
 
-  // Result affine expressions.
+  // IEGenLib can't handle things like {[a] -> [a+1]} when parsing relations but
+  // can do things like {[a] -> [c]: c=a+1}. We create fake "c" variables for
+  // every result so that in the case of a more sophisticated expression we are
+  // able to handle it.
+
+  // create "[c0,c1]:"
+  int i = 0;
   os << " -> [";
-  interleaveComma(map.getResults(),
-                  [&](AffineExpr expr) { printAffineExpr(expr); });
-  os << ']';
+  interleaveComma(map.getResults(), [&](AffineExpr _) { os << "c" << i++; });
+  os << "]:";
+
+  // create "c0=x+1 and c1=x+4"
+  i = 0;
+  interleaveAnd(map.getResults(), [&](AffineExpr expr) {
+    os << "c" << i++ << "=";
+    printAffineExpr(expr);
+  });
+  // ;
 
   // close relation
   os << '}';

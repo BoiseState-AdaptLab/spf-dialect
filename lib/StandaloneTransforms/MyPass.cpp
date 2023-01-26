@@ -237,13 +237,13 @@ private:
     // omega 1 indexes "loop->level_", hence the -1
     int level = std::stoi(t) - 1;
     // TODO move iterator types to
-    auto thing = statements[0].statementOp.getIteratorTypes();
+    auto iteratorTypes = statements[0].statementOp.getIteratorTypes();
 
     // iteratorType will be used to determine if parallel loops are generated.
     // Default to non parallel loops.
     StringAttr iteratorType;
-    if (thing.size() > level) {
-      iteratorType = thing[level].dyn_cast_or_null<StringAttr>();
+    if (iteratorTypes.size() > level) {
+      iteratorType = iteratorTypes[level].dyn_cast_or_null<StringAttr>();
     }
 
     // Variables set in either branch of the parallel loop vs non-parallel
@@ -377,12 +377,35 @@ private:
     // memref.
     auto inverse =
         statements[statementIndex].getExecutionScheduleToIterationSpace();
-    auto readMaps = llvm::map_range(
-        statementOp.getReads().getAsValueRange<AffineMapAttr>(),
-        [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
-    auto writeMaps = llvm::map_range(
-        statementOp.getWrites().getAsValueRange<AffineMapAttr>(),
-        [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
+
+    // read and write attributes should be an array of arrays of `affine_map`s.
+    // Array 0 of `affine_maps` in read attribute contains data access functions
+    // for reads out of the first input, array 1 of read attribute contains data
+    // access functions for reads out of the second input, etc.
+    //   reads = [
+    //       [ // data access functions for first input
+    //           affine_map<(t, x) -> (x+1)>,
+    //           affine_map<(t, x) -> (x)>,
+    //           affine_map<(t, x) -> (x-1)>
+    //       ],
+    //       [ // data access functions for second input
+    //           affine_map<(t, x) -> (x)>
+    //       ]
+    //   ],
+    auto readsForInputs = llvm::map_range(
+        statementOp.getReads().getAsRange<mlir::ArrayAttr>(),
+        [&](ArrayAttr map) {
+          return llvm::map_range(
+              map.getAsValueRange<AffineMapAttr>(),
+              [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
+        });
+    auto writesForOutputs = llvm::map_range(
+        statementOp.getWrites().getAsRange<mlir::ArrayAttr>(),
+        [&](ArrayAttr map) {
+          return llvm::map_range(
+              map.getAsValueRange<AffineMapAttr>(),
+              [&](AffineMap map) -> AffineMap { return map.compose(inverse); });
+        });
 
     SmallVector<Value> indexedValues;
     indexedValues.reserve(statementOp.getInputs().size());
@@ -392,10 +415,12 @@ private:
         // read the map that corresponds with the current inputOperand. It seems
         // like this would be better using the subscript "[]" operator, but
         // indexingMaps doesn't provide one.
-        auto map = *(readMaps.begin() + i);
-        auto indexing = makeCanonicalAffineApplies(builder, loc, map, args);
-        indexedValues.push_back(
-            builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
+        auto reads = *(readsForInputs.begin() + i);
+        for (auto map : reads) {
+          auto indexing = makeCanonicalAffineApplies(builder, loc, map, args);
+          indexedValues.push_back(
+              builder.create<memref::LoadOp>(loc, inputOperands[i], indexing));
+        }
       }
     }
 
@@ -403,12 +428,13 @@ private:
     SmallVector<Value> outputOperands = statementOp.getOutputOperands();
     for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map = *(writeMaps.begin() + i);
-
-      SmallVector<Value> indexing =
-          makeCanonicalAffineApplies(builder, loc, map, args);
-      indexedValues.push_back(
-          builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
+      auto writes = *(writesForOutputs.begin() + i);
+      for (auto map : writes) {
+        SmallVector<Value> indexing =
+            makeCanonicalAffineApplies(builder, loc, map, args);
+        indexedValues.push_back(
+            builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
+      }
     }
 
     // TODO: there's no validation that the region has a block.
@@ -427,9 +453,11 @@ private:
     SmallVector<Value> outputBuffers;
     for (size_t i = 0; i < outputOperands.size(); i++) {
       // read the map that corresponds with the current inputOperand.
-      AffineMap map = *(writeMaps.begin() + i);
-      indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, args));
-      outputBuffers.push_back(outputOperands[i]);
+      auto writes = *(writesForOutputs.begin() + i);
+      for (auto map : writes) {
+        indexing.push_back(makeCanonicalAffineApplies(builder, loc, map, args));
+        outputBuffers.push_back(outputOperands[i]);
+      }
     }
     Operation *terminator = block.getTerminator();
     for (OpOperand &operand : terminator->getOpOperands()) {
@@ -515,31 +543,57 @@ public:
       ReadWrite reads;
       ReadWrite writes;
       { // create reads for inputs
-        auto readMaps = statementOp.getReads().getAsValueRange<AffineMapAttr>();
+        // See documentation on readsForInputs when generating loads and stores.
+        auto readsForInputs =
+            statementOp.getReads().getAsRange<mlir::ArrayAttr>();
+
+        // for each  generate read relations for each read relation
         for (size_t i = 0; i < statementOp.getInputOperands().size(); i++) {
-          AffineMap map = *(readMaps.begin() + i);
-          std::string read = relationForOperand(map);
+          auto readsForInput = *(readsForInputs.begin() + i);
 
           // We won't actually use the data space names for anything, just make
           // something nice-ish for debugging purposes.
           char name[100];
           std::sprintf(name, "input_%zu", i);
-          reads.push_back({name, read});
+
+          for (auto map : readsForInput.getAsValueRange<AffineMapAttr>()) {
+            std::string read = relationForOperand(map);
+            reads.push_back({name, read});
+          }
         }
       }
       { // create reads/writes for outputs
-        auto writeMaps =
-            statementOp.getWrites().getAsValueRange<AffineMapAttr>();
+        // See documentation on readsForInputs when generating loads and stores.
+        auto writesForInputs =
+            statementOp.getWrites().getAsRange<mlir::ArrayAttr>();
         for (size_t i = 0; i < statementOp.getOutputOperands().size(); i++) {
-          AffineMap map = *(writeMaps.begin() + i);
-          // The += operator counts as both read and write.
-          std::string read_write = relationForOperand(map);
+          auto writesForInput = *(writesForInputs.begin() + i);
 
           char name[100];
           std::sprintf(name, "output_%zu", i);
-          reads.push_back({name, read_write});
-          writes.push_back({name, read_write});
+
+          for (auto map : writesForInput.getAsValueRange<AffineMapAttr>()) {
+            // The += operator counts as both read and write.
+            std::string read_write = relationForOperand(map);
+            reads.push_back({name, read_write});
+            writes.push_back({name, read_write});
+          }
         }
+      }
+
+      LLVM_DEBUG(llvm::dbgs() << "S" << statementIndex
+                              << " reads write relations ==================\n");
+      LLVM_DEBUG(llvm::dbgs() << "Reads ======================"
+                              << "\n");
+      for (auto read : reads) {
+        LLVM_DEBUG(llvm::dbgs() << read.first << ":" << read.second << "\n");
+      }
+
+      LLVM_DEBUG(llvm::dbgs() << "Writes ====================="
+                              << "\n");
+
+      for (auto write : writes) {
+        LLVM_DEBUG(llvm::dbgs() << write.first << ":" << write.second << "\n");
       }
 
       // create IEGenLib statement and add to IEGenLib computation

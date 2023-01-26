@@ -1,15 +1,14 @@
 module {
 	func.func private @printMemrefF64(memref<*xf64>) attributes { llvm.emit_c_interface }
 
-	func.func @dense_mttkrp(
-				   %I : index,
-				   %J : index,
-				   %K : index,
-				   %L : index,
-				   %argb: memref<?x?x?xf64>,
-				   %argc: memref<?x?xf64>,
-				   %argd: memref<?x?xf64>,
-				   %arga: memref<?x?xf64>) {
+	func.func @dense_mttkrp(%I : index,
+				            %J : index,
+				            %K : index,
+				            %L : index,
+				            %argb: memref<?x?x?xf64>,
+				            %argc: memref<?x?xf64>,
+				            %argd: memref<?x?xf64>,
+				            %arga: memref<?x?xf64>) {
 
 		"standalone.computation"() ({
 			// http://tensor-compiler.org/docs/data_analytics
@@ -28,12 +27,12 @@ module {
 			"standalone.yield"(%2) : (f64) -> ()
 			})  {
 					reads = [
-						affine_map<(j, i, k, l) -> (i, k, l)>,
-						affine_map<(j, i, k, l) -> (k, j)>,
-						affine_map<(j, i, k, l) -> (l, j)>
+						[affine_map<(j, i, k, l) -> (i, k, l)>],
+						[affine_map<(j, i, k, l) -> (k, j)>],
+						[affine_map<(j, i, k, l) -> (l, j)>]
 					],
 					writes = [
-						affine_map<(j, i, k, l) -> (i, j)>
+						[affine_map<(j, i, k, l) -> (i, j)>]
 					],
 					// symbols,ufInputs,inputs,outputs
 					operand_segment_sizes = array<i32: 4,0,3,1>,

@@ -6,38 +6,38 @@ module {
 	func.func private @values_gpu(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
 
 	func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
-								 %uf_argb_coord_1 : memref<?xindex>,
-								 %uf_argb_coord_2 : memref<?xindex>,
-								 %z: index)-> index {
+						   %uf_argb_coord_1 : memref<?xindex>,
+						   %uf_argb_coord_2 : memref<?xindex>,
+						   %z: index)-> index {
 			%i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
 			return %i : index
 	}
 
 	func.func private @UFk(%uf_argb_coord_0 : memref<?xindex>,
-								 %uf_argb_coord_1 : memref<?xindex>,
-								 %uf_argb_coord_2 : memref<?xindex>,
-								 %z : index) -> index {
+						   %uf_argb_coord_1 : memref<?xindex>,
+						   %uf_argb_coord_2 : memref<?xindex>,
+						   %z : index) -> index {
 			%k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
 			return %k : index
 	}
 
 	func.func private @UFl(%uf_argb_coord_0 : memref<?xindex>,
-								 %uf_argb_coord_1 : memref<?xindex>,
-								 %uf_argb_coord_2 : memref<?xindex>,
-								 %z : index) -> index {
+						   %uf_argb_coord_1 : memref<?xindex>,
+						   %uf_argb_coord_2 : memref<?xindex>,
+						   %z : index) -> index {
 			%l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
 			return %l : index
 	}
 
 	func.func @sparse_mttkrp(%NNZ : index,
-													 %J: index,
-													 %argb_coord_0 : memref<?xindex>,
-													 %argb_coord_1 : memref<?xindex>,
-													 %argb_coord_2 : memref<?xindex>,
-													 %argb_values : memref<?xf64>,
-													 %argc: memref<?x?xf64>,
-													 %argd: memref<?x?xf64>,
-													 %arga: memref<?x?xf64>) -> () {
+                             %J: index,
+                             %argb_coord_0 : memref<?xindex>,
+                             %argb_coord_1 : memref<?xindex>,
+                             %argb_coord_2 : memref<?xindex>,
+                             %argb_values : memref<?xf64>,
+                             %argc: memref<?x?xf64>,
+                             %argd: memref<?x?xf64>,
+                             %arga: memref<?x?xf64>) -> () {
 		"standalone.computation"() ({
 			// COO MTTKRP:
 			//
@@ -56,26 +56,26 @@ module {
 			%2 = arith.addf %1, %a_i_j : f64
 			"standalone.yield"(%2) : (f64) -> ()
 			})  {
-							reads = [
-									affine_map<(j, z, i, k, l) -> (z)>,
-									affine_map<(j, z, i, k, l) -> (k, j)>,
-									affine_map<(j, z, i, k, l) -> (l, j)>
-							],
-							writes = [
-									affine_map<(j, z, i, k, l) -> (i, j)>
-							],
-							// symbols,ufInputs,inputs,outputs
-							operand_segment_sizes = array<i32: 2,3,3,1>,
-							symbolNames = ["NNZ", "J"],
-							iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
-							executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
-							iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
-							transforms = []
-					} : (index, index,
-							memref<?xindex>, memref<?xindex>,
-							memref<?xindex>, memref<?xf64>,
-							memref<?x?xf64>, memref<?x?xf64>,
-							memref<?x?xf64>) -> ()
+                    reads = [
+                        [affine_map<(j, z, i, k, l) -> (z)>],
+                        [affine_map<(j, z, i, k, l) -> (k, j)>],
+                        [affine_map<(j, z, i, k, l) -> (l, j)>]
+                    ],
+                    writes = [
+                        [affine_map<(j, z, i, k, l) -> (i, j)>]
+                    ],
+                    // symbols,ufInputs,inputs,outputs
+                    operand_segment_sizes = array<i32: 2,3,3,1>,
+                    symbolNames = ["NNZ", "J"],
+                    iteratorTypes = ["parallel", "reduction", "reduction", "reduction", "reduction"],
+                    executionSchedule = "{[j,z,i,k,l]->[j,z,i,k,l]}",
+                    iterationSpace = "{[j,z,i,k,l]: 0<=j<J and 0<=z<NNZ and i=UFi(z) and k=UFk(z) and l=UFl(z)}",
+                    transforms = []
+                } : (index, index,
+                        memref<?xindex>, memref<?xindex>,
+                        memref<?xindex>, memref<?xf64>,
+                        memref<?x?xf64>, memref<?x?xf64>,
+                        memref<?x?xf64>) -> ()
 		}) : () -> ()
 
 		return
@@ -152,13 +152,13 @@ module {
 
 		// Call kernel.
 		call @sparse_mttkrp(%nnz, %J,
-												%b_coord_0, %b_coord_1,
-												%b_coord_2, %b_values,
-												%d_c, %d_d, %d_a) : (index, index,
-																						memref<?xindex>, memref<?xindex>,
-																						memref<?xindex>, memref<?xf64>,
-																						memref<?x?xf64>, memref<?x?xf64>,
-																						memref<?x?xf64>) -> ()
+                            %b_coord_0, %b_coord_1,
+                            %b_coord_2, %b_values,
+                            %d_c, %d_d, %d_a) : (index, index,
+                                                 memref<?xindex>, memref<?xindex>,
+                                                 memref<?xindex>, memref<?xf64>,
+                                                 memref<?x?xf64>, memref<?x?xf64>,
+                                                 memref<?x?xf64>) -> ()
 
 		// copy memory back onto CPU
 		gpu.memcpy %a, %d_a : memref<?x?xf64>, memref<?x?xf64>

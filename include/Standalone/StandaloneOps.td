@@ -64,8 +64,8 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
                          ArrayAttr:$iteratorTypes,
                          StrAttr:$iterationSpace,
                          StrAttr:$executionSchedule,
-                         AffineMapArrayAttr:$reads,
-                         AffineMapArrayAttr:$writes,
+                         ArrayAttr:$reads,
+                         ArrayAttr:$writes,
                          ArrayAttr:$transforms);
 
     let extraClassDeclaration = [{

@@ -51,12 +51,12 @@ module {
                 "standalone.yield"(%2) : (f64) -> ()
             }) {
                 reads = [
-                    affine_map<(z, i, k, l, j) -> (z)>,
-                    affine_map<(z, i, k, l, j) -> (k, j)>,
-                    affine_map<(z, i, k, l, j) -> (l, j)>
+                    [affine_map<(z, i, k, l, j) -> (z)>],
+                    [affine_map<(z, i, k, l, j) -> (k, j)>],
+                    [affine_map<(z, i, k, l, j) -> (l, j)>]
                 ],
                 writes = [
-                    affine_map<(z, i, k, l, j) -> (i, j)>
+                    [affine_map<(z, i, k, l, j) -> (i, j)>]
                 ],
                 // symbols, ufInputs, inputs, outputs
                 operand_segment_sizes = array<i32: 2,3,3,1>,
