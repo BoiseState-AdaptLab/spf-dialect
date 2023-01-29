@@ -511,7 +511,7 @@ private:
 #define EXPECT_AND_CONSUME(TYPE, tok, context)                                 \
   if (lexer.getCurToken() != tok)                                              \
     return parseError<TYPE>(tok, context);                                     \
-  lexer.consume(tok);
+  lexer.consume(tok)
 
   // The vOmegaReplacer comes from the code generation in IEGenLib. It's job is
   // to ensure that when uf's are sent into omega each uf call has a unique name
@@ -556,6 +556,7 @@ private:
   int nextSyntheticIVUniqueNumber = 0;
 
   typedef std::vector<std::unique_ptr<AST>> Nodes;
+  typedef std::vector<std::unique_ptr<SymbolOrInt>> Args;
 
   std::unique_ptr<Nodes> parseStatement() {
     if (lexer.getCurToken() == tok_for) { // for loop
@@ -582,15 +583,15 @@ private:
       // examples that are currently using just do some error checking that
       // isn't important. TODO: There's definitely are cases
       // where an if statement is important, parse them properly.
-      EXPECT_AND_CONSUME(Nodes, tok_if, "if statement")
-      EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_if, "if statement");
+      EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, "if statement");
       while (lexer.getCurToken() != tok_parentheses_close) {
         lexer.consume(lexer.getCurToken());
       }
-      EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, "if statement")
-      EXPECT_AND_CONSUME(Nodes, tok_bracket_open, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, "if statement");
+      EXPECT_AND_CONSUME(Nodes, tok_bracket_open, "if statement");
       auto inside = parseStatement();
-      EXPECT_AND_CONSUME(Nodes, tok_bracket_close, "if statement")
+      EXPECT_AND_CONSUME(Nodes, tok_bracket_close, "if statement");
       return inside;
     } else {
       return parseError<Nodes>("for loop or statement call",
@@ -617,7 +618,7 @@ private:
       for (auto term : v->getParamExp(i)->getTermList()) {
         if (term->type() == "TupleVarTerm") {
           // tvloc is the position of the variable in the transformed execution
-          // schedule. The +1 is for omega 1 indexing, we need this variable to
+          // schedule. The +1 is for omega 1 indexing: we need this variable to
           // map to induction variables that are stored by the rest of the
           // infrastructure by the name omega give them.
           symbol +=
@@ -892,15 +893,40 @@ private:
     return std::make_unique<Symbol>(loc, std::move(id), increment);
   }
 
-  std::unique_ptr<std::vector<std::unique_ptr<SymbolOrInt>>>
-  parseArgs(const char *context) {
-    std::vector<std::unique_ptr<SymbolOrInt>> args;
+  std::unique_ptr<Args> parseArgs(const char *context) {
+    Args args;
     while (lexer.getCurToken() != tok_parentheses_close) {
       // 't1'|'0'
       if (lexer.getCurToken() == tok_identifier) {
+        auto id = lexer.getId();
+        EXPECT_AND_CONSUME(Args, tok_identifier, context);
+
+        int increment = 0;
+        // checking for a `- 1` or `+ 1`
+        if (lexer.getCurToken() != tok_comma &&
+            lexer.getCurToken() != tok_parentheses_close) {
+          if (lexer.getCurToken() != tok_plus &&
+              lexer.getCurToken() != tok_minus) {
+            return parseError<Args>("',', ')', '-', or '+'", context);
+          }
+
+          int sign;
+          if (lexer.getCurToken() == tok_minus) {
+            sign = -1;
+            lexer.consume(tok_minus);
+          } else { // tok_plus
+            sign = 1;
+            lexer.consume(tok_plus);
+          }
+
+          if (lexer.getCurToken() != tok_int)
+            return parseError<Args>("int", context);
+          increment += sign * lexer.getValue();
+          lexer.consume(tok_int);
+        }
+
         args.push_back(std::make_unique<Symbol>(lexer.getLastLocation(),
-                                                lexer.getId(), 0));
-        lexer.consume(tok_identifier);
+                                                std::move(id), increment));
       } else if (lexer.getCurToken() == tok_int) {
         args.push_back(
             std::make_unique<Int>(lexer.getLastLocation(), lexer.getValue()));

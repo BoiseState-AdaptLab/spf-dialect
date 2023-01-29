@@ -70,8 +70,10 @@ public:
   /// place between the original iteration space and the execution schedule to
   /// ensure we execute statements with the right induction variables.
   ///
-  /// TODO: AffineMap has an inverse fuction. Transformations might be applied
-  /// as AffineMaps. This could all just be replaced with that.
+  /// TODO: AffineMap has an inverse fuction. It's definitely not reasonable to
+  /// restrict iteration spaces to being affine, but it might be reasonable to
+  /// restrict transformations to AffineMaps. If execution schedules were stored
+  /// as AffineMaps this might get a lot easier.
   mlir::AffineMap getExecutionScheduleToIterationSpace() {
     // To construct the inverse relation we must construct a LHS and RHS.
     // For the LHS:

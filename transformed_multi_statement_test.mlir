@@ -96,7 +96,7 @@ module @my_module {
                         iteratorTypes = ["reduction", "reduction"],
                         executionSchedule = "{[t,x]->[t,0,x,0]}",
                         iterationSpace = "{[t,x]: 1<=t<=T and 1<=x<=X}",
-                        transforms = ["{[a,b,c,d]->[a,b,x,d]:x=c-1}"]
+                        transforms = ["{[a,b,c,d]->[a,0,x,0]:x=c-1}"]
                 } : (index, index, memref<2xindex>, memref<4xindex>) -> ()
 
             "standalone.bar"(%T, %X, %t_vals, %x_vals) ({
@@ -127,7 +127,7 @@ module @my_module {
                     iteratorTypes = ["reduction", "reduction"],
                     executionSchedule = "{[t,x]->[t,1,x,0]}",
                     iterationSpace = "{[t,x]: 1<=t<=T and 1<=x<=X}",
-                    transforms = ["{[a,b,c,d]->[a,0,c,0]}", "{[a,b,c,d]->[a,0,c,1]}"]
+                    transforms = ["{[a,b,c,d]->[a,0,c,1]}"]
                 } : (index, index, memref<2xindex>, memref<4xindex>) -> ()
         }): () -> ()
 

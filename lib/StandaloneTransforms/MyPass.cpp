@@ -338,25 +338,7 @@ private:
     // corresponding generated MLIR value for each argument in the Omega AST.
     std::vector<mlir::Value> args;
     for (auto &arg : call->args) {
-      llvm::TypeSwitch<sparser::SymbolOrInt *>(arg.get())
-          .Case<sparser::Symbol>([&](sparser::Symbol *symbol) {
-            assert(symbol->increment == 0 &&
-                   "increments in statement calls not supported");
-
-            assert(symbols.find(symbol->symbol) != symbols.end() &&
-                   "can't find induction variable for statement call variable");
-
-            args.push_back(symbols[symbol->symbol]);
-          })
-          .Case<sparser::Int>([&](sparser::Int *integer) {
-            args.push_back(builder.create<mlir::arith::ConstantIndexOp>(
-                computationOp.getLoc(), integer->val));
-          })
-          .Default([&](sparser::SymbolOrInt *symbolOrInt) {
-            LLVM_DEBUG(llvm::errs() << "unknown SymbolOrInt,kind<"
-                                    << symbolOrInt->getKind() << ">\n");
-            exit(1);
-          });
+      args.push_back(getValue(arg.get()));
     }
 
     auto loc = computationOp->getLoc();
@@ -632,9 +614,8 @@ public:
 
     LLVM_DEBUG(llvm::dbgs() << "parse =====================================\n");
     auto simpleAST = parse(codeJen);
-    if (simpleAST) {
-      LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
-    }
+    assert(simpleAST && "parser error, AST not generated");
+    LLVM_DEBUG(llvm::dbgs() << simpleAST->dump() << "\n");
 
     LLVM_DEBUG(llvm::dbgs() << "execution schedule tuple -> IS tuple ======\n");
     for (auto &statement : llvm::enumerate(statements)) {
