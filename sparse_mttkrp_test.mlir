@@ -9,7 +9,6 @@ module {
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
                            %z: index)-> index {
-
         %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
         return %i : index
     }

@@ -421,7 +421,7 @@ public:
 
   void visit(UFAssignmentAST *ufAssignment) override {
     ss << std::string(indent, ' ');
-    ss << "ufAsignment{inductionVar:" << ufAssignment->inductionVar
+    ss << "ufAssignment{inductionVar:" << ufAssignment->inductionVar
        << ", ufName: " << ufAssignment->ufName << ", args:[";
     int first = true;
     for (auto &symbolOrInt : ufAssignment->args) {

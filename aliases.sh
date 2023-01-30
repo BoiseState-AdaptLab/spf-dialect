@@ -6,5 +6,5 @@ alias rmn="build/bin/standalone-opt --my-pass --cse --lower-affine --debug-only=
 alias rmt="build/bin/standalone-opt --my-pass --cse --lower-affine --debug-only=my-pass transformed_multi_statement_test.mlir"
 alias rss="build/bin/standalone-opt --my-pass --cse --lower-affine --debug-only=my-pass sparse_mttkrp_test.mlir"
 alias rsp="build/bin/standalone-opt --my-pass --cse --lower-affine --debug-only=my-pass sparse_mttkrp_gpu_test.mlir"
-alias rj="build/bin/standalone-opt --my-pass --cse --lower-affine --cse --debug-only=my-pass transformed_jacobi_test.mlir"
+alias rj="build/bin/standalone-opt --my-pass --cse --lower-affine --cse --debug-only=my-pass no_transform_jacobi_test.mlir"
 alias rt="./run_test.sh"
