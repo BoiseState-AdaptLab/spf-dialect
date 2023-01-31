@@ -41,8 +41,7 @@ T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
 
 // these functions will be named platform_benchmark_implementation e.g.
 // cpu_tiledMTTKRP_mlir
-typedef std::function<std::vector<int64_t>(bool debug, int iterations,
-                                           char *filename)>
+typedef std::function<std::vector<int64_t>(Config config, char *filename)>
     BenchmarkFunction;
 
 // what platform to run benchmark on e.g. cpu, gpu
@@ -88,20 +87,6 @@ int main(int argc, char *argv[]) {
   char *argImplementation = argv[3];
   char *argFilename = argv[4];
 
-  // debug flag is set via environment variable. TODO: environment variables
-  // aren't very discoverable, improve the interface.
-  bool debug = false;
-  if (getenv("DEBUG")) {
-    debug = true;
-  }
-
-  // iterations is set via environment variable. TODO: environment variables
-  // aren't very discoverable, improve the interface.
-  int64_t iterations = 5;
-  if (getenv("ITERATIONS")) {
-    iterations = std::stol(getenv("ITERATIONS"));
-  }
-
   // read benchmark out of command line arguments
   Benchmark benchmark;
   if ((benchmark = defaultIfAbsent(stringToBenchmark, argBenchmark,
@@ -137,9 +122,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  auto not_implemented = [](bool debug, int _, char *__,
+  auto not_implemented = [](Config config, char *__,
                             const char *name) -> std::vector<int64_t> {
-    if (debug) {
+    if (config.debug) {
       std::cout << name << " =====\nnot implemented\n=====\n";
     }
     return {-1};
@@ -147,9 +132,9 @@ int main(int argc, char *argv[]) {
 
   using namespace std::placeholders;
   auto gpu_mttkrp_iegenlib =
-      std::bind(not_implemented, _1, _2, _3, "gpu_mttkrp_iegenlib");
+      std::bind(not_implemented, _1, _2, "gpu_mttkrp_iegenlib");
   auto gpu_ttm_iegenlib =
-      std::bind(not_implemented, _1, _2, _3, "gpu_ttm_iegenlib");
+      std::bind(not_implemented, _1, _2, "gpu_ttm_iegenlib");
   // benchmarks stored in Platform x Benchmark x Implementation vector
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{
       // CPU,
@@ -167,8 +152,8 @@ int main(int argc, char *argv[]) {
   };
 
   // call the benchmark
-  auto times = benchmarks[platform][benchmark][implementation](
-      debug, iterations, argFilename);
+  auto times =
+      benchmarks[platform][benchmark][implementation](Config(), argFilename);
 
   // dump the results in csv
   for (auto time : times) {

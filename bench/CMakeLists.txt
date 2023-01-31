@@ -149,6 +149,12 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
     create_object_file_from_pipeline_output_and_append(${object_file_list} ${gpu_pipeline_filename} ${benchmark_name} gpu)
 endmacro()
 
+# create gpu support library =======================================================================
+
+add_library(ReadDataGpu
+	read_data_gpu.cu
+)
+
 # create benchmarks ================================================================================
 
 # create object files for MLIR benchmarks
@@ -159,7 +165,7 @@ append_cpu_pipeline_object_file(mlir_benchmark_object_files sparse_ttm.mlir spar
 append_gpu_pipeline_object_file(mlir_benchmark_object_files sparse_ttm.mlir sparse_ttm)
 
 # create bench executable
-add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp)
+add_executable(bench ${mlir_benchmark_object_files} benchmarks.cpp benchmarks.h driver.cpp read_data_cpu.h read_data_gpu.h)
 target_compile_options(bench PUBLIC "-O3")
 target_link_libraries(bench
         mlir_c_runner_utils
@@ -168,4 +174,5 @@ target_link_libraries(bench
         GPURuntime
         CPURuntime
         LLVMSupport
+        ReadDataGpu
         )

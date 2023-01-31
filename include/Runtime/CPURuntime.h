@@ -7,9 +7,11 @@
 #include <algorithm> // std::sort
 #include <array>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 typedef std::vector<std::vector<uint64_t>> coord_t;
+
 
 struct COO {
   const uint64_t nnz;
@@ -74,7 +76,7 @@ struct COO {
   }
 
 private:
-  // ColumnView allows a row wise view of the COO data that we store column
+  // RowView allows a row wise view of the COO data that we store column
   // wise. This is useful for sorting the data row wise. We store the data by
   // column because most benchmarks want it that way. Sorting is just a
   // pre-processing step.

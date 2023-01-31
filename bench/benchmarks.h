@@ -3,24 +3,50 @@
 #define BENCHMARKS_H
 
 #include <cstdint>
+#include <cstdlib>
+#include <string>
 #include <vector>
 
-std::vector<int64_t> cpu_mttkrp_mlir(bool debug, int64_t iterations,
-                                     char *filename);
+// Config reads some environment variables for benchmarks. It should probably be
+// in it's own header but whatever.
+struct Config {
+  // Number of columns of output matrix for MTTKRP
+  uint64_t J = 5;
+  // Number of columns of input matrix for TTM
+  uint64_t R = 2;
+  // The mode to hold constant for TTM
+  uint64_t constantMode = 0;
+  // debug mode prints all results
+  bool debug = false;
+  // number of iterations to run the a given benchmark
+  int64_t iterations = 5;
 
-std::vector<int64_t> cpu_mttkrp_iegenlib(bool debug, int64_t iterations,
-                                         char *filename);
+  Config() {
+    if (std::getenv("MTTKRP_J")) {
+      J = std::stoull(std::getenv("MTTKRP_J"));
+    }
+    if (std::getenv("TTM_R")) {
+      R = std::stoull(std::getenv("TTM_R"));
+    }
+    if (getenv("DEBUG")) {
+      debug = true;
+    }
+    if (getenv("ITERATIONS")) {
+      iterations = std::stol(getenv("ITERATIONS"));
+    }
+  }
+};
 
-std::vector<int64_t> cpu_ttm_mlir(bool debug, int64_t iterations,
-                                  char *filename);
+std::vector<int64_t> cpu_mttkrp_mlir(Config config, char *filename);
 
-std::vector<int64_t> cpu_ttm_iegenlib(bool debug, int64_t iterations,
-                                      char *filename);
+std::vector<int64_t> cpu_mttkrp_iegenlib(Config config, char *filename);
 
-std::vector<int64_t> gpu_mttkrp_mlir(bool debug, int64_t iterations,
-                                     char *filename);
+std::vector<int64_t> cpu_ttm_mlir(Config config, char *filename);
 
-std::vector<int64_t> gpu_ttm_mlir(bool debug, int64_t iterations,
-                                  char *filename);
+std::vector<int64_t> cpu_ttm_iegenlib(Config config, char *filename);
+
+std::vector<int64_t> gpu_mttkrp_mlir(Config config, char *filename);
+
+std::vector<int64_t> gpu_ttm_mlir(Config config, char *filename);
 
 #endif // BENCHMARKS_H
