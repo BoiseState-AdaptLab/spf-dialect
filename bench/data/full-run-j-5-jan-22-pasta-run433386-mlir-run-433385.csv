@@ -1,282 +1,281 @@
-
-platform, benchmark, implementation, file, runtime_ms
-cpu, mttkrp, mlir, darpa.tns, 1076
-cpu, mttkrp, mlir, darpa.tns, 1075
-cpu, mttkrp, mlir, darpa.tns, 1075
-cpu, mttkrp, mlir, darpa.tns, 1075
-cpu, mttkrp, mlir, darpa.tns, 1075
-cpu, mttkrp, mlir, fb-m.tns, 3790
-cpu, mttkrp, mlir, fb-m.tns, 3768
-cpu, mttkrp, mlir, fb-m.tns, 3768
-cpu, mttkrp, mlir, fb-m.tns, 3769
-cpu, mttkrp, mlir, fb-m.tns, 3769
-cpu, mttkrp, mlir, fb-s.tns, 5333
-cpu, mttkrp, mlir, fb-s.tns, 5257
-cpu, mttkrp, mlir, fb-s.tns, 5256
-cpu, mttkrp, mlir, fb-s.tns, 5262
-cpu, mttkrp, mlir, fb-s.tns, 5256
-cpu, mttkrp, mlir, nell-1.tns, 5250
-cpu, mttkrp, mlir, nell-1.tns, 5251
-cpu, mttkrp, mlir, nell-1.tns, 5249
-cpu, mttkrp, mlir, nell-1.tns, 5251
-cpu, mttkrp, mlir, nell-1.tns, 5249
-cpu, mttkrp, mlir, nell-2.tns, 1242
-cpu, mttkrp, mlir, nell-2.tns, 1240
-cpu, mttkrp, mlir, nell-2.tns, 1240
-cpu, mttkrp, mlir, nell-2.tns, 1240
-cpu, mttkrp, mlir, nell-2.tns, 1240
-cpu, mttkrp, iegenlib, darpa.tns, 1019
-cpu, mttkrp, iegenlib, darpa.tns, 1018
-cpu, mttkrp, iegenlib, darpa.tns, 1019
-cpu, mttkrp, iegenlib, darpa.tns, 1018
-cpu, mttkrp, iegenlib, darpa.tns, 1019
-cpu, mttkrp, iegenlib, fb-m.tns, 3574
-cpu, mttkrp, iegenlib, fb-m.tns, 3574
-cpu, mttkrp, iegenlib, fb-m.tns, 3572
-cpu, mttkrp, iegenlib, fb-m.tns, 3571
-cpu, mttkrp, iegenlib, fb-m.tns, 3573
-cpu, mttkrp, iegenlib, fb-s.tns, 5005
-cpu, mttkrp, iegenlib, fb-s.tns, 5000
-cpu, mttkrp, iegenlib, fb-s.tns, 5001
-cpu, mttkrp, iegenlib, fb-s.tns, 4999
-cpu, mttkrp, iegenlib, fb-s.tns, 4999
-cpu, mttkrp, iegenlib, nell-1.tns, 4876
-cpu, mttkrp, iegenlib, nell-1.tns, 4876
-cpu, mttkrp, iegenlib, nell-1.tns, 4876
-cpu, mttkrp, iegenlib, nell-1.tns, 4872
-cpu, mttkrp, iegenlib, nell-1.tns, 4875
-cpu, mttkrp, iegenlib, nell-2.tns, 1074
-cpu, mttkrp, iegenlib, nell-2.tns, 1071
-cpu, mttkrp, iegenlib, nell-2.tns, 1072
-cpu, mttkrp, iegenlib, nell-2.tns, 1072
-cpu, mttkrp, iegenlib, nell-2.tns, 1071
-cpu, ttm, mlir, darpa.tns, 128
-cpu, ttm, mlir, darpa.tns, 129
-cpu, ttm, mlir, darpa.tns, 129
-cpu, ttm, mlir, darpa.tns, 129
-cpu, ttm, mlir, darpa.tns, 129
-cpu, ttm, mlir, fb-m.tns, 1346
-cpu, ttm, mlir, fb-m.tns, 1350
-cpu, ttm, mlir, fb-m.tns, 1347
-cpu, ttm, mlir, fb-m.tns, 1344
-cpu, ttm, mlir, fb-m.tns, 1344
-cpu, ttm, mlir, fb-s.tns, 1922
-cpu, ttm, mlir, fb-s.tns, 1921
-cpu, ttm, mlir, fb-s.tns, 1921
-cpu, ttm, mlir, fb-s.tns, 1922
-cpu, ttm, mlir, fb-s.tns, 1922
-cpu, ttm, mlir, nell-1.tns, 1171
-cpu, ttm, mlir, nell-1.tns, 1171
-cpu, ttm, mlir, nell-1.tns, 1171
-cpu, ttm, mlir, nell-1.tns, 1170
-cpu, ttm, mlir, nell-1.tns, 1171
-cpu, ttm, mlir, nell-2.tns, 304
-cpu, ttm, mlir, nell-2.tns, 304
-cpu, ttm, mlir, nell-2.tns, 305
-cpu, ttm, mlir, nell-2.tns, 304
-cpu, ttm, mlir, nell-2.tns, 305
-cpu, ttm, iegenlib, darpa.tns, 201
-cpu, ttm, iegenlib, darpa.tns, 201
-cpu, ttm, iegenlib, darpa.tns, 201
-cpu, ttm, iegenlib, darpa.tns, 202
-cpu, ttm, iegenlib, darpa.tns, 201
-cpu, ttm, iegenlib, fb-m.tns, 1897
-cpu, ttm, iegenlib, fb-m.tns, 1895
-cpu, ttm, iegenlib, fb-m.tns, 1895
-cpu, ttm, iegenlib, fb-m.tns, 1896
-cpu, ttm, iegenlib, fb-m.tns, 1895
-cpu, ttm, iegenlib, fb-s.tns, 2734
-cpu, ttm, iegenlib, fb-s.tns, 2735
-cpu, ttm, iegenlib, fb-s.tns, 2734
-cpu, ttm, iegenlib, fb-s.tns, 2744
-cpu, ttm, iegenlib, fb-s.tns, 2735
-cpu, ttm, iegenlib, nell-1.tns, 1593
-cpu, ttm, iegenlib, nell-1.tns, 1592
-cpu, ttm, iegenlib, nell-1.tns, 1593
-cpu, ttm, iegenlib, nell-1.tns, 1592
-cpu, ttm, iegenlib, nell-1.tns, 1593
-cpu, ttm, iegenlib, nell-2.tns, 396
-cpu, ttm, iegenlib, nell-2.tns, 396
-cpu, ttm, iegenlib, nell-2.tns, 395
-cpu, ttm, iegenlib, nell-2.tns, 396
-cpu, ttm, iegenlib, nell-2.tns, 395
-gpu, mttkrp, mlir, darpa.tns, 19479
-gpu, mttkrp, mlir, darpa.tns, 19474
-gpu, mttkrp, mlir, darpa.tns, 19476
-gpu, mttkrp, mlir, darpa.tns, 19474
-gpu, mttkrp, mlir, darpa.tns, 19475
-gpu, mttkrp, mlir, fb-m.tns, 70185
-gpu, mttkrp, mlir, fb-m.tns, 70186
-gpu, mttkrp, mlir, fb-m.tns, 70185
-gpu, mttkrp, mlir, fb-m.tns, 70186
-gpu, mttkrp, mlir, fb-m.tns, 70185
-gpu, mttkrp, mlir, fb-s.tns, 99409
-gpu, mttkrp, mlir, fb-s.tns, 99407
-gpu, mttkrp, mlir, fb-s.tns, 99407
-gpu, mttkrp, mlir, fb-s.tns, 99406
-gpu, mttkrp, mlir, fb-s.tns, 99407
-gpu, mttkrp, mlir, nell-1.tns, 97231
-gpu, mttkrp, mlir, nell-1.tns, 97231
-gpu, mttkrp, mlir, nell-1.tns, 97230
-gpu, mttkrp, mlir, nell-1.tns, 97230
-gpu, mttkrp, mlir, nell-1.tns, 97231
-gpu, mttkrp, mlir, nell-2.tns, 41932
-gpu, mttkrp, mlir, nell-2.tns, 41930
-gpu, mttkrp, mlir, nell-2.tns, 41930
-gpu, mttkrp, mlir, nell-2.tns, 41930
-gpu, mttkrp, mlir, nell-2.tns, 41930
-gpu, mttkrp, iegenlib, darpa.tns, -1
-gpu, mttkrp, iegenlib, fb-m.tns, -1
-gpu, mttkrp, iegenlib, fb-s.tns, -1
-gpu, mttkrp, iegenlib, nell-1.tns, -1
-gpu, mttkrp, iegenlib, nell-2.tns, -1
-gpu, ttm, mlir, darpa.tns, 70
-gpu, ttm, mlir, darpa.tns, 70
-gpu, ttm, mlir, darpa.tns, 69
-gpu, ttm, mlir, darpa.tns, 69
-gpu, ttm, mlir, darpa.tns, 69
-gpu, ttm, mlir, fb-m.tns, 570
-gpu, ttm, mlir, fb-m.tns, 552
-gpu, ttm, mlir, fb-m.tns, 550
-gpu, ttm, mlir, fb-m.tns, 543
-gpu, ttm, mlir, fb-m.tns, 562
-gpu, ttm, mlir, fb-s.tns, 1326
-gpu, ttm, mlir, fb-s.tns, 1335
-gpu, ttm, mlir, fb-s.tns, 1328
-gpu, ttm, mlir, fb-s.tns, 1324
-gpu, ttm, mlir, fb-s.tns, 1336
-gpu, ttm, mlir, nell-1.tns, 291
-gpu, ttm, mlir, nell-1.tns, 291
-gpu, ttm, mlir, nell-1.tns, 290
-gpu, ttm, mlir, nell-1.tns, 291
-gpu, ttm, mlir, nell-1.tns, 291
-gpu, ttm, mlir, nell-2.tns, 99
-gpu, ttm, mlir, nell-2.tns, 99
-gpu, ttm, mlir, nell-2.tns, 96
-gpu, ttm, mlir, nell-2.tns, 96
-gpu, ttm, mlir, nell-2.tns, 96
-gpu, ttm, iegenlib, darpa.tns, -1
-gpu, ttm, iegenlib, fb-m.tns, -1
-gpu, ttm, iegenlib, fb-s.tns, -1
-gpu, ttm, iegenlib, nell-1.tns, -1
-gpu, ttm, iegenlib, nell-2.tns, -1
-cpu, mttkrp, pasta, darpa.tns, 1035
-cpu, mttkrp, pasta, darpa.tns, 954
-cpu, mttkrp, pasta, darpa.tns, 951
-cpu, mttkrp, pasta, darpa.tns, 951
-cpu, mttkrp, pasta, darpa.tns, 950
-cpu, mttkrp, pasta, darpa.tns, 950
-gpu, mttkrp, pasta, darpa.tns, 33
-gpu, mttkrp, pasta, darpa.tns, 33
-gpu, mttkrp, pasta, darpa.tns, 32
-gpu, mttkrp, pasta, darpa.tns, 32
-gpu, mttkrp, pasta, darpa.tns, 32
-gpu, mttkrp, pasta, darpa.tns, 32
-cpu, ttm, pasta, darpa.tns, 238
-cpu, ttm, pasta, darpa.tns, 205
-cpu, ttm, pasta, darpa.tns, 205
-cpu, ttm, pasta, darpa.tns, 205
-cpu, ttm, pasta, darpa.tns, 205
-cpu, ttm, pasta, darpa.tns, 205
-cpu, ttm, pasta, darpa.tns, 6
-cpu, ttm, pasta, darpa.tns, 6
-cpu, ttm, pasta, darpa.tns, 6
-cpu, ttm, pasta, darpa.tns, 6
-cpu, ttm, pasta, darpa.tns, 6
-cpu, ttm, pasta, darpa.tns, 6
-cpu, mttkrp, pasta, fb-m.tns, 3604
-cpu, mttkrp, pasta, fb-m.tns, 3374
-cpu, mttkrp, pasta, fb-m.tns, 3372
-cpu, mttkrp, pasta, fb-m.tns, 3430
-cpu, mttkrp, pasta, fb-m.tns, 3372
-cpu, mttkrp, pasta, fb-m.tns, 3372
-gpu, mttkrp, pasta, fb-m.tns, 53
-gpu, mttkrp, pasta, fb-m.tns, 53
-gpu, mttkrp, pasta, fb-m.tns, 53
-gpu, mttkrp, pasta, fb-m.tns, 53
-gpu, mttkrp, pasta, fb-m.tns, 53
-gpu, mttkrp, pasta, fb-m.tns, 53
-cpu, ttm, pasta, fb-m.tns, 1895
-cpu, ttm, pasta, fb-m.tns, 1893
-cpu, ttm, pasta, fb-m.tns, 1892
-cpu, ttm, pasta, fb-m.tns, 1911
-cpu, ttm, pasta, fb-m.tns, 1959
-cpu, ttm, pasta, fb-m.tns, 1891
-cpu, ttm, pasta, fb-m.tns, 116
-cpu, ttm, pasta, fb-m.tns, 119
-cpu, ttm, pasta, fb-m.tns, 119
-cpu, ttm, pasta, fb-m.tns, 119
-cpu, ttm, pasta, fb-m.tns, 119
-cpu, ttm, pasta, fb-m.tns, 119
-cpu, mttkrp, pasta, fb-s.tns, 5130
-cpu, mttkrp, pasta, fb-s.tns, 4749
-cpu, mttkrp, pasta, fb-s.tns, 4746
-cpu, mttkrp, pasta, fb-s.tns, 4743
-cpu, mttkrp, pasta, fb-s.tns, 4743
-cpu, mttkrp, pasta, fb-s.tns, 4743
-gpu, mttkrp, pasta, fb-s.tns, 112
-gpu, mttkrp, pasta, fb-s.tns, 112
-gpu, mttkrp, pasta, fb-s.tns, 113
-gpu, mttkrp, pasta, fb-s.tns, 111
-gpu, mttkrp, pasta, fb-s.tns, 110
-gpu, mttkrp, pasta, fb-s.tns, 112
-cpu, ttm, pasta, fb-s.tns, 2715
-cpu, ttm, pasta, fb-s.tns, 2702
-cpu, ttm, pasta, fb-s.tns, 2702
-cpu, ttm, pasta, fb-s.tns, 2705
-cpu, ttm, pasta, fb-s.tns, 2702
-cpu, ttm, pasta, fb-s.tns, 2702
-cpu, ttm, pasta, fb-s.tns, 275
-cpu, ttm, pasta, fb-s.tns, 274
-cpu, ttm, pasta, fb-s.tns, 275
-cpu, ttm, pasta, fb-s.tns, 275
-cpu, ttm, pasta, fb-s.tns, 277
-cpu, ttm, pasta, fb-s.tns, 275
-cpu, mttkrp, pasta, nell-1.tns, 5155
-cpu, mttkrp, pasta, nell-1.tns, 4819
-cpu, mttkrp, pasta, nell-1.tns, 4768
-cpu, mttkrp, pasta, nell-1.tns, 4739
-cpu, mttkrp, pasta, nell-1.tns, 4740
-cpu, mttkrp, pasta, nell-1.tns, 4739
-gpu, mttkrp, pasta, nell-1.tns, 81
-gpu, mttkrp, pasta, nell-1.tns, 81
-gpu, mttkrp, pasta, nell-1.tns, 81
-gpu, mttkrp, pasta, nell-1.tns, 81
-gpu, mttkrp, pasta, nell-1.tns, 81
-gpu, mttkrp, pasta, nell-1.tns, 81
-cpu, ttm, pasta, nell-1.tns, 1602
-cpu, ttm, pasta, nell-1.tns, 1602
-cpu, ttm, pasta, nell-1.tns, 1602
-cpu, ttm, pasta, nell-1.tns, 1601
-cpu, ttm, pasta, nell-1.tns, 1602
-cpu, ttm, pasta, nell-1.tns, 1620
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, ttm, pasta, nell-1.tns, 47
-cpu, mttkrp, pasta, nell-2.tns, 985
-cpu, mttkrp, pasta, nell-2.tns, 841
-cpu, mttkrp, pasta, nell-2.tns, 857
-cpu, mttkrp, pasta, nell-2.tns, 865
-cpu, mttkrp, pasta, nell-2.tns, 840
-cpu, mttkrp, pasta, nell-2.tns, 840
-gpu, mttkrp, pasta, nell-2.tns, 56
-gpu, mttkrp, pasta, nell-2.tns, 58
-gpu, mttkrp, pasta, nell-2.tns, 56
-gpu, mttkrp, pasta, nell-2.tns, 57
-gpu, mttkrp, pasta, nell-2.tns, 56
-gpu, mttkrp, pasta, nell-2.tns, 57
-cpu, ttm, pasta, nell-2.tns, 327
-cpu, ttm, pasta, nell-2.tns, 326
-cpu, ttm, pasta, nell-2.tns, 337
-cpu, ttm, pasta, nell-2.tns, 330
-cpu, ttm, pasta, nell-2.tns, 326
-cpu, ttm, pasta, nell-2.tns, 326
-cpu, ttm, pasta, nell-2.tns, 13
-cpu, ttm, pasta, nell-2.tns, 13
-cpu, ttm, pasta, nell-2.tns, 13
-cpu, ttm, pasta, nell-2.tns, 13
-cpu, ttm, pasta, nell-2.tns, 13
-cpu, ttm, pasta, nell-2.tns, 13
+platform,benchmark,implementation,file,runtime_ms
+cpu,mttkrp,mlir,darpa.tns,1076
+cpu,mttkrp,mlir,darpa.tns,1075
+cpu,mttkrp,mlir,darpa.tns,1075
+cpu,mttkrp,mlir,darpa.tns,1075
+cpu,mttkrp,mlir,darpa.tns,1075
+cpu,mttkrp,mlir,fb-m.tns,3790
+cpu,mttkrp,mlir,fb-m.tns,3768
+cpu,mttkrp,mlir,fb-m.tns,3768
+cpu,mttkrp,mlir,fb-m.tns,3769
+cpu,mttkrp,mlir,fb-m.tns,3769
+cpu,mttkrp,mlir,fb-s.tns,5333
+cpu,mttkrp,mlir,fb-s.tns,5257
+cpu,mttkrp,mlir,fb-s.tns,5256
+cpu,mttkrp,mlir,fb-s.tns,5262
+cpu,mttkrp,mlir,fb-s.tns,5256
+cpu,mttkrp,mlir,nell-1.tns,5250
+cpu,mttkrp,mlir,nell-1.tns,5251
+cpu,mttkrp,mlir,nell-1.tns,5249
+cpu,mttkrp,mlir,nell-1.tns,5251
+cpu,mttkrp,mlir,nell-1.tns,5249
+cpu,mttkrp,mlir,nell-2.tns,1242
+cpu,mttkrp,mlir,nell-2.tns,1240
+cpu,mttkrp,mlir,nell-2.tns,1240
+cpu,mttkrp,mlir,nell-2.tns,1240
+cpu,mttkrp,mlir,nell-2.tns,1240
+cpu,mttkrp,iegenlib,darpa.tns,1019
+cpu,mttkrp,iegenlib,darpa.tns,1018
+cpu,mttkrp,iegenlib,darpa.tns,1019
+cpu,mttkrp,iegenlib,darpa.tns,1018
+cpu,mttkrp,iegenlib,darpa.tns,1019
+cpu,mttkrp,iegenlib,fb-m.tns,3574
+cpu,mttkrp,iegenlib,fb-m.tns,3574
+cpu,mttkrp,iegenlib,fb-m.tns,3572
+cpu,mttkrp,iegenlib,fb-m.tns,3571
+cpu,mttkrp,iegenlib,fb-m.tns,3573
+cpu,mttkrp,iegenlib,fb-s.tns,5005
+cpu,mttkrp,iegenlib,fb-s.tns,5000
+cpu,mttkrp,iegenlib,fb-s.tns,5001
+cpu,mttkrp,iegenlib,fb-s.tns,4999
+cpu,mttkrp,iegenlib,fb-s.tns,4999
+cpu,mttkrp,iegenlib,nell-1.tns,4876
+cpu,mttkrp,iegenlib,nell-1.tns,4876
+cpu,mttkrp,iegenlib,nell-1.tns,4876
+cpu,mttkrp,iegenlib,nell-1.tns,4872
+cpu,mttkrp,iegenlib,nell-1.tns,4875
+cpu,mttkrp,iegenlib,nell-2.tns,1074
+cpu,mttkrp,iegenlib,nell-2.tns,1071
+cpu,mttkrp,iegenlib,nell-2.tns,1072
+cpu,mttkrp,iegenlib,nell-2.tns,1072
+cpu,mttkrp,iegenlib,nell-2.tns,1071
+cpu,ttm,mlir,darpa.tns,128
+cpu,ttm,mlir,darpa.tns,129
+cpu,ttm,mlir,darpa.tns,129
+cpu,ttm,mlir,darpa.tns,129
+cpu,ttm,mlir,darpa.tns,129
+cpu,ttm,mlir,fb-m.tns,1346
+cpu,ttm,mlir,fb-m.tns,1350
+cpu,ttm,mlir,fb-m.tns,1347
+cpu,ttm,mlir,fb-m.tns,1344
+cpu,ttm,mlir,fb-m.tns,1344
+cpu,ttm,mlir,fb-s.tns,1922
+cpu,ttm,mlir,fb-s.tns,1921
+cpu,ttm,mlir,fb-s.tns,1921
+cpu,ttm,mlir,fb-s.tns,1922
+cpu,ttm,mlir,fb-s.tns,1922
+cpu,ttm,mlir,nell-1.tns,1171
+cpu,ttm,mlir,nell-1.tns,1171
+cpu,ttm,mlir,nell-1.tns,1171
+cpu,ttm,mlir,nell-1.tns,1170
+cpu,ttm,mlir,nell-1.tns,1171
+cpu,ttm,mlir,nell-2.tns,304
+cpu,ttm,mlir,nell-2.tns,304
+cpu,ttm,mlir,nell-2.tns,305
+cpu,ttm,mlir,nell-2.tns,304
+cpu,ttm,mlir,nell-2.tns,305
+cpu,ttm,iegenlib,darpa.tns,201
+cpu,ttm,iegenlib,darpa.tns,201
+cpu,ttm,iegenlib,darpa.tns,201
+cpu,ttm,iegenlib,darpa.tns,202
+cpu,ttm,iegenlib,darpa.tns,201
+cpu,ttm,iegenlib,fb-m.tns,1897
+cpu,ttm,iegenlib,fb-m.tns,1895
+cpu,ttm,iegenlib,fb-m.tns,1895
+cpu,ttm,iegenlib,fb-m.tns,1896
+cpu,ttm,iegenlib,fb-m.tns,1895
+cpu,ttm,iegenlib,fb-s.tns,2734
+cpu,ttm,iegenlib,fb-s.tns,2735
+cpu,ttm,iegenlib,fb-s.tns,2734
+cpu,ttm,iegenlib,fb-s.tns,2744
+cpu,ttm,iegenlib,fb-s.tns,2735
+cpu,ttm,iegenlib,nell-1.tns,1593
+cpu,ttm,iegenlib,nell-1.tns,1592
+cpu,ttm,iegenlib,nell-1.tns,1593
+cpu,ttm,iegenlib,nell-1.tns,1592
+cpu,ttm,iegenlib,nell-1.tns,1593
+cpu,ttm,iegenlib,nell-2.tns,396
+cpu,ttm,iegenlib,nell-2.tns,396
+cpu,ttm,iegenlib,nell-2.tns,395
+cpu,ttm,iegenlib,nell-2.tns,396
+cpu,ttm,iegenlib,nell-2.tns,395
+gpu,mttkrp,mlir,darpa.tns,19479
+gpu,mttkrp,mlir,darpa.tns,19474
+gpu,mttkrp,mlir,darpa.tns,19476
+gpu,mttkrp,mlir,darpa.tns,19474
+gpu,mttkrp,mlir,darpa.tns,19475
+gpu,mttkrp,mlir,fb-m.tns,70185
+gpu,mttkrp,mlir,fb-m.tns,70186
+gpu,mttkrp,mlir,fb-m.tns,70185
+gpu,mttkrp,mlir,fb-m.tns,70186
+gpu,mttkrp,mlir,fb-m.tns,70185
+gpu,mttkrp,mlir,fb-s.tns,99409
+gpu,mttkrp,mlir,fb-s.tns,99407
+gpu,mttkrp,mlir,fb-s.tns,99407
+gpu,mttkrp,mlir,fb-s.tns,99406
+gpu,mttkrp,mlir,fb-s.tns,99407
+gpu,mttkrp,mlir,nell-1.tns,97231
+gpu,mttkrp,mlir,nell-1.tns,97231
+gpu,mttkrp,mlir,nell-1.tns,97230
+gpu,mttkrp,mlir,nell-1.tns,97230
+gpu,mttkrp,mlir,nell-1.tns,97231
+gpu,mttkrp,mlir,nell-2.tns,41932
+gpu,mttkrp,mlir,nell-2.tns,41930
+gpu,mttkrp,mlir,nell-2.tns,41930
+gpu,mttkrp,mlir,nell-2.tns,41930
+gpu,mttkrp,mlir,nell-2.tns,41930
+gpu,mttkrp,iegenlib,darpa.tns,-1
+gpu,mttkrp,iegenlib,fb-m.tns,-1
+gpu,mttkrp,iegenlib,fb-s.tns,-1
+gpu,mttkrp,iegenlib,nell-1.tns,-1
+gpu,mttkrp,iegenlib,nell-2.tns,-1
+gpu,ttm,mlir,darpa.tns,70
+gpu,ttm,mlir,darpa.tns,70
+gpu,ttm,mlir,darpa.tns,69
+gpu,ttm,mlir,darpa.tns,69
+gpu,ttm,mlir,darpa.tns,69
+gpu,ttm,mlir,fb-m.tns,570
+gpu,ttm,mlir,fb-m.tns,552
+gpu,ttm,mlir,fb-m.tns,550
+gpu,ttm,mlir,fb-m.tns,543
+gpu,ttm,mlir,fb-m.tns,562
+gpu,ttm,mlir,fb-s.tns,1326
+gpu,ttm,mlir,fb-s.tns,1335
+gpu,ttm,mlir,fb-s.tns,1328
+gpu,ttm,mlir,fb-s.tns,1324
+gpu,ttm,mlir,fb-s.tns,1336
+gpu,ttm,mlir,nell-1.tns,291
+gpu,ttm,mlir,nell-1.tns,291
+gpu,ttm,mlir,nell-1.tns,290
+gpu,ttm,mlir,nell-1.tns,291
+gpu,ttm,mlir,nell-1.tns,291
+gpu,ttm,mlir,nell-2.tns,99
+gpu,ttm,mlir,nell-2.tns,99
+gpu,ttm,mlir,nell-2.tns,96
+gpu,ttm,mlir,nell-2.tns,96
+gpu,ttm,mlir,nell-2.tns,96
+gpu,ttm,iegenlib,darpa.tns,-1
+gpu,ttm,iegenlib,fb-m.tns,-1
+gpu,ttm,iegenlib,fb-s.tns,-1
+gpu,ttm,iegenlib,nell-1.tns,-1
+gpu,ttm,iegenlib,nell-2.tns,-1
+cpu,mttkrp,pasta,darpa.tns,1035
+cpu,mttkrp,pasta,darpa.tns,954
+cpu,mttkrp,pasta,darpa.tns,951
+cpu,mttkrp,pasta,darpa.tns,951
+cpu,mttkrp,pasta,darpa.tns,950
+cpu,mttkrp,pasta,darpa.tns,950
+gpu,mttkrp,pasta,darpa.tns,33
+gpu,mttkrp,pasta,darpa.tns,33
+gpu,mttkrp,pasta,darpa.tns,32
+gpu,mttkrp,pasta,darpa.tns,32
+gpu,mttkrp,pasta,darpa.tns,32
+gpu,mttkrp,pasta,darpa.tns,32
+cpu,ttm,pasta,darpa.tns,238
+cpu,ttm,pasta,darpa.tns,205
+cpu,ttm,pasta,darpa.tns,205
+cpu,ttm,pasta,darpa.tns,205
+cpu,ttm,pasta,darpa.tns,205
+cpu,ttm,pasta,darpa.tns,205
+gpu,ttm,pasta,darpa.tns,6
+gpu,ttm,pasta,darpa.tns,6
+gpu,ttm,pasta,darpa.tns,6
+gpu,ttm,pasta,darpa.tns,6
+gpu,ttm,pasta,darpa.tns,6
+gpu,ttm,pasta,darpa.tns,6
+cpu,mttkrp,pasta,fb-m.tns,3604
+cpu,mttkrp,pasta,fb-m.tns,3374
+cpu,mttkrp,pasta,fb-m.tns,3372
+cpu,mttkrp,pasta,fb-m.tns,3430
+cpu,mttkrp,pasta,fb-m.tns,3372
+cpu,mttkrp,pasta,fb-m.tns,3372
+gpu,mttkrp,pasta,fb-m.tns,53
+gpu,mttkrp,pasta,fb-m.tns,53
+gpu,mttkrp,pasta,fb-m.tns,53
+gpu,mttkrp,pasta,fb-m.tns,53
+gpu,mttkrp,pasta,fb-m.tns,53
+gpu,mttkrp,pasta,fb-m.tns,53
+cpu,ttm,pasta,fb-m.tns,1895
+cpu,ttm,pasta,fb-m.tns,1893
+cpu,ttm,pasta,fb-m.tns,1892
+cpu,ttm,pasta,fb-m.tns,1911
+cpu,ttm,pasta,fb-m.tns,1959
+cpu,ttm,pasta,fb-m.tns,1891
+gpu,ttm,pasta,fb-m.tns,116
+gpu,ttm,pasta,fb-m.tns,119
+gpu,ttm,pasta,fb-m.tns,119
+gpu,ttm,pasta,fb-m.tns,119
+gpu,ttm,pasta,fb-m.tns,119
+gpu,ttm,pasta,fb-m.tns,119
+cpu,mttkrp,pasta,fb-s.tns,5130
+cpu,mttkrp,pasta,fb-s.tns,4749
+cpu,mttkrp,pasta,fb-s.tns,4746
+cpu,mttkrp,pasta,fb-s.tns,4743
+cpu,mttkrp,pasta,fb-s.tns,4743
+cpu,mttkrp,pasta,fb-s.tns,4743
+gpu,mttkrp,pasta,fb-s.tns,112
+gpu,mttkrp,pasta,fb-s.tns,112
+gpu,mttkrp,pasta,fb-s.tns,113
+gpu,mttkrp,pasta,fb-s.tns,111
+gpu,mttkrp,pasta,fb-s.tns,110
+gpu,mttkrp,pasta,fb-s.tns,112
+cpu,ttm,pasta,fb-s.tns,2715
+cpu,ttm,pasta,fb-s.tns,2702
+cpu,ttm,pasta,fb-s.tns,2702
+cpu,ttm,pasta,fb-s.tns,2705
+cpu,ttm,pasta,fb-s.tns,2702
+cpu,ttm,pasta,fb-s.tns,2702
+gpu,ttm,pasta,fb-s.tns,275
+gpu,ttm,pasta,fb-s.tns,274
+gpu,ttm,pasta,fb-s.tns,275
+gpu,ttm,pasta,fb-s.tns,275
+gpu,ttm,pasta,fb-s.tns,277
+gpu,ttm,pasta,fb-s.tns,275
+cpu,mttkrp,pasta,nell-1.tns,5155
+cpu,mttkrp,pasta,nell-1.tns,4819
+cpu,mttkrp,pasta,nell-1.tns,4768
+cpu,mttkrp,pasta,nell-1.tns,4739
+cpu,mttkrp,pasta,nell-1.tns,4740
+cpu,mttkrp,pasta,nell-1.tns,4739
+gpu,mttkrp,pasta,nell-1.tns,81
+gpu,mttkrp,pasta,nell-1.tns,81
+gpu,mttkrp,pasta,nell-1.tns,81
+gpu,mttkrp,pasta,nell-1.tns,81
+gpu,mttkrp,pasta,nell-1.tns,81
+gpu,mttkrp,pasta,nell-1.tns,81
+cpu,ttm,pasta,nell-1.tns,1602
+cpu,ttm,pasta,nell-1.tns,1602
+cpu,ttm,pasta,nell-1.tns,1602
+cpu,ttm,pasta,nell-1.tns,1601
+cpu,ttm,pasta,nell-1.tns,1602
+cpu,ttm,pasta,nell-1.tns,1620
+gpu,ttm,pasta,nell-1.tns,47
+gpu,ttm,pasta,nell-1.tns,47
+gpu,ttm,pasta,nell-1.tns,47
+gpu,ttm,pasta,nell-1.tns,47
+gpu,ttm,pasta,nell-1.tns,47
+gpu,ttm,pasta,nell-1.tns,47
+cpu,mttkrp,pasta,nell-2.tns,985
+cpu,mttkrp,pasta,nell-2.tns,841
+cpu,mttkrp,pasta,nell-2.tns,857
+cpu,mttkrp,pasta,nell-2.tns,865
+cpu,mttkrp,pasta,nell-2.tns,840
+cpu,mttkrp,pasta,nell-2.tns,840
+gpu,mttkrp,pasta,nell-2.tns,56
+gpu,mttkrp,pasta,nell-2.tns,58
+gpu,mttkrp,pasta,nell-2.tns,56
+gpu,mttkrp,pasta,nell-2.tns,57
+gpu,mttkrp,pasta,nell-2.tns,56
+gpu,mttkrp,pasta,nell-2.tns,57
+cpu,ttm,pasta,nell-2.tns,327
+cpu,ttm,pasta,nell-2.tns,326
+cpu,ttm,pasta,nell-2.tns,337
+cpu,ttm,pasta,nell-2.tns,330
+cpu,ttm,pasta,nell-2.tns,326
+cpu,ttm,pasta,nell-2.tns,326
+gpu,ttm,pasta,nell-2.tns,13
+gpu,ttm,pasta,nell-2.tns,13
+gpu,ttm,pasta,nell-2.tns,13
+gpu,ttm,pasta,nell-2.tns,13
+gpu,ttm,pasta,nell-2.tns,13
+gpu,ttm,pasta,nell-2.tns,13
