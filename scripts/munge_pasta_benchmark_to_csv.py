@@ -43,4 +43,4 @@ if __name__ == "__main__":
 			i = process(i, lines, "[Cpu SpTns MTTKRP]", "cpu", "mttkrp")
 			i = process(i, lines, "[Cuda SpTns MTTKRP]", "gpu", "mttkrp")
 			i = process(i, lines, "[Cpu SpTns * Mtx]", "cpu", "ttm")
-			i = process(i, lines, "[Cuda SpTns * Mtx]", "cpu", "ttm")
+			i = process(i, lines, "[Cuda SpTns * Mtx]", "gpu", "ttm")
