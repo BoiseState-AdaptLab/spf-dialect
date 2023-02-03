@@ -1,7 +1,9 @@
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <ratio>
+#include <system_error>
 #include <vector>
 
 #include "Runtime/CPURuntime.h"
@@ -33,6 +35,22 @@ int64_t _mlir_ciface_sparse_mttkrp_gpu(
     StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
 }
 
+namespace {
+void runTest(DataForCpuMttkrp &result, char *filename, Config config) {
+  auto red = "\033[31m";
+  auto green = "\033[32m";
+  auto reset = "\033[0m";
+  auto reference = DataForCpuMttkrp(filename, config, true);
+  if (!reference.isSame(result)) {
+    std::cout << red << "result doesn't match reference implementation\n"
+              << reset;
+    exit(1);
+  } else {
+    std::cerr << green << "result matches reference implementation\n" << reset;
+  }
+}
+} // anonymous namespace
+
 // Sparse MTTKRP: http://tensor-compiler.org/docs/data_analytics
 std::vector<int64_t> cpu_mttkrp_mlir(Config config, char *filename) {
   if (config.debug) {
@@ -51,6 +69,10 @@ std::vector<int64_t> cpu_mttkrp_mlir(Config config, char *filename) {
   if (config.debug) {
     data.dump();
     std::cout << "=====\n";
+  }
+
+  if (config.test) {
+    runTest(data, filename, config);
   }
 
   return times;
@@ -129,6 +151,10 @@ std::vector<int64_t> cpu_mttkrp_iegenlib(Config config, char *filename) {
   if (config.debug) {
     data.dump();
     std::cout << "=====\n";
+  }
+
+  if (config.test) {
+    runTest(data, filename, config);
   }
 
   return times;
@@ -240,9 +266,17 @@ std::vector<int64_t> gpu_mttkrp_mlir(Config config, char *filename) {
         &data.bValues, &data.c, &data.d, &data.a);
   }
 
-  if (config.debug) {
-    DataForCpuMttkrp(data).dump();
-    std::cout << "=====\n";
+  if (config.debug || config.test) {
+    auto cpuData = DataForCpuMttkrp(data);
+
+    if (config.debug) {
+      cpuData.dump();
+      std::cout << "=====\n";
+    }
+
+    if (config.test) {
+      runTest(cpuData, filename, config);
+    }
   }
 
   return times;

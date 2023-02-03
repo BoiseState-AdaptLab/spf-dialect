@@ -1,4 +1,3 @@
-
 #ifndef BENCHMARKS_H
 #define BENCHMARKS_H
 
@@ -18,6 +17,8 @@ struct Config {
   uint64_t constantMode = 0;
   // debug mode prints all results
   bool debug = false;
+  // test mode runs reference implementation and checks results
+  bool test = false;
   // number of iterations to run the a given benchmark
   int64_t iterations = 5;
 
@@ -28,11 +29,16 @@ struct Config {
     if (std::getenv("TTM_R")) {
       R = std::stoull(std::getenv("TTM_R"));
     }
-    if (getenv("DEBUG")) {
-      debug = true;
-    }
     if (getenv("ITERATIONS")) {
       iterations = std::stol(getenv("ITERATIONS"));
+    }
+    if (getenv("DEBUG")) {
+      iterations = 1;
+      debug = true;
+    }
+    if (getenv("TEST")) {
+      iterations = 1;
+      test = true;
     }
   }
 };

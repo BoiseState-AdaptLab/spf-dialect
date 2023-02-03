@@ -62,15 +62,15 @@ DataForGpuMttkrp::DataForGpuMttkrp(char *filename, Config config)
 
   // 2x2 example: [[0,1],
   //               [2,3]]
-  auto fillRowsIndrementing = [=](uint64_t i, uint64_t j) -> double {
+  auto fillRowsIncrementing = [=](uint64_t i, uint64_t j) -> double {
     return i * J + j;
   };
 
   // Construct c matrix (K x J)
-  allocateAndPopulateGpuMemref(&c, K, J, fillRowsIndrementing);
+  allocateAndPopulateGpuMemref(&c, K, J, fillRowsIncrementing);
 
   // Construct d matrix (L x J)
-  allocateAndPopulateGpuMemref(&d, L, J, fillRowsIndrementing);
+  allocateAndPopulateGpuMemref(&d, L, J, fillRowsIncrementing);
 
   // Construct a matrix (I x J)
   allocateAndPopulateGpuMemref(

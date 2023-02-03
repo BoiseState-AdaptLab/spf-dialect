@@ -13,6 +13,18 @@ class DataForCpuMttkrp {
   std::vector<double> dData;
   std::vector<double> aData;
 
+  void runReferenceImplementation() {
+    for (uint64_t x = 0; x < NNZ; x++) {
+      uint64_t i = bCoord0.data[x];
+      uint64_t k = bCoord1.data[x];
+      uint64_t l = bCoord2.data[x];
+      for (uint64_t j = 0; j < J; j++) {
+        a.data[i * J + j] +=
+            bValues.data[x] * d.data[l * J + j] * c.data[k * J + j];
+      }
+    }
+  }
+
 public:
   StridedMemRefType<uint64_t, 1> bCoord0;
   StridedMemRefType<uint64_t, 1> bCoord1;
@@ -27,7 +39,7 @@ public:
   const uint64_t K;
   const uint64_t L;
 
-  DataForCpuMttkrp(char *filename, Config config)
+  DataForCpuMttkrp(char *filename, Config config, bool isReference = false)
       : bData((COO *)_mlir_ciface_read_coo(filename)), NNZ(bData->nnz),
         I(bData->dims[0]), J(config.J), K(bData->dims[1]), L(bData->dims[2]) {
 
@@ -76,6 +88,10 @@ public:
     a.sizes[1] = J;
     a.strides[0] = J;
     a.strides[1] = 1;
+
+    if (isReference) {
+      runReferenceImplementation();
+    }
   }
 
   // This constructor expects src DataForGpuMttkrp to be populated
@@ -119,6 +135,62 @@ public:
     std::cout << "a:\n";
     impl::printMemRef(this->a);
   }
+
+  bool isSame(DataForCpuMttkrp &other) {
+    if (this->NNZ != other.NNZ) {
+      return false;
+    }
+    if (this->I != other.I) {
+      return false;
+    }
+    if (this->J != other.J) {
+      return false;
+    }
+    if (this->K != other.K) {
+      return false;
+    }
+    if (this->L != other.L) {
+      return false;
+    }
+
+    // coords
+    if (this->bData->coord[0] != other.bData->coord[0]) {
+      return false;
+    };
+    if (this->bData->coord[1] != other.bData->coord[1]) {
+      return false;
+    };
+    if (this->bData->coord[2] != other.bData->coord[2]) {
+      return false;
+    };
+    if (this->bData->values != other.bData->values) {
+      return false;
+    };
+
+    // inputs
+    if (this->cData[0] != other.cData[0]) {
+      return false;
+    };
+    if (this->cData[1] != other.cData[1]) {
+      return false;
+    };
+    if (this->dData[0] != other.dData[0]) {
+      return false;
+    };
+    if (this->dData[1] != other.dData[1]) {
+      return false;
+    };
+
+    // output
+    if (this->aData[0] != other.aData[0]) {
+      return false;
+    };
+    if (this->aData[1] != other.aData[1]) {
+      return false;
+    };
+
+    return true;
+  }
 };
 
 // variable names from PASTA paper: https://arxiv.org/abs/1902.03317
@@ -153,8 +225,8 @@ public:
     _mlir_ciface_coords(&xCoordConstant, xData, config.constantMode);
     _mlir_ciface_values(&xValues, xData);
 
-    // Sort data lexigraphically with constant mode considered the last. We need
-    // to do this to be able to calculate fibers.
+    // Sort data lexigraphically with constant mode considered the last. We
+    // need to do this to be able to calculate fibers.
     xData->sortIndicesModeLast(config.constantMode);
 
     // construct data for fptr
@@ -190,9 +262,10 @@ public:
     //      2x3x4
     //      inds:
     //      sptIndexVector length: 11
-    //      0       0       0       1       1       1       1       2       2 2
-    //      2 sptIndexVector length: 11 0       2       3       0       1 2 3 0
-    //      1       2       3 values: 11 x 2 matrix 154.00  231.00 20.00   33.00
+    //      0  0  0  1  1  1  1  2  2  2  2
+    //      sptIndexVector length: 11
+    //      0  2  3  0  1  2  3  0  1  2  3
+    //      values: 11 x 2 matrix 154.00  231.00 20.00   33.00
     //      92.00   201.00
     //      122.00  183.00
     //      106.00  170.00
