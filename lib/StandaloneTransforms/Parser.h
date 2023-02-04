@@ -869,6 +869,7 @@ private:
       return parseError<Nodes>("int, identifier, or uf call", context);
     }
 
+    int increment = 0;
     // Predicates are exactly from MLIR:
     // https://mlir.llvm.org/docs/Dialects/ArithOps/#arithcmpi-mlirarithcmpiop
     std::string predicate;
@@ -879,7 +880,8 @@ private:
       break;
     case tok_less_equal:
       EXPECT_AND_CONSUME(Nodes, tok_less_equal, context);
-      predicate = "ule";
+      increment = 1;
+      predicate = "ult";
       break;
     case tok_greater:
       EXPECT_AND_CONSUME(Nodes, tok_greater, context);
@@ -887,7 +889,8 @@ private:
       break;
     case tok_greater_equal:
       EXPECT_AND_CONSUME(Nodes, tok_greater_equal, context);
-      predicate = "uge";
+      increment = -1;
+      predicate = "ugt";
       break;
     default:
       return parseError<Nodes>("unknown predicate", context);
@@ -895,7 +898,7 @@ private:
     }
 
     // `1` || `t1(-1)+` || `uf_1(t1, t2, t3)(-1)+`
-    auto rhs = parseUfOrSymbolOrInt(loc, context, 0, *out.get());
+    auto rhs = parseUfOrSymbolOrInt(loc, context, increment, *out.get());
     if (!lhs) {
       return parseError<Nodes>("int, identifier, or uf call", context);
     }

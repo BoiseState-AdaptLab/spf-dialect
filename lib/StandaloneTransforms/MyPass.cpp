@@ -479,8 +479,36 @@ private:
     symbols[ufAssignment->inductionVar] = ufCall.getResult(0);
   }
 
-
   void visit(sparser::IfAST *conditional) override {
+    LLVM_DEBUG(llvm::dbgs() << "if"
+                            << "\n");
+    auto lhs = getValue(conditional->lhs.get());
+    auto rhs = getValue(conditional->rhs.get());
+
+    auto predicate =
+        arith::symbolizeEnum<arith::CmpIPredicate>(conditional->predicate);
+    if (!predicate) {
+      std::cerr << "err: unknown predicate in if statement" << std::endl;
+      exit(1);
+    }
+
+    // crate conditional
+    auto cmpOp = builder.create<arith::CmpIOp>(computationOp->getLoc(),
+                                               *predicate, lhs, rhs);
+    auto ifOp =
+        builder.create<scf::IfOp>(computationOp->getLoc(), cmpOp, false);
+
+    // save off original insertion point
+    mlir::Block *original = builder.getInsertionBlock();
+    auto afterIf = ++Block::iterator(ifOp);
+
+    // generate code for body
+    builder.setInsertionPointToStart(&ifOp.getThenRegion().front());
+    for (auto &statement : conditional->block) {
+      statement->accept(*this);
+    }
+    // reset insertion point for next statement
+    builder.setInsertionPoint(original, afterIf);
   }
 };
 
