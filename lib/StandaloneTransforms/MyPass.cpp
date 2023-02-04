@@ -478,6 +478,10 @@ private:
                                                builder.getIndexType(), ufArgs);
     symbols[ufAssignment->inductionVar] = ufCall.getResult(0);
   }
+
+
+  void visit(sparser::IfAST *conditional) override {
+  }
 };
 
 /// relationForOperand builds an IEGenLib Relation string representation from an

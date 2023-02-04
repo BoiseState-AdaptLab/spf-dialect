@@ -170,6 +170,13 @@ public:
       return tok_less_equal;
     }
 
+    // greater equal >=
+    if (lastChar == '>' && peek() == '=') {
+      getNextChar();
+      lastChar = Token(getNextChar());
+      return tok_greater_equal;
+    }
+
     // increment ++
     if (lastChar == tok_plus && peek() == tok_plus) {
       getNextChar();
@@ -270,6 +277,8 @@ private:
   Location location;
 };
 
+typedef std::vector<std::unique_ptr<AST>> Nodes;
+
 class SymbolOrInt {
 public:
   enum SymbolOrIntKind {
@@ -320,6 +329,7 @@ public:
 class LoopAST;
 class StatementCallAST;
 class UFAssignmentAST;
+class IfAST;
 
 class VisitorBase {
 public:
@@ -330,6 +340,8 @@ public:
   virtual void visit(StatementCallAST *call) = 0;
 
   virtual void visit(UFAssignmentAST *call) = 0;
+
+  virtual void visit(IfAST *ifAST) = 0;
 };
 
 class LoopAST : public AST {
@@ -338,11 +350,11 @@ public:
   std::unique_ptr<SymbolOrInt> start; // start expected to be inclusive
   std::unique_ptr<SymbolOrInt> stop;  // stop expected to be exclusive
   int step;
-  std::vector<std::unique_ptr<AST>> block;
+  Nodes block;
 
   LoopAST(Location loc, std::string &&inductionVar,
           std::unique_ptr<SymbolOrInt> start, std::unique_ptr<SymbolOrInt> stop,
-          int step, std::vector<std::unique_ptr<AST>> &&block)
+          int step, Nodes &&block)
       : AST(std::move(loc)), inductionVar(std::move(inductionVar)),
         start(std::move(start)), stop(std::move(stop)), step(step),
         block(std::move(block)){};
@@ -373,6 +385,22 @@ public:
                             std::vector<std::unique_ptr<SymbolOrInt>> &&args)
       : AST(std::move(loc)), statementIndex(statementIndex),
         args(std::move(args)){};
+
+  void accept(VisitorBase &b) override { b.visit(this); }
+};
+
+class IfAST : public AST {
+public:
+  std::unique_ptr<SymbolOrInt> lhs;
+  std::unique_ptr<SymbolOrInt> rhs;
+  std::string predicate;
+  Nodes block;
+
+  explicit IfAST(Location loc, std::unique_ptr<SymbolOrInt> lhs,
+                 std::unique_ptr<SymbolOrInt> rhs, std::string &&predicate,
+                 Nodes &&block)
+      : AST(std::move(loc)), lhs(std::move(lhs)), rhs(std::move(rhs)),
+        predicate(std::move(predicate)), block(std::move(block)){};
 
   void accept(VisitorBase &b) override { b.visit(this); }
 };
@@ -435,9 +463,23 @@ public:
     ss << "]}" << (indent > 0 ? ",\n" : "\n");
   }
 
+  void visit(IfAST *conditional) override {
+    ss << std::string(indent, ' ');
+    ss << "If{lhs: " << dumpSymbolOrInt(conditional->lhs.get())
+       << " predicate: \"" << conditional->predicate
+       << "\" rhs:" << dumpSymbolOrInt(conditional->rhs.get()) << " body:[\n";
+    indent += 2;
+    for (auto &statement : conditional->block) {
+      statement->accept(*this);
+    }
+    indent -= 2;
+
+    ss << std::string(indent, ' ') << "]}" << (indent > 0 ? ",\n" : "\n");
+  }
+
   // virtual methods can't be templated so getting the visitor to return a
   // string and build it up that way would require a lot of Type Erasure
-  // nonsense. This works and is pretty easy.
+  // nonsense. This works fine.
   std::string output() { return ss.str(); }
 
 private:
@@ -510,8 +552,14 @@ public:
 private:
 #define EXPECT_AND_CONSUME(TYPE, tok, context)                                 \
   if (lexer.getCurToken() != tok)                                              \
-    return parseError<TYPE>(tok, context);                                     \
+    return parseError<TYPE>((char)tok, context);                               \
   lexer.consume(tok)
+
+  // Whether this is the first 'if' statement the parser has encountered.
+  bool isFirstIf = true;
+
+  // Parser's reference to the lexer
+  Lexer &lexer;
 
   // The vOmegaReplacer comes from the code generation in IEGenLib. It's job is
   // to ensure that when uf's are sent into omega each uf call has a unique name
@@ -550,18 +598,36 @@ private:
   // omega.
   VisitorChangeUFsForOmega *vOmegaReplacer;
 
-  Lexer &lexer;
-
   // next number to use when creating synthetic induction variables
   int nextSyntheticIVUniqueNumber = 0;
 
-  typedef std::vector<std::unique_ptr<AST>> Nodes;
   typedef std::vector<std::unique_ptr<SymbolOrInt>> Args;
 
   std::unique_ptr<Nodes> parseStatement() {
-    if (lexer.getCurToken() == tok_for) { // for loop
+    switch (lexer.getCurToken()) {
+    case tok_for: {
       return parseLoop();
-    } else if (lexer.getCurToken() == tok_identifier) { // some sort of call
+    } break;
+    case tok_if: {
+      // Omega always generates a first if with a bunch of checks, we don't
+      // really need that so just throw it out.
+      if (isFirstIf) {
+        isFirstIf = false;
+        EXPECT_AND_CONSUME(Nodes, tok_if, "if statement");
+        EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, "if statement");
+        while (lexer.getCurToken() != tok_parentheses_close) {
+          lexer.consume(lexer.getCurToken());
+        }
+        EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, "if statement");
+        EXPECT_AND_CONSUME(Nodes, tok_bracket_open, "if statement");
+        auto inside = parseStatement();
+        EXPECT_AND_CONSUME(Nodes, tok_bracket_close, "if statement");
+        return inside;
+      } else {
+        return parseIf();
+      }
+    } break;
+    case tok_identifier: {
       // Here we can have a UF call or a statement call. We're expecting that
       // statements look like 's0(t1,0,t2)` and uf calls look like 't1 =
       // UFi_0()'.
@@ -578,22 +644,8 @@ private:
       } else {
         return parseCall(std::move(previousIdent));
       }
-    } else if (lexer.getCurToken() == tok_if) { // if statement
-      // We're just throwing out 'if' statements for now. The only ones in the
-      // examples that are currently using just do some error checking that
-      // isn't important. TODO: There's definitely are cases
-      // where an if statement is important, parse them properly.
-      EXPECT_AND_CONSUME(Nodes, tok_if, "if statement");
-      EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, "if statement");
-      while (lexer.getCurToken() != tok_parentheses_close) {
-        lexer.consume(lexer.getCurToken());
-      }
-      EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, "if statement");
-      EXPECT_AND_CONSUME(Nodes, tok_bracket_open, "if statement");
-      auto inside = parseStatement();
-      EXPECT_AND_CONSUME(Nodes, tok_bracket_close, "if statement");
-      return inside;
-    } else {
+    } break;
+    default:
       return parseError<Nodes>("for loop or statement call",
                                "parsing statement");
     }
@@ -660,7 +712,7 @@ private:
 
     // `UFi_0`
     if (lexer.getCurToken() != tok_identifier)
-      return parseError<Nodes>(tok_identifier, context);
+      return parseError<Nodes>((char)tok_identifier, context);
 
     auto ufCall = lexer.getId();
     lexer.consume(tok_identifier);
@@ -720,7 +772,7 @@ private:
 
     // `t1`
     if (lexer.getCurToken() != tok_identifier)
-      return parseError<Nodes>(tok_identifier, context);
+      return parseError<Nodes>((char)tok_identifier, context);
     auto inductionVar = lexer.identifierStr;
     lexer.consume(tok_identifier);
 
@@ -768,7 +820,7 @@ private:
 
     // `;`
     if (lexer.getCurToken() != tok_semicolon)
-      return parseError<Nodes>(tok_semicolon, context);
+      return parseError<Nodes>((char)tok_semicolon, context);
     lexer.consume(tok_semicolon);
 
     // `t1`
@@ -791,6 +843,76 @@ private:
     // `)`
     EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, context);
 
+    auto block = parseBlock("in loop body");
+
+    auto loop = std::make_unique<LoopAST>(loc, std::move(inductionVar),
+                                          std::move(start), std::move(stop),
+                                          step, std::move(*block));
+    out->push_back(std::move(loop));
+    return out;
+  }
+
+  std::unique_ptr<Nodes> parseIf() {
+    auto loc = lexer.getLastLocation();
+    auto context = "in statement call";
+    auto out = std::make_unique<Nodes>();
+
+    // `if`
+    EXPECT_AND_CONSUME(Nodes, tok_if, context);
+
+    // `(`
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_open, context);
+
+    // `1` || `t1(-1)+` || `uf_1(t1, t2, t3)(-1)+`
+    auto lhs = parseUfOrSymbolOrInt(loc, context, 0, *out.get());
+    if (!lhs) {
+      return parseError<Nodes>("int, identifier, or uf call", context);
+    }
+
+    // Predicates are exactly from MLIR:
+    // https://mlir.llvm.org/docs/Dialects/ArithOps/#arithcmpi-mlirarithcmpiop
+    std::string predicate;
+    switch (lexer.getCurToken()) {
+    case tok_less:
+      EXPECT_AND_CONSUME(Nodes, tok_less, context);
+      predicate = "ult";
+      break;
+    case tok_less_equal:
+      EXPECT_AND_CONSUME(Nodes, tok_less_equal, context);
+      predicate = "ule";
+      break;
+    case tok_greater:
+      EXPECT_AND_CONSUME(Nodes, tok_greater, context);
+      predicate = "ugt";
+      break;
+    case tok_greater_equal:
+      EXPECT_AND_CONSUME(Nodes, tok_greater_equal, context);
+      predicate = "uge";
+      break;
+    default:
+      return parseError<Nodes>("unknown predicate", context);
+      break;
+    }
+
+    // `1` || `t1(-1)+` || `uf_1(t1, t2, t3)(-1)+`
+    auto rhs = parseUfOrSymbolOrInt(loc, context, 0, *out.get());
+    if (!lhs) {
+      return parseError<Nodes>("int, identifier, or uf call", context);
+    }
+
+    // `)`
+    EXPECT_AND_CONSUME(Nodes, tok_parentheses_close, context);
+
+    auto block = parseBlock("in if body");
+
+    auto conditional =
+        std::make_unique<IfAST>(loc, std::move(lhs), std::move(rhs),
+                                std::move(predicate), std::move(*block));
+    out->push_back(std::move(conditional));
+    return out;
+  }
+
+  std::unique_ptr<Nodes> parseBlock(const char *context) {
     // It's valid C to do `for(int i=0; i<10; i++) s(i);` but omega doesn't seem
     // to produce that so not worrying about it.
     // `{`
@@ -808,11 +930,7 @@ private:
     }
     EXPECT_AND_CONSUME(Nodes, tok_bracket_close, context);
 
-    auto loop = std::make_unique<LoopAST>(loc, std::move(inductionVar),
-                                          std::move(start), std::move(stop),
-                                          step, std::move(block));
-    out->push_back(std::move(loop));
-    return out;
+    return std::make_unique<Nodes>(std::move(block));
   }
 
   // parseUfOrSymbolOrInt handles cases: `1` || `t1` || `uf_1(t1, t2, t3)` in
@@ -835,7 +953,7 @@ private:
     }
 
     if (lexer.getCurToken() != tok_identifier) { // `t1` || `uf_1(t1, t2, t3)`
-      return parseError<SymbolOrInt>("identifier or known uf call", context);
+      return parseError<SymbolOrInt>("identifier or uf call", context);
     }
 
     auto id = lexer.getId();
@@ -870,11 +988,7 @@ private:
     }
 
     // checking for a `- 1` or similar
-    if (lexer.getCurToken() != tok_semicolon) {
-      if (lexer.getCurToken() != tok_plus && lexer.getCurToken() != tok_minus) {
-        return parseError<SymbolOrInt>("';','-', or '+'", context);
-      }
-
+    if (lexer.getCurToken() == tok_plus || lexer.getCurToken() == tok_minus) {
       int sign;
       if (lexer.getCurToken() == tok_minus) {
         sign = -1;
