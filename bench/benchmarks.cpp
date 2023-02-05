@@ -42,7 +42,7 @@ void runTest(DataForCpuMttkrp &result, char *filename, Config config) {
   auto reset = "\033[0m";
   auto reference = DataForCpuMttkrp(filename, config, true);
   if (!reference.isSame(result)) {
-    std::cout << red << "result doesn't match reference implementation\n"
+    std::cerr << red << "result doesn't match reference implementation\n"
               << reset;
     exit(1);
   } else {

@@ -168,24 +168,15 @@ public:
     };
 
     // inputs
-    if (this->cData[0] != other.cData[0]) {
+    if (this->cData != other.cData) {
       return false;
     };
-    if (this->cData[1] != other.cData[1]) {
-      return false;
-    };
-    if (this->dData[0] != other.dData[0]) {
-      return false;
-    };
-    if (this->dData[1] != other.dData[1]) {
+    if (this->dData != other.dData) {
       return false;
     };
 
     // output
-    if (this->aData[0] != other.aData[0]) {
-      return false;
-    };
-    if (this->aData[1] != other.aData[1]) {
+    if (this->aData != other.aData) {
       return false;
     };
 
