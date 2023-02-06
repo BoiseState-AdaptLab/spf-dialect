@@ -26,15 +26,15 @@ void _mlir_ciface_coords_gpu(StridedMemRefType<uint64_t, 1> *ref, void *coo,
   ref->strides[0] = 1;
 }
 
-void _mlir_ciface_values_gpu(StridedMemRefType<double, 1> *ref, void *coo) {
+void _mlir_ciface_values_gpu(StridedMemRefType<float, 1> *ref, void *coo) {
 
-  double *d_values;
+  float *d_values;
   uint64_t size;
   {
-    std::vector<double> &v = static_cast<COO *>(coo)->values;
+    std::vector<float> &v = static_cast<COO *>(coo)->values;
     size = v.size();
     cudaMalloc(&d_values, sizeof(uint64_t) * size);
-    cudaMemcpy(d_values, v.data(), size * sizeof(double),
+    cudaMemcpy(d_values, v.data(), size * sizeof(float),
                cudaMemcpyHostToDevice);
   }
 
@@ -63,12 +63,11 @@ copyToCpuMemRef(StridedMemRefType<uint64_t, 1> *srcGpuMemRef,
 }
 
 template <>
-std::vector<double>
-copyToCpuMemRef(StridedMemRefType<double, 1> *srcGpuMemRef,
-                StridedMemRefType<double, 1> *destCpuMemRef) {
+std::vector<float> copyToCpuMemRef(StridedMemRefType<float, 1> *srcGpuMemRef,
+                                   StridedMemRefType<float, 1> *destCpuMemRef) {
   auto size = srcGpuMemRef->sizes[0];
-  std::vector<double> backingMemory(size);
-  cudaMemcpy(backingMemory.data(), srcGpuMemRef->data, size * sizeof(double),
+  std::vector<float> backingMemory(size);
+  cudaMemcpy(backingMemory.data(), srcGpuMemRef->data, size * sizeof(float),
              cudaMemcpyDeviceToHost);
 
   destCpuMemRef->basePtr = destCpuMemRef->data = backingMemory.data();
@@ -80,12 +79,11 @@ copyToCpuMemRef(StridedMemRefType<double, 1> *srcGpuMemRef,
 }
 
 template <>
-std::vector<double>
-copyToCpuMemRef(StridedMemRefType<double, 2> *srcGpuMemRef,
-                StridedMemRefType<double, 2> *destCpuMemRef) {
+std::vector<float> copyToCpuMemRef(StridedMemRefType<float, 2> *srcGpuMemRef,
+                                   StridedMemRefType<float, 2> *destCpuMemRef) {
   auto size = srcGpuMemRef->sizes[0] * srcGpuMemRef->sizes[1];
-  std::vector<double> backingMemory(size);
-  cudaMemcpy(backingMemory.data(), srcGpuMemRef->data, size * sizeof(double),
+  std::vector<float> backingMemory(size);
+  cudaMemcpy(backingMemory.data(), srcGpuMemRef->data, size * sizeof(float),
              cudaMemcpyDeviceToHost);
 
   destCpuMemRef->basePtr = destCpuMemRef->data = backingMemory.data();

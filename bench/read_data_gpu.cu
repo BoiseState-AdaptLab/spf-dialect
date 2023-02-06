@@ -4,21 +4,20 @@
 #include "read_data_gpu.h"
 
 void allocateAndPopulateGpuMemref(
-    StridedMemRefType<double, 2> *ref, uint64_t dim1, uint64_t dim2,
-    std::function<double(uint64_t i, uint64_t j)> &&fill) {
-  double *d_data;
+    StridedMemRefType<float, 2> *ref, uint64_t dim1, uint64_t dim2,
+    std::function<float(uint64_t i, uint64_t j)> &&fill) {
+  float *d_data;
   uint64_t size = dim1 * dim2;
 
-  std::vector<double> data = std::vector<double>(size);
+  std::vector<float> data = std::vector<float>(size);
   for (uint64_t i = 0; i < dim1; i++) {
     for (uint64_t j = 0; j < dim2; j++) {
       data[i * dim2 + j] = fill(i, j);
     }
   }
 
-  cudaMalloc(&d_data, sizeof(double) * size);
-  cudaMemcpy(d_data, data.data(), size * sizeof(double),
-             cudaMemcpyHostToDevice);
+  cudaMalloc(&d_data, sizeof(float) * size);
+  cudaMemcpy(d_data, data.data(), size * sizeof(float), cudaMemcpyHostToDevice);
 
   ref->basePtr = ref->data = d_data;
   ref->offset = 0;
@@ -60,21 +59,17 @@ DataForGpuMttkrp::DataForGpuMttkrp(char *filename, Config config)
   _mlir_ciface_coords_gpu(&bCoord2, bData, 2);
   _mlir_ciface_values_gpu(&bValues, bData);
 
-  // 2x2 example: [[0,1],
-  //               [2,3]]
-  auto fillRowsIncrementing = [=](uint64_t i, uint64_t j) -> double {
-    return i * J + j;
-  };
-
   // Construct c matrix (K x J)
-  allocateAndPopulateGpuMemref(&c, K, J, fillRowsIncrementing);
+  allocateAndPopulateGpuMemref(
+      &c, K, J, [](uint64_t i, uint64_t j) -> float { return 1.0; });
 
   // Construct d matrix (L x J)
-  allocateAndPopulateGpuMemref(&d, L, J, fillRowsIncrementing);
+  allocateAndPopulateGpuMemref(
+      &d, L, J, [](uint64_t i, uint64_t j) -> float { return 1.0; });
 
   // Construct a matrix (I x J)
   allocateAndPopulateGpuMemref(
-      &a, I, J, [](uint64_t i, uint64_t j) -> double { return 0; });
+      &a, I, J, [](uint64_t i, uint64_t j) -> float { return 0.0; });
 }
 
 DataForGpuMttkrp::~DataForGpuMttkrp() {
@@ -89,13 +84,14 @@ DataForGpuMttkrp::~DataForGpuMttkrp() {
 
 DataForGpuTTM::DataForGpuTTM(char *filename, Config config)
     : xData((COO *)_mlir_ciface_read_coo(filename)), I(xData->dims[0]),
-      J(xData->dims[1]), K(xData->dims[2]), R(config.R) {
+      J(xData->dims[1]), K(xData->dims[2]), R(config.R),
+      constantMode(config.constantMode) {
   assert(xData->rank == 3 && "ttm only supports rank 3 tensor");
   assert(config.constantMode < 3 && "constant mode dimension not in bounds");
 
   uint64_t constantModeDimSize = xData->dims[config.constantMode];
 
-  // Sort data lexigraphically with constant mode considered the last. We need
+  // Sort data lexicographically with constant mode considered the last. We need
   // to do this to be able to calculate fibers.
   xData->sortIndicesModeLast(config.constantMode);
 
@@ -111,13 +107,10 @@ DataForGpuTTM::DataForGpuTTM(char *filename, Config config)
 
   Mf = fptrData.size() - 1;
 
-  // Construct u matrix (constantModeDimSize x R)
-  // 2x2 example: [[0,1],
-  //               [2,3]]
-  allocateAndPopulateGpuMemref(&u, constantModeDimSize, R,
-                               [=](uint64_t i, uint64_t j) -> double {
-                                 return i * constantModeDimSize + j;
-                               });
+  // construct u matrix (constantModeDimSize x R)
+  allocateAndPopulateGpuMemref(
+      &u, constantModeDimSize, R,
+      [=](uint64_t i, uint64_t j) -> float { return 1.0; });
 
   // construct y matrix
   //
@@ -151,7 +144,7 @@ DataForGpuTTM::DataForGpuTTM(char *filename, Config config)
   //        [183. 170. 109. 225.]
   //        [ 66. 127.  67.  43.]]]
   allocateAndPopulateGpuMemref(
-      &y, Mf, R, [](uint64_t i, uint64_t j) -> double { return 0; });
+      &y, Mf, R, [](uint64_t i, uint64_t j) -> float { return 0.0; });
 }
 
 DataForGpuTTM::~DataForGpuTTM() {

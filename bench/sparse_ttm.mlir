@@ -12,8 +12,8 @@ module {
     }
 
     func.func public @sparse_ttm(%Mf : index, %R : index, %fptr: memref<?xindex>, %x_coord_constant : memref<?xindex>,
-                                 %x_values : memref<?xf64>, %u: memref<?x?xf64>,
-                                 %y: memref<?x?xf64>) -> (i64) attributes {llvm.emit_c_interface} {
+                                 %x_values : memref<?xf32>, %u: memref<?x?xf32>,
+                                 %y: memref<?x?xf32>) -> (i64) attributes {llvm.emit_c_interface} {
 
         %start = func.call @milliTime() : () -> (i64)
         "standalone.computation"() ({
@@ -26,10 +26,10 @@ module {
             //     }
             // }
             "standalone.bar"(%Mf, %R, %fptr, %x_coord_constant, %x_values, %u, %y) ({
-                ^bb0(%x_value : f64, %u_k_r : f64, %y_f_r : f64):
-                %0 = arith.mulf %x_value, %u_k_r : f64
-                %1 = arith.addf %0, %y_f_r : f64
-                "standalone.yield"(%1) : (f64) -> ()
+                ^bb0(%x_value : f32, %u_k_r : f32, %y_f_r : f32):
+                %0 = arith.mulf %x_value, %u_k_r : f32
+                %1 = arith.addf %0, %y_f_r : f32
+                "standalone.yield"(%1) : (f32) -> ()
             }) {
                 reads = [
                     [affine_map<(f, m, k, r) -> (m)>],
@@ -46,7 +46,7 @@ module {
                 executionSchedule = "{[f,m,k,r]->[f,m,k,r]}",
                 transforms = []
             } : (index, index, memref<?xindex>, memref<?xindex>,
-                memref<?xf64>, memref<?x?xf64>, memref<?x?xf64>) -> ()
+                memref<?xf32>, memref<?x?xf32>, memref<?x?xf32>) -> ()
         }) : () -> ()
         %stop = func.call @milliTime() : () -> (i64)
         %time = arith.subi %stop, %start: i64

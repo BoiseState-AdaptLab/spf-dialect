@@ -14,39 +14,43 @@ extern "C" {
 int64_t _mlir_ciface_sparse_ttm_cpu(
     uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
     StridedMemRefType<uint64_t, 1> *x_coord_constant,
-    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
-    StridedMemRefType<double, 2> *y);
+    StridedMemRefType<float, 1> *x_values, StridedMemRefType<float, 2> *u,
+    StridedMemRefType<float, 2> *y);
 int64_t _mlir_ciface_sparse_mttkrp_cpu(
     uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
     StridedMemRefType<uint64_t, 1> *b_coord_1,
     StridedMemRefType<uint64_t, 1> *b_coord_2,
-    StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
-    StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
+    StridedMemRefType<float, 1> *b_values, StridedMemRefType<float, 2> *c,
+    StridedMemRefType<float, 2> *d, StridedMemRefType<float, 2> *a);
 int64_t _mlir_ciface_sparse_ttm_gpu(
     uint64_t Mf, uint64_t R, StridedMemRefType<uint64_t, 1> *fptr,
     StridedMemRefType<uint64_t, 1> *x_coord_constant,
-    StridedMemRefType<double, 1> *x_values, StridedMemRefType<double, 2> *u,
-    StridedMemRefType<double, 2> *y);
+    StridedMemRefType<float, 1> *x_values, StridedMemRefType<float, 2> *u,
+    StridedMemRefType<float, 2> *y);
 int64_t _mlir_ciface_sparse_mttkrp_gpu(
     uint64_t NNZ, uint64_t J, StridedMemRefType<uint64_t, 1> *b_coord_0,
     StridedMemRefType<uint64_t, 1> *b_coord_1,
     StridedMemRefType<uint64_t, 1> *b_coord_2,
-    StridedMemRefType<double, 1> *b_values, StridedMemRefType<double, 2> *c,
-    StridedMemRefType<double, 2> *d, StridedMemRefType<double, 2> *a);
+    StridedMemRefType<float, 1> *b_values, StridedMemRefType<float, 2> *c,
+    StridedMemRefType<float, 2> *d, StridedMemRefType<float, 2> *a);
 }
 
 namespace {
-void runTest(DataForCpuMttkrp &result, char *filename, Config config) {
+template <typename T>
+void runTest(T &result, const char *context, char *filename, Config config) {
   auto red = "\033[31m";
   auto green = "\033[32m";
   auto reset = "\033[0m";
-  auto reference = DataForCpuMttkrp(filename, config, true);
+  auto reference = T(filename, config, true);
   if (!reference.isSame(result)) {
-    std::cerr << red << "result doesn't match reference implementation\n"
+    std::cerr << red << context
+              << " result doesn't match reference implementation\n"
               << reset;
     exit(1);
   } else {
-    std::cerr << green << "result matches reference implementation\n" << reset;
+    std::cerr << green << context
+              << " result matches reference implementation\n"
+              << reset;
   }
 }
 } // anonymous namespace
@@ -72,7 +76,7 @@ std::vector<int64_t> cpu_mttkrp_mlir(Config config, char *filename) {
   }
 
   if (config.test) {
-    runTest(data, filename, config);
+    runTest(data, "cpu mttkrp mlir", filename, config);
   }
 
   return times;
@@ -154,7 +158,7 @@ std::vector<int64_t> cpu_mttkrp_iegenlib(Config config, char *filename) {
   }
 
   if (config.test) {
-    runTest(data, filename, config);
+    runTest(data, "cpu mttkrp iegenlib", filename, config);
   }
 
   return times;
@@ -179,10 +183,18 @@ std::vector<int64_t> cpu_ttm_mlir(Config config, char *filename) {
     std::cout << "=====\n";
   }
 
+  if (config.test) {
+    runTest(data, "cpu ttm mlir", filename, config);
+  }
+
   return times;
 }
 
 std::vector<int64_t> cpu_ttm_iegenlib(Config config, char *filename) {
+  if (config.debug) {
+    std::cout << "cpu ttm iegenlib =====\n";
+  }
+
   auto data = DataForCpuTTM(filename, config);
 
   uint64_t R = data.R;
@@ -248,6 +260,10 @@ std::vector<int64_t> cpu_ttm_iegenlib(Config config, char *filename) {
     std::cout << "=====\n";
   }
 
+  if (config.test) {
+    runTest(data, "cpu ttm iegenlib", filename, config);
+  }
+
   return times;
 }
 
@@ -275,7 +291,7 @@ std::vector<int64_t> gpu_mttkrp_mlir(Config config, char *filename) {
     }
 
     if (config.test) {
-      runTest(cpuData, filename, config);
+      runTest(cpuData, "gpu mttkrp mlir", filename, config);
     }
   }
 
@@ -296,9 +312,17 @@ std::vector<int64_t> gpu_ttm_mlir(Config config, char *filename) {
                                            &data.u, &data.y);
   }
 
-  if (config.debug) {
-    DataForCpuTTM(data).dump();
-    std::cout << "=====\n";
+  if (config.debug || config.test) {
+    auto cpuData = DataForCpuTTM(data);
+
+    if (config.debug) {
+      cpuData.dump();
+      std::cout << "=====\n";
+    }
+
+    if (config.test) {
+      runTest(cpuData, "gpu ttm mlir", filename, config);
+    }
   }
 
   return times;

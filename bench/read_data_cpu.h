@@ -5,14 +5,18 @@
 #include "Runtime/GPURuntime.h"
 #include "benchmarks.h"
 #include "read_data_gpu.h"
+#include <cstddef>
+#include <cstdint>
 
 // variable names from http://tensor-compiler.org/docs/data_analytics
 class DataForCpuMttkrp {
   COO *bData;
-  std::vector<double> cData;
-  std::vector<double> dData;
-  std::vector<double> aData;
+  std::vector<float> cData;
+  std::vector<float> dData;
+  std::vector<float> aData;
 
+  // TODO: this should really run on a 64 bit version of the data to check for
+  // overflows
   void runReferenceImplementation() {
     for (uint64_t x = 0; x < NNZ; x++) {
       uint64_t i = bCoord0.data[x];
@@ -29,10 +33,10 @@ public:
   StridedMemRefType<uint64_t, 1> bCoord0;
   StridedMemRefType<uint64_t, 1> bCoord1;
   StridedMemRefType<uint64_t, 1> bCoord2;
-  StridedMemRefType<double, 1> bValues;
-  StridedMemRefType<double, 2> c;
-  StridedMemRefType<double, 2> d;
-  StridedMemRefType<double, 2> a;
+  StridedMemRefType<float, 1> bValues;
+  StridedMemRefType<float, 2> c;
+  StridedMemRefType<float, 2> d;
+  StridedMemRefType<float, 2> a;
   const uint64_t NNZ;
   const uint64_t I;
   const uint64_t J;
@@ -52,10 +56,10 @@ public:
     _mlir_ciface_values(&bValues, bData);
 
     // Construct c matrix
-    cData = std::vector<double>(K * J);
+    cData = std::vector<float>(K * J);
     for (uint64_t k = 0; k < K; k++) {
       for (uint64_t j = 0; j < J; j++) {
-        cData[k * J + j] = k * J + j;
+        cData[k * J + j] = 1;
       }
     }
     c.basePtr = c.data = cData.data();
@@ -66,10 +70,10 @@ public:
     c.strides[1] = 1;
 
     // Construct d matrix
-    dData = std::vector<double>(L * J);
+    dData = std::vector<float>(L * J);
     for (uint64_t l = 0; l < L; l++) {
       for (uint64_t j = 0; j < J; j++) {
-        dData[l * J + j] = l * J + j;
+        dData[l * J + j] = 1;
       }
     }
     d.basePtr = d.data = dData.data();
@@ -80,7 +84,7 @@ public:
     d.strides[1] = 1;
 
     // Construct a matrix
-    aData = std::vector<double>(I * J);
+    aData = std::vector<float>(I * J);
     std::fill(aData.begin(), aData.end(), 0.0);
     a.basePtr = a.data = aData.data();
     a.offset = 0;
@@ -103,7 +107,7 @@ public:
     coord.push_back(copyToCpuMemRef(&src.bCoord1, &bCoord1));
     coord.push_back(copyToCpuMemRef(&src.bCoord2, &bCoord2));
 
-    std::vector<double> values = copyToCpuMemRef(&src.bValues, &bValues);
+    std::vector<float> values = copyToCpuMemRef(&src.bValues, &bValues);
 
     bData = new COO(NNZ, 3, {I, K, L}, std::move(coord), std::move(values));
 
@@ -188,8 +192,21 @@ public:
 class DataForCpuTTM {
   COO *xData;
   std::vector<uint64_t> fptrData;
-  std::vector<double> uData;
-  std::vector<double> yData;
+  std::vector<float> uData;
+  std::vector<float> yData;
+
+  // TODO: this should really run on a 64 bit version of the data to check for
+  // overflows
+  void runReferenceImplementation() {
+    for (uint64_t f = 0; f <= Mf - 1; f++) {
+      for (uint64_t m = fptr.data[f]; m < fptr.data[f + 1]; m++) {
+        uint64_t k = xCoordConstant.data[m];
+        for (uint64_t r = 0; r <= R - 1; r++) {
+          y.data[f * R + r] += xValues.data[m] * u.data[k * R + r];
+        }
+      }
+    }
+  }
 
 public:
   uint64_t Mf; // number of n-mode fibers
@@ -197,16 +214,18 @@ public:
   const uint64_t J;
   const uint64_t K;
   const uint64_t R;
+  const uint64_t constantMode;
   StridedMemRefType<uint64_t, 1> fptr; // the beginnings of each X mode-n fiber
   StridedMemRefType<uint64_t, 1>
       xCoordConstant; // the coordinates in dimension <constantMode>
-  StridedMemRefType<double, 1> xValues;
-  StridedMemRefType<double, 2> u;
-  StridedMemRefType<double, 2> y;
+  StridedMemRefType<float, 1> xValues;
+  StridedMemRefType<float, 2> u;
+  StridedMemRefType<float, 2> y;
 
-  DataForCpuTTM(char *filename, Config config)
+  DataForCpuTTM(char *filename, Config config, bool isReference = false)
       : xData((COO *)_mlir_ciface_read_coo(filename)), I(xData->dims[0]),
-        J(xData->dims[1]), K(xData->dims[2]), R(config.R) {
+        J(xData->dims[1]), K(xData->dims[2]), R(config.R),
+        constantMode(config.constantMode) {
     assert(xData->rank == 3 && "ttm only supports rank 3 tensor");
     assert(config.constantMode < 3 && "constant mode dimension not in bounds");
 
@@ -229,10 +248,10 @@ public:
     fptr.strides[0] = 1;
 
     // construct data for u matrix
-    uData = std::vector<double>(constantModeDimSize * R);
+    uData = std::vector<float>(constantModeDimSize * R);
     for (uint64_t i = 0; i < constantModeDimSize; i++) {
       for (uint64_t j = 0; j < R; j++) {
-        uData[i * R + j] = i * R + j;
+        uData[i * R + j] = 1;
       }
     }
     u.basePtr = u.data = uData.data();
@@ -274,7 +293,7 @@ public:
     //       [[231.   0.  33. 201.]
     //        [183. 170. 109. 225.]
     //        [ 66. 127.  67.  43.]]]
-    yData = std::vector<double>(Mf * R);
+    yData = std::vector<float>(Mf * R);
     std::fill(yData.begin(), yData.end(), 0.0);
     y.basePtr = y.data = yData.data();
     y.offset = 0;
@@ -282,16 +301,21 @@ public:
     y.sizes[1] = R;
     y.strides[0] = R;
     y.strides[1] = 1;
+
+    if (isReference) {
+      runReferenceImplementation();
+    }
   }
 
   // This constructor expects src DataForGpuTTM to be populated
   DataForCpuTTM(DataForGpuTTM &src)
-      : Mf(src.Mf), I(src.I), J(src.J), K(src.K), R(src.R) {
+      : Mf(src.Mf), I(src.I), J(src.J), K(src.K), R(src.R),
+        constantMode(src.constantMode) {
 
     std::vector<std::vector<uint64_t>> coord;
     coord.push_back(copyToCpuMemRef(&src.xCoordConstant, &xCoordConstant));
 
-    std::vector<double> values = copyToCpuMemRef(&src.xValues, &xValues);
+    std::vector<float> values = copyToCpuMemRef(&src.xValues, &xValues);
 
     xData = new COO(values.size(), 1,
                     {static_cast<unsigned long>(src.xCoordConstant.sizes[0])},
@@ -320,6 +344,56 @@ public:
     impl::printMemRef(this->u);
     std::cout << "y:\n";
     impl::printMemRef(this->y);
+  }
+
+  bool isSame(DataForCpuTTM &other) {
+    if (this->I != other.I) {
+      return false;
+    }
+    if (this->J != other.J) {
+      return false;
+    }
+    if (this->K != other.K) {
+      return false;
+    }
+    if (this->R != other.R) {
+      return false;
+    }
+    if (this->Mf != other.Mf) {
+      return false;
+    }
+    if (this->Mf != other.Mf) {
+      return false;
+    }
+    if (this->constantMode != other.constantMode) {
+      return false;
+    }
+
+    // xData
+    if (this->xData->coord[this->constantMode] !=
+        other.xData->coord[this->constantMode]) {
+      return false;
+    };
+    if (this->xData->values != other.xData->values) {
+      return false;
+    };
+
+    // fptr
+    if (this->fptrData != other.fptrData) {
+      return false;
+    };
+
+    // input
+    if (this->uData != other.uData) {
+      return false;
+    };
+
+    // output
+    if (this->yData != other.yData) {
+      return false;
+    };
+
+    return true;
   }
 };
 

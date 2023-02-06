@@ -1,9 +1,9 @@
 module {
-    func.func private @printMemrefF64(memref<*xf64>) attributes { llvm.emit_c_interface }
+    func.func private @printMemrefF32(memref<*xf32>) attributes { llvm.emit_c_interface }
     func.func private @getTensorFilename(index) -> (!llvm.ptr<i8>)
     func.func private @coords(!llvm.ptr<i8>, index) -> memref<?xindex> attributes {llvm.emit_c_interface}
     func.func private @read_coo(!llvm.ptr<i8>) -> !llvm.ptr<i8> attributes {llvm.emit_c_interface}
-    func.func private @values(!llvm.ptr<i8>) -> memref<?xf64> attributes {llvm.emit_c_interface}
+    func.func private @values(!llvm.ptr<i8>) -> memref<?xf32> attributes {llvm.emit_c_interface}
 
     func.func private @UFi(%uf_argb_coord_0 : memref<?xindex>,
                            %uf_argb_coord_1 : memref<?xindex>,
@@ -36,10 +36,10 @@ module {
                              %argb_coord_0 : memref<?xindex>,
                              %argb_coord_1 : memref<?xindex>,
                              %argb_coord_2 : memref<?xindex>,
-                             %argb_values : memref<?xf64>,
-                             %argc: memref<?x?xf64>,
-                             %argd: memref<?x?xf64>,
-                             %arga: memref<?x?xf64>) -> () {
+                             %argb_values : memref<?xf32>,
+                             %argc: memref<?x?xf32>,
+                             %argd: memref<?x?xf32>,
+                             %arga: memref<?x?xf32>) -> () {
 
         "standalone.computation"() ({
             // for(int z = 0; z < NNZ; z++) {
@@ -51,11 +51,11 @@ module {
             //     A[i,j] += val*C[k,j]*D[l,j];
             // }
             "standalone.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
-                ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
-                %0 = arith.mulf %b_i_k_l, %d_l_j : f64
-                %1 = arith.mulf %0, %c_k_j : f64
-                %2 = arith.addf %1, %a_i_j : f64
-                "standalone.yield"(%2) : (f64) -> ()
+                ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
+                %0 = arith.mulf %b_i_k_l, %d_l_j : f32
+                %1 = arith.mulf %0, %c_k_j : f32
+                %2 = arith.addf %1, %a_i_j : f32
+                "standalone.yield"(%2) : (f32) -> ()
             }) {
                 reads = [
                     [affine_map<(z, i, k, l, j) -> (z)>],
@@ -74,9 +74,9 @@ module {
                 transforms = []
             } : (index, index,
             memref<?xindex>, memref<?xindex>,
-            memref<?xindex>, memref<?xf64>,
-            memref<?x?xf64>, memref<?x?xf64>,
-            memref<?x?xf64>) -> ()
+            memref<?xindex>, memref<?xf32>,
+            memref<?x?xf32>, memref<?x?xf32>,
+            memref<?x?xf32>) -> ()
         }) : () -> ()
 
         return
@@ -84,7 +84,7 @@ module {
 
     func.func @main() {
         // // constants of float type
-        %f0 = arith.constant 0.0 : f64
+        %f0 = arith.constant 0.0 : f32
 
         // constants of index type
         %c0 = arith.constant 0 : index
@@ -111,45 +111,45 @@ module {
         %b_coord_0 = call @coords(%storage, %c0) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
         %b_coord_1 = call @coords(%storage, %c1) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
         %b_coord_2 = call @coords(%storage, %c2) : (!llvm.ptr<i8>, index) -> (memref<?xindex>)
-        %b_values = call @values(%storage) : (!llvm.ptr<i8>) -> (memref<?xf64>)
-        // %unranked_b_values = memref.cast %b_values : memref<?xf64> to memref<*xf64>
-        // call @printMemrefF64(%unranked_b_values) : (memref<*xf64>) -> ()
+        %b_values = call @values(%storage) : (!llvm.ptr<i8>) -> (memref<?xf32>)
+        // %unranked_b_values = memref.cast %b_values : memref<?xf32> to memref<*xf32>
+        // call @printMemrefF32(%unranked_b_values) : (memref<*xf32>) -> ()
 
         // Initialize dense C and D inputs and dense output A.
-        %c = memref.alloc(%K, %J) : memref<?x?xf64>
+        %c = memref.alloc(%K, %J) : memref<?x?xf32>
         scf.for %k = %c0 to %K step %c1 {
             scf.for %j = %c0 to %J step %c1 {
                 %v0 = arith.muli %k, %J : index
                 %v1 = arith.addi %v0, %j : index
                 %v2 = arith.index_cast %v1 : index to i32
-                %v = arith.sitofp %v2 : i32 to f64
-                memref.store %v, %c[%k, %j] : memref<?x?xf64>
+                %v = arith.sitofp %v2 : i32 to f32
+                memref.store %v, %c[%k, %j] : memref<?x?xf32>
             }
         }
-        // %unranked_c = memref.cast %c : memref<?x?xf64> to memref<*xf64>
-        // call @printMemrefF64(%unranked_c) : (memref<*xf64>) -> ()
+        // %unranked_c = memref.cast %c : memref<?x?xf32> to memref<*xf32>
+        // call @printMemrefF32(%unranked_c) : (memref<*xf32>) -> ()
 
-        %d = memref.alloc(%L, %J) : memref<?x?xf64>
+        %d = memref.alloc(%L, %J) : memref<?x?xf32>
         scf.for %l = %c0 to %L step %c1 {
             scf.for %j = %c0 to %J step %c1 {
                 %v0 = arith.muli %l, %J : index
                 %v1 = arith.addi %v0, %j : index
                 %v2 = arith.index_cast %v1 : index to i32
-                %v = arith.sitofp %v2 : i32 to f64
-                memref.store %v, %d[%l, %j] : memref<?x?xf64>
+                %v = arith.sitofp %v2 : i32 to f32
+                memref.store %v, %d[%l, %j] : memref<?x?xf32>
             }
         }
-        // %unranked_d = memref.cast %d : memref<?x?xf64> to memref<*xf64>
-        // call @printMemrefF64(%unranked_d) : (memref<*xf64>) -> () //
+        // %unranked_d = memref.cast %d : memref<?x?xf32> to memref<*xf32>
+        // call @printMemrefF32(%unranked_d) : (memref<*xf32>) -> () //
 
-        %a = memref.alloc(%I, %J) : memref<?x?xf64>
+        %a = memref.alloc(%I, %J) : memref<?x?xf32>
         scf.for %i = %c0 to %I step %c1 {
             scf.for %j = %c0 to %J step %c1 {
-                memref.store %f0, %a[%i, %j] : memref<?x?xf64>
+                memref.store %f0, %a[%i, %j] : memref<?x?xf32>
             }
         }
-        // %unranked_a_before = memref.cast %a : memref<?x?xf64> to memref<*xf64>
-        // call @printMemrefF64(%unranked_a_before) : (memref<*xf64>) -> ()
+        // %unranked_a_before = memref.cast %a : memref<?x?xf32> to memref<*xf32>
+        // call @printMemrefF32(%unranked_a_before) : (memref<*xf32>) -> ()
 
         // Call kernel.
         call @sparse_mttkrp(%nnz, %J,
@@ -157,14 +157,14 @@ module {
                             %b_coord_2, %b_values,
                             %c, %d, %a) : (index, index,
                                            memref<?xindex>, memref<?xindex>,
-                                           memref<?xindex>, memref<?xf64>,
-                                           memref<?x?xf64>, memref<?x?xf64>,
-                                           memref<?x?xf64>) -> ()
+                                           memref<?xindex>, memref<?xf32>,
+                                           memref<?x?xf32>, memref<?x?xf32>,
+                                           memref<?x?xf32>) -> ()
 
         // Expected output from  mttkrp_b.tns:
         // ( ( 16075, 21930, 28505, 35800, 43815 ), ( 10000, 14225, 19180, 24865, 31280 ) )
-        %unranked_a = memref.cast %a : memref<?x?xf64> to memref<*xf64>
-        call @printMemrefF64(%unranked_a) : (memref<*xf64>) -> ()
+        %unranked_a = memref.cast %a : memref<?x?xf32> to memref<*xf32>
+        call @printMemrefF32(%unranked_a) : (memref<*xf32>) -> ()
 
         return
     }

@@ -183,7 +183,7 @@ void *_mlir_ciface_read_coo(char *filename) {
   COO *coo = new COO(nnz, rank, std::move(dims));
 
   std::vector<std::vector<uint64_t>> &coord = coo->coord;
-  std::vector<double> &values = coo->values;
+  std::vector<float> &values = coo->values;
 
   // Read file into vectors
   for (uint64_t k = 0; k < nnz; k++) {
@@ -213,8 +213,8 @@ void _mlir_ciface_coords(StridedMemRefType<uint64_t, 1> *ref, void *coo,
   ref->strides[0] = 1;
 }
 
-void _mlir_ciface_values(StridedMemRefType<double, 1> *ref, void *coo) {
-  std::vector<double> &v = static_cast<COO *>(coo)->values;
+void _mlir_ciface_values(StridedMemRefType<float, 1> *ref, void *coo) {
+  std::vector<float> &v = static_cast<COO *>(coo)->values;
   ref->basePtr = ref->data = v.data();
   ref->offset = 0;
   ref->sizes[0] = v.size();

@@ -12,13 +12,12 @@
 
 typedef std::vector<std::vector<uint64_t>> coord_t;
 
-
 struct COO {
   const uint64_t nnz;
   const uint64_t rank;
   std::vector<uint64_t> dims;
   coord_t coord;
-  std::vector<double> values;
+  std::vector<float> values;
 
   COO(const COO &) = delete;
 
@@ -28,7 +27,7 @@ struct COO {
            "dims.size() != rank in COO constructor");
     coord =
         std::vector<std::vector<uint64_t>>(rank, std::vector<uint64_t>(nnz));
-    values = std::vector<double>(nnz);
+    values = std::vector<float>(nnz);
 
     // populate column views. This has to be done carefully to avoid moving the
     // objects, see the move constructors for details.
@@ -42,7 +41,7 @@ struct COO {
   }
 
   COO(const uint64_t nnz, const uint64_t rank, std::vector<uint64_t> &&dims,
-      std::vector<std::vector<uint64_t>> &&coord, std::vector<double> &&values)
+      std::vector<std::vector<uint64_t>> &&coord, std::vector<float> &&values)
       : nnz(nnz), rank(rank), dims(std::move(dims)), coord(std::move(coord)),
         values(std::move(values)) {}
 
@@ -90,10 +89,10 @@ private:
   template <uint8_t N> struct RowView {
     std::array<uint64_t, N> coordTempStorage;
     std::array<uint64_t *, N> coordPointers;
-    double valueTempStorage;
-    double *valuePointer;
+    float valueTempStorage;
+    float *valuePointer;
 
-    RowView(std::array<uint64_t *, N> pointers, double *valuePointer)
+    RowView(std::array<uint64_t *, N> pointers, float *valuePointer)
         : coordPointers(pointers), valuePointer(valuePointer) {}
     RowView(const RowView &other) = delete;
     RowView &operator=(const RowView &other) = delete;
@@ -139,7 +138,7 @@ void *_mlir_ciface_read_coo(char *filename);
 void _mlir_ciface_coords(StridedMemRefType<uint64_t, 1> *ref, void *coo,
                          uint64_t dim);
 
-void _mlir_ciface_values(StridedMemRefType<double, 1> *ref, void *coo);
+void _mlir_ciface_values(StridedMemRefType<float, 1> *ref, void *coo);
 }
 
 #endif // CPU_RUNTIME_H

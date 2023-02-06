@@ -5,7 +5,6 @@ module {
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
                            %z: index)-> index {
-
         %i = memref.load %uf_argb_coord_0[%z] : memref<?xindex>
         return %i : index
     }
@@ -14,7 +13,6 @@ module {
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
                            %z : index) -> index {
-
         %k = memref.load %uf_argb_coord_1[%z] : memref<?xindex>
         return %k : index
     }
@@ -23,14 +21,13 @@ module {
                            %uf_argb_coord_1 : memref<?xindex>,
                            %uf_argb_coord_2 : memref<?xindex>,
                            %z : index) -> index {
-
         %l = memref.load %uf_argb_coord_2[%z] : memref<?xindex>
         return %l : index
     }
 
     func.func public @sparse_mttkrp(%NNZ : index, %J : index, %b_coord_0 : memref<?xindex>, %b_coord_1 : memref<?xindex>,
-                                    %b_coord_2 : memref<?xindex>, %b_values : memref<?xf64>, %c: memref<?x?xf64>,
-                                    %d: memref<?x?xf64>, %a: memref<?x?xf64>) -> (i64) attributes {llvm.emit_c_interface} {
+                                    %b_coord_2 : memref<?xindex>, %b_values : memref<?xf32>, %c: memref<?x?xf32>,
+                                    %d: memref<?x?xf32>, %a: memref<?x?xf32>) -> (i64) attributes {llvm.emit_c_interface} {
 
         %start = func.call @milliTime() : () -> (i64)
         "standalone.computation"() ({
@@ -44,11 +41,11 @@ module {
             //   }
             // }
             "standalone.bar"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
-                ^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
-                %0 = arith.mulf %b_i_k_l, %d_l_j : f64
-                %1 = arith.mulf %0, %c_k_j : f64
-                %2 = arith.addf %1, %a_i_j : f64
-                "standalone.yield"(%2) : (f64) -> ()
+                ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
+                %0 = arith.mulf %b_i_k_l, %d_l_j : f32
+                %1 = arith.mulf %0, %c_k_j : f32
+                %2 = arith.addf %1, %a_i_j : f32
+                "standalone.yield"(%2) : (f32) -> ()
             }) {
                 reads = [
                     [affine_map<(z, i, k, l, j) -> (z)>],
@@ -67,9 +64,9 @@ module {
                 transforms = []
             } : (index, index,
                  memref<?xindex>, memref<?xindex>,
-                 memref<?xindex>, memref<?xf64>,
-                 memref<?x?xf64>, memref<?x?xf64>,
-                 memref<?x?xf64>) -> ()
+                 memref<?xindex>, memref<?xf32>,
+                 memref<?x?xf32>, memref<?x?xf32>,
+                 memref<?x?xf32>) -> ()
         }) : () -> ()
         %stop = func.call @milliTime() : () -> (i64)
         %time = arith.subi %stop, %start: i64

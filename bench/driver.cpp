@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -41,7 +42,8 @@ T defaultIfAbsent(const std::map<std::string, T> &map, char *key, T ifAbsent) {
 
 // these functions will be named platform_benchmark_implementation e.g.
 // cpu_tiledMTTKRP_mlir
-typedef std::function<std::vector<int64_t>(Config config, char *filename)>
+typedef std::function<std::optional<std::vector<int64_t>>(Config config,
+                                                          char *filename)>
     BenchmarkFunction;
 
 // what platform to run benchmark on e.g. cpu, gpu
@@ -122,20 +124,11 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  auto not_implemented = [](Config config, char *__,
-                            const char *name) -> std::vector<int64_t> {
-    if (config.debug) {
-      std::cout << name << " =====\nnot implemented\n=====\n";
-    }
-    return {-1};
+  auto not_implemented = [](Config _,
+                            char *__) -> std::optional<std::vector<int64_t>> {
+    return std::nullopt;
   };
 
-  using namespace std::placeholders;
-  auto gpu_mttkrp_iegenlib =
-      std::bind(not_implemented, _1, _2, "gpu_mttkrp_iegenlib");
-  auto gpu_ttm_iegenlib =
-      std::bind(not_implemented, _1, _2, "gpu_ttm_iegenlib");
-  // benchmarks stored in Platform x Benchmark x Implementation vector
   std::vector<std::vector<std::vector<BenchmarkFunction>>> benchmarks{
       // CPU,
       {
@@ -146,8 +139,8 @@ int main(int argc, char *argv[]) {
       // GPU
       {
           // MLIR,          IEGENLIB
-          {gpu_mttkrp_mlir, gpu_mttkrp_iegenlib}, // MTTKRP
-          {gpu_ttm_mlir, gpu_ttm_iegenlib},       // MTTKRP
+          {gpu_mttkrp_mlir, not_implemented}, // MTTKRP
+          {gpu_ttm_mlir, not_implemented},    // MTTKRP
       },
   };
 
@@ -156,11 +149,13 @@ int main(int argc, char *argv[]) {
       benchmarks[platform][benchmark][implementation](Config(), argFilename);
 
   // dump the results in csv
-  for (auto time : times) {
-    std::cout << argPlatform << ", " << argBenchmark << ", "
-              << argImplementation << ", "
-              << std::filesystem::path(argFilename).filename().string() << ", "
-              << time << "\n";
+  if (times) {
+    for (auto time : *times) {
+      std::cout << argPlatform << ", " << argBenchmark << ", "
+                << argImplementation << ", "
+                << std::filesystem::path(argFilename).filename().string()
+                << ", " << time << "\n";
+    }
   }
 
   return 0;

@@ -17,7 +17,7 @@ extern "C" {
 void _mlir_ciface_coords_gpu(StridedMemRefType<uint64_t, 1> *ref, void *coo,
                              uint64_t dim);
 
-void _mlir_ciface_values_gpu(StridedMemRefType<double, 1> *ref, void *coo);
+void _mlir_ciface_values_gpu(StridedMemRefType<float, 1> *ref, void *coo);
 } // extern "C"
 
 #endif // GPU_RUNTIME_H
