@@ -10,6 +10,7 @@ def MyPass : Pass<"my-pass"> {
       This pass prints some debug stuff
   }];
   let constructor = "mlir::standalone::createMyPass()";
+  let dependentDialects = ["mlir::gpu::GPUDialect"];
 }
 
 #endif // MLIR_TRANSFORMS_PASSES

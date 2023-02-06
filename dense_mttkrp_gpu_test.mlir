@@ -9,7 +9,6 @@ module {
 				            %argc: memref<?x?xf64>,
 				            %argd: memref<?x?xf64>,
 				            %arga: memref<?x?xf64>) {
-
 		"standalone.computation"() ({
 			// http://tensor-compiler.org/docs/data_analytics
 			// void mttkrp(int I, int K, int L, int J, double *B,

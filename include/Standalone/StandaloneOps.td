@@ -64,6 +64,7 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
                          ArrayAttr:$iteratorTypes,
                          StrAttr:$iterationSpace,
                          StrAttr:$executionSchedule,
+                         DefaultValuedAttr<BoolAttr, "false">:$atomicWrite,
                          ArrayAttr:$reads,
                          ArrayAttr:$writes,
                          ArrayAttr:$transforms);

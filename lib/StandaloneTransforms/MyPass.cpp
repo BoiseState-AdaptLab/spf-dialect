@@ -9,6 +9,8 @@
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/GPU/IR/GPUDialect.h"
+#include "mlir/Dialect/GPU/Transforms/ParallelLoopMapper.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
@@ -42,6 +44,7 @@
 #include <code_gen/codegen_error.h>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <iomanip>
 #include <memory>
 #include <omega.h>
@@ -215,6 +218,19 @@ private:
     return out;
   }
 
+  void applyMapping(scf::ParallelOp parallelOp, gpu::Processor processor) {
+    auto mapping = mlir::gpu::setMappingAttr(
+        parallelOp, builder.getAttr<mlir::gpu::ParallelLoopDimMappingAttr>(
+                        processor, builder.getDimIdentityMap(),
+                        builder.getDimIdentityMap()));
+
+    if (mapping.failed()) {
+      llvm::errs() << "Couldn't apply parallel loop dim map"
+                   << "\n";
+      exit(1);
+    }
+  }
+
   void visit(sparser::LoopAST *loop) override {
     LLVM_DEBUG(llvm::dbgs() << "loop"
                             << "\n");
@@ -259,11 +275,23 @@ private:
     // LoopLike Interface but it seems like it doesn't ahve everything we need.
     // Maybe what we need could be added upstream?
     if (iteratorType &&
-        iteratorType.getValue() ==
-            "parallel") { // add parallel loop, and update walker state
+        (iteratorType.getValue() == "parallel" ||
+         iteratorType.getValue() == "block_x" ||
+         iteratorType.getValue() == "thread_x" ||
+         iteratorType.getValue() ==
+             "thread_y")) { // add parallel loop, and update walker state
       scf::ParallelOp parallelOp = builder.create<scf::ParallelOp>(
           computationOp.getLoc(), mlir::ValueRange({start}),
           mlir::ValueRange(stop), mlir::ValueRange({step}));
+
+      auto val = iteratorType.getValue();
+      if (val == "block_x") {
+        applyMapping(parallelOp, gpu::Processor::BlockX);
+      } else if (val == "thread_x") {
+        applyMapping(parallelOp, gpu::Processor::ThreadX);
+      } else if (val == "thread_y") {
+        applyMapping(parallelOp, gpu::Processor::ThreadY);
+      }
 
       iv = parallelOp.getInductionVars()[0];
       afterLoop = ++Block::iterator(parallelOp);
@@ -408,14 +436,17 @@ private:
 
     // 1.b. Emit load for output memrefs
     SmallVector<Value> outputOperands = statementOp.getOutputOperands();
-    for (size_t i = 0; i < outputOperands.size(); i++) {
-      // read the map that corresponds with the current inputOperand.
-      auto writes = *(writesForOutputs.begin() + i);
-      for (auto map : writes) {
-        SmallVector<Value> indexing =
-            makeCanonicalAffineApplies(builder, loc, map, args);
-        indexedValues.push_back(
-            builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
+    // If this write is atomic there is no need to generate load operation
+    if (!statementOp.getAtomicWrite()) {
+      for (size_t i = 0; i < outputOperands.size(); i++) {
+        // read the map that corresponds with the current inputOperand.
+        auto writes = *(writesForOutputs.begin() + i);
+        for (auto map : writes) {
+          SmallVector<Value> indexing =
+              makeCanonicalAffineApplies(builder, loc, map, args);
+          indexedValues.push_back(
+              builder.create<memref::LoadOp>(loc, outputOperands[i], indexing));
+        }
       }
     }
 
@@ -444,9 +475,16 @@ private:
     Operation *terminator = block.getTerminator();
     for (OpOperand &operand : terminator->getOpOperands()) {
       Value toStore = map.lookupOrDefault(operand.get());
-      builder.create<memref::StoreOp>(loc, toStore,
-                                      outputBuffers[operand.getOperandNumber()],
-                                      indexing[operand.getOperandNumber()]);
+      if (statementOp.getAtomicWrite()) {
+        builder.create<memref::AtomicRMWOp>(
+            loc, arith::AtomicRMWKind::addf, toStore,
+            outputBuffers[operand.getOperandNumber()],
+            indexing[operand.getOperandNumber()]);
+      } else {
+        builder.create<memref::StoreOp>(
+            loc, toStore, outputBuffers[operand.getOperandNumber()],
+            indexing[operand.getOperandNumber()]);
+      }
     }
   }
 
@@ -679,7 +717,7 @@ void MyPass::runOnOperation() {
   ConversionTarget target(getContext());
   target.addLegalDialect<scf::SCFDialect, arith::ArithDialect,
                          vector::VectorDialect, memref::MemRefDialect,
-                         AffineDialect, func::FuncDialect>();
+                         AffineDialect, func::FuncDialect, gpu::GPUDialect>();
   target.addIllegalOp<standalone::BarOp, standalone::ComputationOp>();
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {

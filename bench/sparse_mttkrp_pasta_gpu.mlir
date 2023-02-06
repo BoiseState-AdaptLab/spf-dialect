@@ -99,37 +99,36 @@ module {
                              %argb_coord_0, %argb_coord_1, %argb_coord_2, %THREADS_NNZ, %NNZ_PER_LOOP, // ufInputs
                              %argb_values, %argc, %argd, // inputs
                              %arga) ({ // outputs
-            ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
-            %0 = arith.mulf %b_i_k_l, %d_l_j : f32
-            %1 = arith.mulf %0, %c_k_j : f32
-            %2 = arith.addf %1, %a_i_j : f32
-            "standalone.yield"(%2) : (f32) -> ()
-            })  {
-                    reads = [
-                        [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (x)>],
-                        [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (k, j)>],
-                        [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (l, j)>]
-                    ],
-                    writes = [
-                        [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (i, j)>]
-                    ],
-                    // symbols,ufInputs,inputs,outputs
-                    operand_segment_sizes = array<i32: 6,5,3,1>,
-                    symbolNames = ["NNZ", "BLOCKS", "THREADS_J", "THREADS_NNZ", "NUM_LOOPS_NNZ", "J"],
-                    iteratorTypes = ["parallel", "parallel", "parallel", "reduction", "reduction", "reduction", "reduction", "reduction"],
-                    executionSchedule = "{[block,j,tnnz,nl,x,i,k,l]->[block,j,tnnz,nl,x,i,k,l]}",
-                    iterationSpace = "{[block,j,tnnz,nl,x,i,k,l] : 0<=block<BLOCKS and 0<=j<THREADS_J and 0<=tnnz<THREADS_NNZ and 0<=nl<NUM_LOOPS_NNZ and x=UFx(block,tnnz,nl) and x<NNZ and i=UFi(x) and k=UFk(x) and l=UFl(x)}",
-                    transforms = []
-                } : (index, index, index, index, index, index,
-                     memref<?xindex>, memref<?xindex>,
-                     memref<?xindex>, index, index, memref<?xf32>,
-                     memref<?x?xf32>, memref<?x?xf32>,
-                     memref<?x?xf32>) -> ()
+                    ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32):
+                    %0 = arith.mulf %b_i_k_l, %d_l_j : f32
+                    %1 = arith.mulf %0, %c_k_j : f32
+                    "standalone.yield"(%1) : (f32) -> ()
+                    })  {
+                        reads = [
+                            [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (x)>],
+                            [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (k, j)>],
+                            [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (l, j)>]
+                        ],
+                        writes = [
+                            [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (i, j)>]
+                        ],
+                        // symbols,ufInputs,inputs,outputs
+                        operand_segment_sizes = array<i32: 6,5,3,1>,
+                        symbolNames = ["NNZ", "BLOCKS", "THREADS_J", "THREADS_NNZ", "NUM_LOOPS_NNZ", "J"],
+                        iteratorTypes = ["block_x", "thread_x", "thread_y", "reduction", "reduction", "reduction", "reduction", "reduction"],
+                        executionSchedule = "{[block,j,tnnz,nl,x,i,k,l]->[block,j,tnnz,nl,x,i,k,l]}",
+                        atomicWrite = true,
+                        iterationSpace = "{[block,j,tnnz,nl,x,i,k,l] : 0<=block<BLOCKS and 0<=j<THREADS_J and 0<=tnnz<THREADS_NNZ and 0<=nl<NUM_LOOPS_NNZ and x=UFx(block,tnnz,nl) and x<NNZ and i=UFi(x) and k=UFk(x) and l=UFl(x)}",
+                        transforms = []
+                    } : (index, index, index, index, index, index,
+                        memref<?xindex>, memref<?xindex>,
+                        memref<?xindex>, index, index, memref<?xf32>,
+                        memref<?x?xf32>, memref<?x?xf32>,
+                        memref<?x?xf32>) -> ()
         }) : () -> ()
         %stop = func.call @milliTime() : () -> (i64)
         %time = arith.subi %stop, %start: i64
 
-        %bla = arith.constant 69 : i64
-        return %bla : i64
+        return %time : i64
 	}
 }
