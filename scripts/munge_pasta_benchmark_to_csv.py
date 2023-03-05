@@ -1,5 +1,4 @@
 import sys
-import os
 
 def process(i, lines, search_term, platform, benchmark):
 	filename = lines[i].split("/")[-1].strip()

@@ -1,0 +1,349 @@
++ module add gcc/10.2.0 cmake/gcc/3.18.0 nvidia_hpcsdk/21.2 cuda11.2/toolkit/11.2.2
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /cm/local/apps/environment-modules/4.4.0/libexec/modulecmd.tcl bash add gcc/10.2.0 cmake/gcc/3.18.0 nvidia_hpcsdk/21.2 cuda11.2/toolkit/11.2.2
++ eval 'LD_RUN_PATH=/cm/local/apps/cuda/libs/current/lib64;' export 'LD_RUN_PATH;
+CPATH=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:/cm/shared/apps/slurm/current/include;' export 'CPATH;
+LD_LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:/cm/shared/apps/gcc/10.2/lib:/cm/shared/apps/gcc/10.2/lib64:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64;' export 'LD_LIBRARY_PATH;
+INCLUDEPATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include;' export 'INCLUDEPATH;
+LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64;' export 'LIBRARY_PATH;
+MANPATH=/cm/local/apps/cuda/libs/current/share/man:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:/cm/shared/apps/slurm/current/man:/cm/local/apps/environment-modules/4.4.0//share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man;' export 'MANPATH;
+CUDA_INC_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_INC_PATH;
+CUDA_CMLOCAL_ROOT=/cm/local/apps/cuda/libs/current;' export 'CUDA_CMLOCAL_ROOT;
+LOADEDMODULES=slurm/slurm_cluster/19.05.8:gcc/10.2.0:cmake/gcc/3.18.0:nvidia_hpcsdk/21.2:cuda11.2/toolkit/11.2.2;' export 'LOADEDMODULES;
+_LMFILES_=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:/cm/shared/modulefiles/gcc/10.2.0:/cm/shared/modulefiles/cmake/gcc/3.18.0:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2;' export '_LMFILES_;
+CUDA_CACHE_DISABLE=1;' export 'CUDA_CACHE_DISABLE;
+INCLUDEPATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1;' export 'INCLUDEPATH_modshare;
+LIBRARY_PATH_modshare=/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/local/apps/cuda/libs/current/lib64:1;' export 'LIBRARY_PATH_modshare;
+MODULES_LMCONFLICT=nvidia_hpcsdk/21.2\&nvhpc\&nvhpc-nompi\&nvhpc-byo-compiler;' export 'MODULES_LMCONFLICT;
+MANPATH_modshare=/cm/local/apps/cuda/libs/current/share/man:1:/usr/local/share/man:1:/usr/share/man/overrides:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:1:/cm/local/apps/environment-modules/4.4.0//share/man:1:/cm/local/apps/environment-modules/current/share/man:1:/usr/share/man:1:/cm/shared/apps/slurm/current/man:1;' export 'MANPATH_modshare;
+CPP=cpp;' export 'CPP;
+CXX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc++;' export 'CXX;
+MODULES_LMCONFLICT_modshare=nvidia_hpcsdk/21.2\&nvhpc\&nvhpc-nompi\&nvhpc-byo-compiler:1;' export 'MODULES_LMCONFLICT_modshare;
+CUDA_INSTALL_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_INSTALL_PATH;
+F90=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'F90;
+CUDA_ROOT=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_ROOT;
+CUDA_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_PATH;
+OPAL_PREFIX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi;' export 'OPAL_PREFIX;
+FC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'FC;
+LD_RUN_PATH_modshare=/cm/local/apps/cuda/libs/current/lib64:1;' export 'LD_RUN_PATH_modshare;
+CPATH_modshare=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:1:/cm/shared/apps/slurm/current/include:1;' export 'CPATH_modshare;
+LD_LIBRARY_PATH_modshare=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:1:/cm/shared/apps/gcc/10.2/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:1:/cm/shared/apps/gcc/10.2/lib:1:/cm/local/apps/cuda/libs/current/lib64:1:/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1;' export 'LD_LIBRARY_PATH_modshare;
+CUDA_INC_PATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2:1;' export 'CUDA_INC_PATH_modshare;
+F77=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'F77;
+LOADEDMODULES_modshare=slurm/slurm_cluster/19.05.8:1:cmake/gcc/3.18.0:1:cuda11.2/toolkit/11.2.2:1:nvidia_hpcsdk/21.2:1:gcc/10.2.0:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:1:/cm/shared/modulefiles/cmake/gcc/3.18.0:1:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:1:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:1:/cm/shared/modulefiles/gcc/10.2.0:1;' export '_LMFILES__modshare;
+CUDA_HOME=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_HOME;
+PATH=/cm/local/apps/cuda/libs/current/bin:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:/cm/shared/apps/cmake/gcc/3.18.0/bin:/cm/shared/apps/gcc/10.2/bin:/cm/shared/apps/slurm/current/sbin:/cm/shared/apps/slurm/current/bin:/cm/local/apps/environment-modules/4.4.0//bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/4.4.0/bin:/opt/dell/srvadmin/bin:/home/asgeorge/.local/bin:/home/asgeorge/bin;' export 'PATH;
+CUDA_SDK=/cm/shared/apps/cuda11.2/sdk/11.2.2;' export 'CUDA_SDK;
+CC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc;' export 'CC;
+NVHPC=/cm/shared/apps/nvidia_hpcsdk;' export 'NVHPC;
+PATH_modshare=/cm/local/apps/environment-modules/4.4.0//bin:1:/usr/bin:1:/cm/local/apps/cuda/libs/current/bin:1:/cm/shared/apps/cmake/gcc/3.18.0/bin:1:/usr/local/bin:1:/home/asgeorge/bin:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:1:/cm/shared/apps/slurm/current/bin:1:/opt/dell/srvadmin/bin:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:1:/cm/shared/apps/slurm/current/sbin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:1:/cm/local/apps/environment-modules/4.4.0/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:1:/sbin:1:/cm/shared/apps/gcc/10.2/bin:1:/usr/sbin:1:/home/asgeorge/.local/bin:1:/usr/local/sbin:1;' export 'PATH_modshare;
+test' '0;'
+++ LD_RUN_PATH=/cm/local/apps/cuda/libs/current/lib64
+++ export LD_RUN_PATH
+++ CPATH=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:/cm/shared/apps/slurm/current/include
+++ export CPATH
+++ LD_LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:/cm/shared/apps/gcc/10.2/lib:/cm/shared/apps/gcc/10.2/lib64:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64
+++ export LD_LIBRARY_PATH
+++ INCLUDEPATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include
+++ export INCLUDEPATH
+++ LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64
+++ export LIBRARY_PATH
+++ MANPATH=/cm/local/apps/cuda/libs/current/share/man:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:/cm/shared/apps/slurm/current/man:/cm/local/apps/environment-modules/4.4.0//share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man
+++ export MANPATH
+++ CUDA_INC_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_INC_PATH
+++ CUDA_CMLOCAL_ROOT=/cm/local/apps/cuda/libs/current
+++ export CUDA_CMLOCAL_ROOT
+++ LOADEDMODULES=slurm/slurm_cluster/19.05.8:gcc/10.2.0:cmake/gcc/3.18.0:nvidia_hpcsdk/21.2:cuda11.2/toolkit/11.2.2
+++ export LOADEDMODULES
+++ _LMFILES_=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:/cm/shared/modulefiles/gcc/10.2.0:/cm/shared/modulefiles/cmake/gcc/3.18.0:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2
+++ export _LMFILES_
+++ CUDA_CACHE_DISABLE=1
+++ export CUDA_CACHE_DISABLE
+++ INCLUDEPATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1
+++ export INCLUDEPATH_modshare
+++ LIBRARY_PATH_modshare=/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/local/apps/cuda/libs/current/lib64:1
+++ export LIBRARY_PATH_modshare
+++ MODULES_LMCONFLICT='nvidia_hpcsdk/21.2&nvhpc&nvhpc-nompi&nvhpc-byo-compiler'
+++ export MODULES_LMCONFLICT
+++ MANPATH_modshare=/cm/local/apps/cuda/libs/current/share/man:1:/usr/local/share/man:1:/usr/share/man/overrides:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:1:/cm/local/apps/environment-modules/4.4.0//share/man:1:/cm/local/apps/environment-modules/current/share/man:1:/usr/share/man:1:/cm/shared/apps/slurm/current/man:1
+++ export MANPATH_modshare
+++ CPP=cpp
+++ export CPP
+++ CXX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc++
+++ export CXX
+++ MODULES_LMCONFLICT_modshare='nvidia_hpcsdk/21.2&nvhpc&nvhpc-nompi&nvhpc-byo-compiler:1'
+++ export MODULES_LMCONFLICT_modshare
+++ CUDA_INSTALL_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_INSTALL_PATH
+++ F90=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export F90
+++ CUDA_ROOT=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_ROOT
+++ CUDA_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_PATH
+++ OPAL_PREFIX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi
+++ export OPAL_PREFIX
+++ FC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export FC
+++ LD_RUN_PATH_modshare=/cm/local/apps/cuda/libs/current/lib64:1
+++ export LD_RUN_PATH_modshare
+++ CPATH_modshare=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:1:/cm/shared/apps/slurm/current/include:1
+++ export CPATH_modshare
+++ LD_LIBRARY_PATH_modshare=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:1:/cm/shared/apps/gcc/10.2/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:1:/cm/shared/apps/gcc/10.2/lib:1:/cm/local/apps/cuda/libs/current/lib64:1:/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1
+++ export LD_LIBRARY_PATH_modshare
+++ CUDA_INC_PATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2:1
+++ export CUDA_INC_PATH_modshare
+++ F77=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export F77
+++ LOADEDMODULES_modshare=slurm/slurm_cluster/19.05.8:1:cmake/gcc/3.18.0:1:cuda11.2/toolkit/11.2.2:1:nvidia_hpcsdk/21.2:1:gcc/10.2.0:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:1:/cm/shared/modulefiles/cmake/gcc/3.18.0:1:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:1:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:1:/cm/shared/modulefiles/gcc/10.2.0:1
+++ export _LMFILES__modshare
+++ CUDA_HOME=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_HOME
+++ PATH=/cm/local/apps/cuda/libs/current/bin:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:/cm/shared/apps/cmake/gcc/3.18.0/bin:/cm/shared/apps/gcc/10.2/bin:/cm/shared/apps/slurm/current/sbin:/cm/shared/apps/slurm/current/bin:/cm/local/apps/environment-modules/4.4.0//bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/4.4.0/bin:/opt/dell/srvadmin/bin:/home/asgeorge/.local/bin:/home/asgeorge/bin
+++ export PATH
+++ CUDA_SDK=/cm/shared/apps/cuda11.2/sdk/11.2.2
+++ export CUDA_SDK
+++ CC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc
+++ export CC
+++ NVHPC=/cm/shared/apps/nvidia_hpcsdk
+++ export NVHPC
+++ PATH_modshare=/cm/local/apps/environment-modules/4.4.0//bin:1:/usr/bin:1:/cm/local/apps/cuda/libs/current/bin:1:/cm/shared/apps/cmake/gcc/3.18.0/bin:1:/usr/local/bin:1:/home/asgeorge/bin:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:1:/cm/shared/apps/slurm/current/bin:1:/opt/dell/srvadmin/bin:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:1:/cm/shared/apps/slurm/current/sbin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:1:/cm/local/apps/environment-modules/4.4.0/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:1:/sbin:1:/cm/shared/apps/gcc/10.2/bin:1:/usr/sbin:1:/home/asgeorge/.local/bin:1:/usr/local/sbin:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ cd standalone
+++ git rev-parse HEAD
++ CURRENT_SHA=1f41f670cf7b33d17e42336204c449ff62d236b7
++ echo 1f41f670cf7b33d17e42336204c449ff62d236b7
+1f41f670cf7b33d17e42336204c449ff62d236b7
++ cd scripts
+++ ls ../../data/darpa.tns ../../data/fb-m.tns ../../data/fb-s.tns ../../data/nell-1.tns ../../data/nell-2.tns
++ ./bench.sh ../../data/darpa.tns ../../data/fb-m.tns ../../data/fb-s.tns ../../data/nell-1.tns ../../data/nell-2.tns
+make: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[1]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[2]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[  2%] Built target StandaloneTransformsPassIncGen
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[  2%] Built target mlir-generic-headers
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[  5%] Built target obj.StandaloneTransforms
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[  8%] Built target StandaloneTransforms
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+[ 10%] Building StandaloneOpsTypes.h.inc...
+[ 13%] Building StandaloneOpsTypes.cpp.inc...
+[ 16%] Building StandaloneOpsDialect.h.inc...
+[ 18%] Building StandaloneOpsDialect.cpp.inc...
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 24%] Built target MLIRStandaloneOpsIncGen
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 24%] Built target mlir-headers
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 29%] Built target obj.MLIRStandalone
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 32%] Built target MLIRStandalone
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 37%] Built target standalone-opt
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 45%] Built target GPURuntime
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[ 51%] Built target CPURuntime
+make[3]: Entering directory `/home/asgeorge/scratch/standalone/build'
+make[3]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+[100%] Built target bench
+make[2]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+make[1]: Leaving directory `/home/asgeorge/scratch/standalone/build'
+make: Leaving directory `/home/asgeorge/scratch/standalone/build'
+cpu, mttkrp, mlir, darpa.tns, 1076
+cpu, mttkrp, mlir, darpa.tns, 1075
+cpu, mttkrp, mlir, darpa.tns, 1075
+cpu, mttkrp, mlir, darpa.tns, 1075
+cpu, mttkrp, mlir, darpa.tns, 1075
+cpu, mttkrp, mlir, fb-m.tns, 3790
+cpu, mttkrp, mlir, fb-m.tns, 3768
+cpu, mttkrp, mlir, fb-m.tns, 3768
+cpu, mttkrp, mlir, fb-m.tns, 3769
+cpu, mttkrp, mlir, fb-m.tns, 3769
+cpu, mttkrp, mlir, fb-s.tns, 5333
+cpu, mttkrp, mlir, fb-s.tns, 5257
+cpu, mttkrp, mlir, fb-s.tns, 5256
+cpu, mttkrp, mlir, fb-s.tns, 5262
+cpu, mttkrp, mlir, fb-s.tns, 5256
+cpu, mttkrp, mlir, nell-1.tns, 5250
+cpu, mttkrp, mlir, nell-1.tns, 5251
+cpu, mttkrp, mlir, nell-1.tns, 5249
+cpu, mttkrp, mlir, nell-1.tns, 5251
+cpu, mttkrp, mlir, nell-1.tns, 5249
+cpu, mttkrp, mlir, nell-2.tns, 1242
+cpu, mttkrp, mlir, nell-2.tns, 1240
+cpu, mttkrp, mlir, nell-2.tns, 1240
+cpu, mttkrp, mlir, nell-2.tns, 1240
+cpu, mttkrp, mlir, nell-2.tns, 1240
+cpu, mttkrp, iegenlib, darpa.tns, 1019
+cpu, mttkrp, iegenlib, darpa.tns, 1018
+cpu, mttkrp, iegenlib, darpa.tns, 1019
+cpu, mttkrp, iegenlib, darpa.tns, 1018
+cpu, mttkrp, iegenlib, darpa.tns, 1019
+cpu, mttkrp, iegenlib, fb-m.tns, 3574
+cpu, mttkrp, iegenlib, fb-m.tns, 3574
+cpu, mttkrp, iegenlib, fb-m.tns, 3572
+cpu, mttkrp, iegenlib, fb-m.tns, 3571
+cpu, mttkrp, iegenlib, fb-m.tns, 3573
+cpu, mttkrp, iegenlib, fb-s.tns, 5005
+cpu, mttkrp, iegenlib, fb-s.tns, 5000
+cpu, mttkrp, iegenlib, fb-s.tns, 5001
+cpu, mttkrp, iegenlib, fb-s.tns, 4999
+cpu, mttkrp, iegenlib, fb-s.tns, 4999
+cpu, mttkrp, iegenlib, nell-1.tns, 4876
+cpu, mttkrp, iegenlib, nell-1.tns, 4876
+cpu, mttkrp, iegenlib, nell-1.tns, 4876
+cpu, mttkrp, iegenlib, nell-1.tns, 4872
+cpu, mttkrp, iegenlib, nell-1.tns, 4875
+cpu, mttkrp, iegenlib, nell-2.tns, 1074
+cpu, mttkrp, iegenlib, nell-2.tns, 1071
+cpu, mttkrp, iegenlib, nell-2.tns, 1072
+cpu, mttkrp, iegenlib, nell-2.tns, 1072
+cpu, mttkrp, iegenlib, nell-2.tns, 1071
+cpu, ttm, mlir, darpa.tns, 128
+cpu, ttm, mlir, darpa.tns, 129
+cpu, ttm, mlir, darpa.tns, 129
+cpu, ttm, mlir, darpa.tns, 129
+cpu, ttm, mlir, darpa.tns, 129
+cpu, ttm, mlir, fb-m.tns, 1346
+cpu, ttm, mlir, fb-m.tns, 1350
+cpu, ttm, mlir, fb-m.tns, 1347
+cpu, ttm, mlir, fb-m.tns, 1344
+cpu, ttm, mlir, fb-m.tns, 1344
+cpu, ttm, mlir, fb-s.tns, 1922
+cpu, ttm, mlir, fb-s.tns, 1921
+cpu, ttm, mlir, fb-s.tns, 1921
+cpu, ttm, mlir, fb-s.tns, 1922
+cpu, ttm, mlir, fb-s.tns, 1922
+cpu, ttm, mlir, nell-1.tns, 1171
+cpu, ttm, mlir, nell-1.tns, 1171
+cpu, ttm, mlir, nell-1.tns, 1171
+cpu, ttm, mlir, nell-1.tns, 1170
+cpu, ttm, mlir, nell-1.tns, 1171
+cpu, ttm, mlir, nell-2.tns, 304
+cpu, ttm, mlir, nell-2.tns, 304
+cpu, ttm, mlir, nell-2.tns, 305
+cpu, ttm, mlir, nell-2.tns, 304
+cpu, ttm, mlir, nell-2.tns, 305
+cpu, ttm, iegenlib, darpa.tns, 201
+cpu, ttm, iegenlib, darpa.tns, 201
+cpu, ttm, iegenlib, darpa.tns, 201
+cpu, ttm, iegenlib, darpa.tns, 202
+cpu, ttm, iegenlib, darpa.tns, 201
+cpu, ttm, iegenlib, fb-m.tns, 1897
+cpu, ttm, iegenlib, fb-m.tns, 1895
+cpu, ttm, iegenlib, fb-m.tns, 1895
+cpu, ttm, iegenlib, fb-m.tns, 1896
+cpu, ttm, iegenlib, fb-m.tns, 1895
+cpu, ttm, iegenlib, fb-s.tns, 2734
+cpu, ttm, iegenlib, fb-s.tns, 2735
+cpu, ttm, iegenlib, fb-s.tns, 2734
+cpu, ttm, iegenlib, fb-s.tns, 2744
+cpu, ttm, iegenlib, fb-s.tns, 2735
+cpu, ttm, iegenlib, nell-1.tns, 1593
+cpu, ttm, iegenlib, nell-1.tns, 1592
+cpu, ttm, iegenlib, nell-1.tns, 1593
+cpu, ttm, iegenlib, nell-1.tns, 1592
+cpu, ttm, iegenlib, nell-1.tns, 1593
+cpu, ttm, iegenlib, nell-2.tns, 396
+cpu, ttm, iegenlib, nell-2.tns, 396
+cpu, ttm, iegenlib, nell-2.tns, 395
+cpu, ttm, iegenlib, nell-2.tns, 396
+cpu, ttm, iegenlib, nell-2.tns, 395
+gpu, mttkrp, mlir, darpa.tns, 19479
+gpu, mttkrp, mlir, darpa.tns, 19474
+gpu, mttkrp, mlir, darpa.tns, 19476
+gpu, mttkrp, mlir, darpa.tns, 19474
+gpu, mttkrp, mlir, darpa.tns, 19475
+gpu, mttkrp, mlir, fb-m.tns, 70185
+gpu, mttkrp, mlir, fb-m.tns, 70186
+gpu, mttkrp, mlir, fb-m.tns, 70185
+gpu, mttkrp, mlir, fb-m.tns, 70186
+gpu, mttkrp, mlir, fb-m.tns, 70185
+gpu, mttkrp, mlir, fb-s.tns, 99409
+gpu, mttkrp, mlir, fb-s.tns, 99407
+gpu, mttkrp, mlir, fb-s.tns, 99407
+gpu, mttkrp, mlir, fb-s.tns, 99406
+gpu, mttkrp, mlir, fb-s.tns, 99407
+gpu, mttkrp, mlir, nell-1.tns, 97231
+gpu, mttkrp, mlir, nell-1.tns, 97231
+gpu, mttkrp, mlir, nell-1.tns, 97230
+gpu, mttkrp, mlir, nell-1.tns, 97230
+gpu, mttkrp, mlir, nell-1.tns, 97231
+gpu, mttkrp, mlir, nell-2.tns, 41932
+gpu, mttkrp, mlir, nell-2.tns, 41930
+gpu, mttkrp, mlir, nell-2.tns, 41930
+gpu, mttkrp, mlir, nell-2.tns, 41930
+gpu, mttkrp, mlir, nell-2.tns, 41930
+gpu, mttkrp, iegenlib, darpa.tns, -1
+gpu, mttkrp, iegenlib, fb-m.tns, -1
+gpu, mttkrp, iegenlib, fb-s.tns, -1
+gpu, mttkrp, iegenlib, nell-1.tns, -1
+gpu, mttkrp, iegenlib, nell-2.tns, -1
+gpu, ttm, mlir, darpa.tns, 70
+gpu, ttm, mlir, darpa.tns, 70
+gpu, ttm, mlir, darpa.tns, 69
+gpu, ttm, mlir, darpa.tns, 69
+gpu, ttm, mlir, darpa.tns, 69
+gpu, ttm, mlir, fb-m.tns, 570
+gpu, ttm, mlir, fb-m.tns, 552
+gpu, ttm, mlir, fb-m.tns, 550
+gpu, ttm, mlir, fb-m.tns, 543
+gpu, ttm, mlir, fb-m.tns, 562
+gpu, ttm, mlir, fb-s.tns, 1326
+gpu, ttm, mlir, fb-s.tns, 1335
+gpu, ttm, mlir, fb-s.tns, 1328
+gpu, ttm, mlir, fb-s.tns, 1324
+gpu, ttm, mlir, fb-s.tns, 1336
+gpu, ttm, mlir, nell-1.tns, 291
+gpu, ttm, mlir, nell-1.tns, 291
+gpu, ttm, mlir, nell-1.tns, 290
+gpu, ttm, mlir, nell-1.tns, 291
+gpu, ttm, mlir, nell-1.tns, 291
+gpu, ttm, mlir, nell-2.tns, 99
+gpu, ttm, mlir, nell-2.tns, 99
+gpu, ttm, mlir, nell-2.tns, 96
+gpu, ttm, mlir, nell-2.tns, 96
+gpu, ttm, mlir, nell-2.tns, 96
+gpu, ttm, iegenlib, darpa.tns, -1
+gpu, ttm, iegenlib, fb-m.tns, -1
+gpu, ttm, iegenlib, fb-s.tns, -1
+gpu, ttm, iegenlib, nell-1.tns, -1
+gpu, ttm, iegenlib, nell-2.tns, -1
++ echo done
+done

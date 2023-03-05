@@ -1,0 +1,1366 @@
++ module add gcc/10.2.0 cmake/gcc/3.18.0 nvidia_hpcsdk/21.2 cuda11.2/toolkit/11.2.2 openmpi3/gcc/3.1.3
++ unset _mlshdbg
++ '[' 0 = 1 ']'
++ unset _mlre _mlIFS
++ '[' -n x ']'
++ _mlIFS=' 	
+'
++ IFS=' '
++ '[' -n '' ']'
+++ /usr/bin/tclsh /cm/local/apps/environment-modules/4.4.0/libexec/modulecmd.tcl bash add gcc/10.2.0 cmake/gcc/3.18.0 nvidia_hpcsdk/21.2 cuda11.2/toolkit/11.2.2 openmpi3/gcc/3.1.3
++ eval 'LD_RUN_PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:/cm/local/apps/cuda/libs/current/lib64;' export 'LD_RUN_PATH;
+CPATH=/cm/shared/apps/openmpi3/gcc/3.1.3/include:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:/cm/shared/apps/slurm/current/include;' export 'CPATH;
+LD_LIBRARY_PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:/cm/shared/apps/gcc/10.2/lib:/cm/shared/apps/gcc/10.2/lib64:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64;' export 'LD_LIBRARY_PATH;
+INCLUDEPATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include;' export 'INCLUDEPATH;
+LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64;' export 'LIBRARY_PATH;
+MANPATH=/cm/shared/apps/openmpi3/gcc/3.1.3/share/man/:/cm/local/apps/cuda/libs/current/share/man:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:/cm/shared/apps/slurm/current/man:/cm/local/apps/environment-modules/4.4.0//share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man;' export 'MANPATH;
+CUDA_INC_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_INC_PATH;
+CUDA_CMLOCAL_ROOT=/cm/local/apps/cuda/libs/current;' export 'CUDA_CMLOCAL_ROOT;
+LOADEDMODULES=slurm/slurm_cluster/19.05.8:gcc/10.2.0:cmake/gcc/3.18.0:nvidia_hpcsdk/21.2:cuda11.2/toolkit/11.2.2:openmpi3/gcc/3.1.3;' export 'LOADEDMODULES;
+_LMFILES_=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:/cm/shared/modulefiles/gcc/10.2.0:/cm/shared/modulefiles/cmake/gcc/3.18.0:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:/cm/shared/modulefiles/openmpi3/gcc/3.1.3;' export '_LMFILES_;
+CUDA_CACHE_DISABLE=1;' export 'CUDA_CACHE_DISABLE;
+INCLUDEPATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1;' export 'INCLUDEPATH_modshare;
+LIBRARY_PATH_modshare=/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/local/apps/cuda/libs/current/lib64:1;' export 'LIBRARY_PATH_modshare;
+MODULES_LMCONFLICT=nvidia_hpcsdk/21.2\&nvhpc\&nvhpc-nompi\&nvhpc-byo-compiler;' export 'MODULES_LMCONFLICT;
+MANPATH_modshare=/cm/shared/apps/openmpi3/gcc/3.1.3/share/man/:1:/cm/local/apps/cuda/libs/current/share/man:1:/usr/local/share/man:1:/usr/share/man/overrides:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:1:/cm/local/apps/environment-modules/4.4.0//share/man:1:/cm/local/apps/environment-modules/current/share/man:1:/usr/share/man:1:/cm/shared/apps/slurm/current/man:1;' export 'MANPATH_modshare;
+CPP=cpp;' export 'CPP;
+CXX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc++;' export 'CXX;
+MODULES_LMCONFLICT_modshare=nvidia_hpcsdk/21.2\&nvhpc\&nvhpc-nompi\&nvhpc-byo-compiler:1;' export 'MODULES_LMCONFLICT_modshare;
+MPI_HOME=/cm/shared/apps/openmpi3/gcc/3.1.3;' export 'MPI_HOME;
+CUDA_INSTALL_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_INSTALL_PATH;
+F90=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'F90;
+CUDA_ROOT=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_ROOT;
+CUDA_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_PATH;
+OPAL_PREFIX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi;' export 'OPAL_PREFIX;
+FC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'FC;
+MPI_RUN=/cm/shared/apps/openmpi3/gcc/3.1.3/bin/mpirun;' export 'MPI_RUN;
+LD_RUN_PATH_modshare=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:1:/cm/local/apps/cuda/libs/current/lib64:1;' export 'LD_RUN_PATH_modshare;
+CPATH_modshare=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:1:/cm/shared/apps/openmpi3/gcc/3.1.3/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:1:/cm/shared/apps/slurm/current/include:1;' export 'CPATH_modshare;
+LD_LIBRARY_PATH_modshare=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:1:/cm/shared/apps/gcc/10.2/lib64:1:/cm/shared/apps/openmpi3/gcc/3.1.3/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:1:/cm/shared/apps/gcc/10.2/lib:1:/cm/local/apps/cuda/libs/current/lib64:1:/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1;' export 'LD_LIBRARY_PATH_modshare;
+CUDA_INC_PATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2:1;' export 'CUDA_INC_PATH_modshare;
+F77=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran;' export 'F77;
+LOADEDMODULES_modshare=slurm/slurm_cluster/19.05.8:1:cmake/gcc/3.18.0:1:openmpi3/gcc/3.1.3:1:nvidia_hpcsdk/21.2:1:cuda11.2/toolkit/11.2.2:1:gcc/10.2.0:1;' export 'LOADEDMODULES_modshare;
+_LMFILES__modshare=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:1:/cm/shared/modulefiles/cmake/gcc/3.18.0:1:/cm/shared/modulefiles/openmpi3/gcc/3.1.3:1:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:1:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:1:/cm/shared/modulefiles/gcc/10.2.0:1;' export '_LMFILES__modshare;
+CUDA_HOME=/cm/shared/apps/cuda11.2/toolkit/11.2.2;' export 'CUDA_HOME;
+PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/bin:/cm/local/apps/cuda/libs/current/bin:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:/cm/shared/apps/cmake/gcc/3.18.0/bin:/cm/shared/apps/gcc/10.2/bin:/cm/shared/apps/slurm/current/sbin:/cm/shared/apps/slurm/current/bin:/cm/local/apps/environment-modules/4.4.0//bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/4.4.0/bin:/opt/dell/srvadmin/bin:/home/asgeorge/.local/bin:/home/asgeorge/bin;' export 'PATH;
+CUDA_SDK=/cm/shared/apps/cuda11.2/sdk/11.2.2;' export 'CUDA_SDK;
+CC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc;' export 'CC;
+NVHPC=/cm/shared/apps/nvidia_hpcsdk;' export 'NVHPC;
+PATH_modshare=/cm/local/apps/environment-modules/4.4.0//bin:1:/usr/bin:1:/cm/local/apps/cuda/libs/current/bin:1:/cm/shared/apps/cmake/gcc/3.18.0/bin:1:/usr/local/bin:1:/home/asgeorge/bin:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:1:/cm/shared/apps/slurm/current/bin:1:/opt/dell/srvadmin/bin:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:1:/cm/shared/apps/slurm/current/sbin:1:/cm/shared/apps/openmpi3/gcc/3.1.3/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:1:/cm/local/apps/environment-modules/4.4.0/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:1:/sbin:1:/cm/shared/apps/gcc/10.2/bin:1:/usr/sbin:1:/home/asgeorge/.local/bin:1:/usr/local/sbin:1;' export 'PATH_modshare;
+test' '0;'
+++ LD_RUN_PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:/cm/local/apps/cuda/libs/current/lib64
+++ export LD_RUN_PATH
+++ CPATH=/cm/shared/apps/openmpi3/gcc/3.1.3/include:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:/cm/shared/apps/slurm/current/include
+++ export CPATH
+++ LD_LIBRARY_PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:/cm/shared/apps/gcc/10.2/lib:/cm/shared/apps/gcc/10.2/lib64:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64
+++ export LD_LIBRARY_PATH
+++ INCLUDEPATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include
+++ export INCLUDEPATH
+++ LIBRARY_PATH=/cm/local/apps/cuda/libs/current/lib64:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:/cm/shared/apps/slurm/current/lib64/slurm:/cm/shared/apps/slurm/current/lib64
+++ export LIBRARY_PATH
+++ MANPATH=/cm/shared/apps/openmpi3/gcc/3.1.3/share/man/:/cm/local/apps/cuda/libs/current/share/man:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:/cm/shared/apps/slurm/current/man:/cm/local/apps/environment-modules/4.4.0//share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man
+++ export MANPATH
+++ CUDA_INC_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_INC_PATH
+++ CUDA_CMLOCAL_ROOT=/cm/local/apps/cuda/libs/current
+++ export CUDA_CMLOCAL_ROOT
+++ LOADEDMODULES=slurm/slurm_cluster/19.05.8:gcc/10.2.0:cmake/gcc/3.18.0:nvidia_hpcsdk/21.2:cuda11.2/toolkit/11.2.2:openmpi3/gcc/3.1.3
+++ export LOADEDMODULES
+++ _LMFILES_=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:/cm/shared/modulefiles/gcc/10.2.0:/cm/shared/modulefiles/cmake/gcc/3.18.0:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:/cm/shared/modulefiles/openmpi3/gcc/3.1.3
+++ export _LMFILES_
+++ CUDA_CACHE_DISABLE=1
+++ export CUDA_CACHE_DISABLE
+++ INCLUDEPATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2/extras/Debugger/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include/CL:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1
+++ export INCLUDEPATH_modshare
+++ LIBRARY_PATH_modshare=/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/local/apps/cuda/libs/current/lib64:1
+++ export LIBRARY_PATH_modshare
+++ MODULES_LMCONFLICT='nvidia_hpcsdk/21.2&nvhpc&nvhpc-nompi&nvhpc-byo-compiler'
+++ export MODULES_LMCONFLICT
+++ MANPATH_modshare=/cm/shared/apps/openmpi3/gcc/3.1.3/share/man/:1:/cm/local/apps/cuda/libs/current/share/man:1:/usr/local/share/man:1:/usr/share/man/overrides:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/man:1:/cm/local/apps/environment-modules/4.4.0//share/man:1:/cm/local/apps/environment-modules/current/share/man:1:/usr/share/man:1:/cm/shared/apps/slurm/current/man:1
+++ export MANPATH_modshare
+++ CPP=cpp
+++ export CPP
+++ CXX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc++
+++ export CXX
+++ MODULES_LMCONFLICT_modshare='nvidia_hpcsdk/21.2&nvhpc&nvhpc-nompi&nvhpc-byo-compiler:1'
+++ export MODULES_LMCONFLICT_modshare
+++ MPI_HOME=/cm/shared/apps/openmpi3/gcc/3.1.3
+++ export MPI_HOME
+++ CUDA_INSTALL_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_INSTALL_PATH
+++ F90=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export F90
+++ CUDA_ROOT=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_ROOT
+++ CUDA_PATH=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_PATH
+++ OPAL_PREFIX=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi
+++ export OPAL_PREFIX
+++ FC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export FC
+++ MPI_RUN=/cm/shared/apps/openmpi3/gcc/3.1.3/bin/mpirun
+++ export MPI_RUN
+++ LD_RUN_PATH_modshare=/cm/shared/apps/openmpi3/gcc/3.1.3/lib:1:/cm/local/apps/cuda/libs/current/lib64:1
+++ export LD_RUN_PATH_modshare
+++ CPATH_modshare=/cm/shared/apps/cuda11.2/sdk/11.2.2/common/inc:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/include:1:/cm/shared/apps/openmpi3/gcc/3.1.3/include:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/include:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/include:1:/cm/shared/apps/slurm/current/include:1
+++ export CPATH_modshare
+++ LD_LIBRARY_PATH_modshare=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/extras/CUPTI/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nvshmem/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/lib:1:/cm/shared/apps/gcc/10.2/lib64:1:/cm/shared/apps/openmpi3/gcc/3.1.3/lib:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/nccl/lib:1:/cm/shared/apps/slurm/current/lib64/slurm:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/math_libs/lib64:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/lib:1:/cm/shared/apps/gcc/10.2/lib:1:/cm/local/apps/cuda/libs/current/lib64:1:/cm/shared/apps/slurm/current/lib64:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/targets/x86_64-linux/lib:1
+++ export LD_LIBRARY_PATH_modshare
+++ CUDA_INC_PATH_modshare=/cm/shared/apps/cuda11.2/toolkit/11.2.2:1
+++ export CUDA_INC_PATH_modshare
+++ F77=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvfortran
+++ export F77
+++ LOADEDMODULES_modshare=slurm/slurm_cluster/19.05.8:1:cmake/gcc/3.18.0:1:openmpi3/gcc/3.1.3:1:nvidia_hpcsdk/21.2:1:cuda11.2/toolkit/11.2.2:1:gcc/10.2.0:1
+++ export LOADEDMODULES_modshare
+++ _LMFILES__modshare=/cm/local/modulefiles/slurm/slurm_cluster/19.05.8:1:/cm/shared/modulefiles/cmake/gcc/3.18.0:1:/cm/shared/modulefiles/openmpi3/gcc/3.1.3:1:/cm/shared/modulefiles/nvidia_hpcsdk/21.2:1:/cm/shared/modulefiles/cuda11.2/toolkit/11.2.2:1:/cm/shared/modulefiles/gcc/10.2.0:1
+++ export _LMFILES__modshare
+++ CUDA_HOME=/cm/shared/apps/cuda11.2/toolkit/11.2.2
+++ export CUDA_HOME
+++ PATH=/cm/shared/apps/openmpi3/gcc/3.1.3/bin:/cm/local/apps/cuda/libs/current/bin:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:/cm/shared/apps/cmake/gcc/3.18.0/bin:/cm/shared/apps/gcc/10.2/bin:/cm/shared/apps/slurm/current/sbin:/cm/shared/apps/slurm/current/bin:/cm/local/apps/environment-modules/4.4.0//bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/4.4.0/bin:/opt/dell/srvadmin/bin:/home/asgeorge/.local/bin:/home/asgeorge/bin
+++ export PATH
+++ CUDA_SDK=/cm/shared/apps/cuda11.2/sdk/11.2.2
+++ export CUDA_SDK
+++ CC=/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin/nvc
+++ export CC
+++ NVHPC=/cm/shared/apps/nvidia_hpcsdk
+++ export NVHPC
+++ PATH_modshare=/cm/local/apps/environment-modules/4.4.0//bin:1:/usr/bin:1:/cm/local/apps/cuda/libs/current/bin:1:/cm/shared/apps/cmake/gcc/3.18.0/bin:1:/usr/local/bin:1:/home/asgeorge/bin:1:/cm/shared/apps/cuda11.2/toolkit/11.2.2/bin:1:/cm/shared/apps/slurm/current/bin:1:/opt/dell/srvadmin/bin:1:/cm/shared/apps/cuda11.2/sdk/11.2.2/bin/x86_64/linux/release:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/comm_libs/mpi/bin:1:/cm/shared/apps/slurm/current/sbin:1:/cm/shared/apps/openmpi3/gcc/3.1.3/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/cuda/bin:1:/cm/local/apps/environment-modules/4.4.0/bin:1:/cm/shared/apps/nvidia_hpcsdk/Linux_x86_64/21.2/compilers/bin:1:/sbin:1:/cm/shared/apps/gcc/10.2/bin:1:/usr/sbin:1:/home/asgeorge/.local/bin:1:/usr/local/sbin:1
+++ export PATH_modshare
+++ test 0
++ _mlstatus=0
++ '[' -n x ']'
++ IFS=' 	
+'
++ unset _mlre _mlv _mlrv _mlIFS
++ '[' -n '' ']'
++ unset _mlshdbg
++ return 0
++ cd pasta/build/benchmarks
+++ ls ../../../pasta-data/darpa.tns ../../../pasta-data/fb-m.tns ../../../pasta-data/fb-s.tns ../../../pasta-data/nell-1.tns ../../../pasta-data/nell-2.tns
++ for FILE in '$(ls ../../../pasta-data/*.tns)'
++ ./mttkrp -i ../../../pasta-data/darpa.tns -r 5 -m 0
+niters: 5
+input file: ../../../pasta-data/darpa.tns
+mode: 0
+dev_id: -2
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 22476x22476x23776223 NNZ = 28436033 DENSITY = 2.367490e-09
+Average slice length (c): 1265.17 , 1265.17 , 1.20
+COO-STORAGE = 433.90MB
+
+[Cpu SpTns MTTKRP]: 1.035521657 s
+[Total time]: 1.035522
+
+[Cpu SpTns MTTKRP]: 0.954174165 s
+[Total time]: 0.954174
+
+[Cpu SpTns MTTKRP]: 0.951163344 s
+[Total time]: 0.951163
+
+[Cpu SpTns MTTKRP]: 0.951668938 s
+[Total time]: 0.951669
+
+[Cpu SpTns MTTKRP]: 0.950757102 s
+[Total time]: 0.950757
+
+[Cpu SpTns MTTKRP]: 0.950863518 s
+[Total time]: 0.950864
+
+[Average CooMTTKRP]: 1.040175688 s
+Performance: 0.41 GFlop/s, Bandwidth: 0.90 GB/s
+
++ ./mttkrp_gpu -i ../../../pasta-data/darpa.tns -r 5 -m 0 -d 0
+niters: 5
+input file: ../../../pasta-data/darpa.tns
+mode: 0
+dev_id: 0
+impl_num: 15
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 22476x22476x23776223 NNZ = 28436033 DENSITY = 2.367490e-09
+Average slice length (c): 1265.17 , 1265.17 , 1.20
+COO-STORAGE = 433.90MB
+
+[Cuda SpTns MTTKRP H2D]: 0.286737817 s
+[Bandwidth H2D]: 4.247690 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.033204141 s
+[GFLOPS]: 8.56 GFlops, [Bandwidth]: 28.05 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000160645 s
+[Bandwidth D2H]: 4.477201 GBytes/sec
+[Total time]: 0.033204
+
+[Cuda SpTns MTTKRP H2D]: 0.135313278 s
+[Bandwidth H2D]: 9.001137 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.033059019 s
+[GFLOPS]: 8.60 GFlops, [Bandwidth]: 28.17 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000152855 s
+[Bandwidth D2H]: 4.705374 GBytes/sec
+[Total time]: 0.033059
+
+[Cuda SpTns MTTKRP H2D]: 0.134910872 s
+[Bandwidth H2D]: 9.027985 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.032677936 s
+[GFLOPS]: 8.70 GFlops, [Bandwidth]: 28.50 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000158147 s
+[Bandwidth D2H]: 4.547921 GBytes/sec
+[Total time]: 0.032678
+
+[Cuda SpTns MTTKRP H2D]: 0.135039243 s
+[Bandwidth H2D]: 9.019403 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.032698246 s
+[GFLOPS]: 8.70 GFlops, [Bandwidth]: 28.48 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000155070 s
+[Bandwidth D2H]: 4.638163 GBytes/sec
+[Total time]: 0.032698
+
+[Cuda SpTns MTTKRP H2D]: 0.135028473 s
+[Bandwidth H2D]: 9.020123 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.032682669 s
+[GFLOPS]: 8.70 GFlops, [Bandwidth]: 28.50 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000152754 s
+[Bandwidth D2H]: 4.708486 GBytes/sec
+[Total time]: 0.032683
+
+[Cuda SpTns MTTKRP H2D]: 0.135168728 s
+[Bandwidth H2D]: 9.010763 GBytes/sec
+all_nblocks: 557570, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.032689814 s
+[GFLOPS]: 8.70 GFlops, [Bandwidth]: 28.49 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000152725 s
+[Bandwidth D2H]: 4.709380 GBytes/sec
+[Total time]: 0.032690
+
+[Average CooMTTKRP]: 0.267217019 s
+Performance: 1.60 GFlop/s, Bandwidth: 3.49 GB/s
+
++ ./ttm -i ../../../pasta-data/darpa.tns -r 2
+niters: 5
+input file: ../../../pasta-data/darpa.tns
+mode: 0
+dev_id: -2
+[sptSparseTensorSortIndexAtMode]: 6.718799724 s
+[sptSparseTensorSetFibers]: 0.221645135 s
+[sptNewSemiSparseTensorWithNnz]: 0.214704462 s
+[Total preprocess time]: 7.155149
+[Copy indices]: 0.061191216 s
+[Cpu SpTns * Mtx]: 0.238842179 s
+[Total time]: 0.300033
+
+[sptSparseTensorSortIndexAtMode]: 0.000000359 s
+[sptSparseTensorSetFibers]: 0.221028020 s
+[sptNewSemiSparseTensorWithNnz]: 0.214879048 s
+[Total preprocess time]: 0.435907
+[Copy indices]: 0.063956622 s
+[Cpu SpTns * Mtx]: 0.205186073 s
+[Total time]: 0.269143
+
+[sptSparseTensorSortIndexAtMode]: 0.000000290 s
+[sptSparseTensorSetFibers]: 0.221127138 s
+[sptNewSemiSparseTensorWithNnz]: 0.214639226 s
+[Total preprocess time]: 0.435767
+[Copy indices]: 0.058753252 s
+[Cpu SpTns * Mtx]: 0.205149447 s
+[Total time]: 0.263903
+
+[sptSparseTensorSortIndexAtMode]: 0.000000304 s
+[sptSparseTensorSetFibers]: 0.220954771 s
+[sptNewSemiSparseTensorWithNnz]: 0.214892769 s
+[Total preprocess time]: 0.435848
+[Copy indices]: 0.055726808 s
+[Cpu SpTns * Mtx]: 0.205403502 s
+[Total time]: 0.261130
+
+[sptSparseTensorSortIndexAtMode]: 0.000000371 s
+[sptSparseTensorSetFibers]: 0.221328564 s
+[sptNewSemiSparseTensorWithNnz]: 0.214869708 s
+[Total preprocess time]: 0.436199
+[Copy indices]: 0.055816732 s
+[Cpu SpTns * Mtx]: 0.205409158 s
+[Total time]: 0.261226
+
+[sptSparseTensorSortIndexAtMode]: 0.000000225 s
+[sptSparseTensorSetFibers]: 0.221096138 s
+[sptNewSemiSparseTensorWithNnz]: 0.214874768 s
+[Total preprocess time]: 0.435971
+[Copy indices]: 0.055758863 s
+[Cpu SpTns * Mtx]: 0.205585726 s
+[Total time]: 0.261345
+
+[Average CooTtm]: 0.707081246 s
++ ./ttm_gpu -i ../../../pasta-data/darpa.tns -r 2 -d 0
+niters: 5
+input file: ../../../pasta-data/darpa.tns
+mode: 0
+dev_id: 0
+impl_num: 14
+[sptSparseTensorSortIndexAtMode]: 6.732725673 s
+[sptSparseTensorSetFibers]: 0.228934506 s
+[sptNewSemiSparseTensorWithNnz]: 0.215880623 s
+[Total preprocess time]: 7.177541
+[Copy indices]: 0.058598773 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.051024867 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006567275 s
+[Device copy back]: 0.066866801 s
+[Total time]: 0.183058
+
+[sptSparseTensorSortIndexAtMode]: 0.000000564 s
+[sptSparseTensorSetFibers]: 0.221138654 s
+[sptNewSemiSparseTensorWithNnz]: 0.215748577 s
+[Total preprocess time]: 0.436888
+[Copy indices]: 0.056490959 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.050563925 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006576778 s
+[Device copy back]: 0.066867784 s
+[Total time]: 0.180499
+
+[sptSparseTensorSortIndexAtMode]: 0.000000353 s
+[sptSparseTensorSetFibers]: 0.219618117 s
+[sptNewSemiSparseTensorWithNnz]: 0.216094838 s
+[Total preprocess time]: 0.435713
+[Copy indices]: 0.055453564 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.050374055 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006587458 s
+[Device copy back]: 0.066857265 s
+[Total time]: 0.179272
+
+[sptSparseTensorSortIndexAtMode]: 0.000000313 s
+[sptSparseTensorSetFibers]: 0.219661514 s
+[sptNewSemiSparseTensorWithNnz]: 0.215892085 s
+[Total preprocess time]: 0.435554
+[Copy indices]: 0.055600918 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.050453011 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006582200 s
+[Device copy back]: 0.066862281 s
+[Total time]: 0.179498
+
+[sptSparseTensorSortIndexAtMode]: 0.000000219 s
+[sptSparseTensorSetFibers]: 0.219512085 s
+[sptNewSemiSparseTensorWithNnz]: 0.215902869 s
+[Total preprocess time]: 0.435415
+[Copy indices]: 0.055562031 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.050356690 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006589786 s
+[Device copy back]: 0.066886330 s
+[Total time]: 0.179395
+
+[sptSparseTensorSortIndexAtMode]: 0.000000426 s
+[sptSparseTensorSetFibers]: 0.219590280 s
+[sptNewSemiSparseTensorWithNnz]: 0.215982129 s
+[Total preprocess time]: 0.435573
+[Copy indices]: 0.055393292 s
+nfibs: 26956558, flen: 1.05, fvar: 315.87
+[Device copy]: 0.050456220 s
+all_nblocks: 210599, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.006582841 s
+[Device copy back]: 0.066870189 s
+[Total time]: 0.179303
+
+[Average CooTtm]: 0.706652980 s
++ for FILE in '$(ls ../../../pasta-data/*.tns)'
++ ./mttkrp -i ../../../pasta-data/fb-m.tns -r 5 -m 0
+niters: 5
+input file: ../../../pasta-data/fb-m.tns
+mode: 0
+dev_id: -2
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 23343790x23344784x166 NNZ = 99546551 DENSITY = 1.100416e-09
+Average slice length (c): 4.26 , 4.26 , 599678.02
+COO-STORAGE = 1.48GB
+
+[Cpu SpTns MTTKRP]: 3.604749431 s
+[Total time]: 3.604749
+
+[Cpu SpTns MTTKRP]: 3.374079909 s
+[Total time]: 3.374080
+
+[Cpu SpTns MTTKRP]: 3.372384542 s
+[Total time]: 3.372385
+
+[Cpu SpTns MTTKRP]: 3.430524317 s
+[Total time]: 3.430524
+
+[Cpu SpTns MTTKRP]: 3.372522820 s
+[Total time]: 3.372523
+
+[Cpu SpTns MTTKRP]: 3.372867137 s
+[Total time]: 3.372867
+
+[Average CooMTTKRP]: 3.559996342 s
+Performance: 0.42 GFlop/s, Bandwidth: 0.71 GB/s
+
++ ./mttkrp_gpu -i ../../../pasta-data/fb-m.tns -r 5 -m 0 -d 0
+niters: 5
+input file: ../../../pasta-data/fb-m.tns
+mode: 0
+dev_id: 0
+impl_num: 15
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 23343790x23344784x166 NNZ = 99546551 DENSITY = 1.100416e-09
+Average slice length (c): 4.26 , 4.26 , 599678.02
+COO-STORAGE = 1.48GB
+
+[Cuda SpTns MTTKRP H2D]: 1.513475097 s
+[Bandwidth H2D]: 2.533101 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053971217 s
+[GFLOPS]: 18.44 GFlops, [Bandwidth]: 46.81 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058613965 s
+[Bandwidth D2H]: 12.744425 GBytes/sec
+[Total time]: 0.053971
+
+[Cuda SpTns MTTKRP H2D]: 0.648860860 s
+[Bandwidth H2D]: 5.908487 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053362899 s
+[GFLOPS]: 18.65 GFlops, [Bandwidth]: 47.35 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058621584 s
+[Bandwidth D2H]: 12.742769 GBytes/sec
+[Total time]: 0.053363
+
+[Cuda SpTns MTTKRP H2D]: 0.648888595 s
+[Bandwidth H2D]: 5.908234 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053273853 s
+[GFLOPS]: 18.69 GFlops, [Bandwidth]: 47.43 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058618907 s
+[Bandwidth D2H]: 12.743351 GBytes/sec
+[Total time]: 0.053274
+
+[Cuda SpTns MTTKRP H2D]: 0.649699029 s
+[Bandwidth H2D]: 5.900864 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053389976 s
+[GFLOPS]: 18.65 GFlops, [Bandwidth]: 47.32 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058657405 s
+[Bandwidth D2H]: 12.734987 GBytes/sec
+[Total time]: 0.053390
+
+[Cuda SpTns MTTKRP H2D]: 0.661133266 s
+[Bandwidth H2D]: 5.798809 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053674789 s
+[GFLOPS]: 18.55 GFlops, [Bandwidth]: 47.07 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058634194 s
+[Bandwidth D2H]: 12.740028 GBytes/sec
+[Total time]: 0.053675
+
+[Cuda SpTns MTTKRP H2D]: 0.646895680 s
+[Bandwidth H2D]: 5.926436 GBytes/sec
+all_nblocks: 1951894, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.053527298 s
+[GFLOPS]: 18.60 GFlops, [Bandwidth]: 47.20 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.058612639 s
+[Bandwidth D2H]: 12.744713 GBytes/sec
+[Total time]: 0.053527
+
+[Average CooMTTKRP]: 0.896296860 s
+Performance: 1.67 GFlop/s, Bandwidth: 2.82 GB/s
+
++ ./ttm -i ../../../pasta-data/fb-m.tns -r 2
+niters: 5
+input file: ../../../pasta-data/fb-m.tns
+mode: 0
+dev_id: -2
+[sptSparseTensorSortIndexAtMode]: 22.985332263 s
+[sptSparseTensorSetFibers]: 0.796099791 s
+[sptNewSemiSparseTensorWithNnz]: 0.480156025 s
+[Total preprocess time]: 24.261588
+[Copy indices]: 0.134470894 s
+[Cpu SpTns * Mtx]: 1.895409182 s
+[Total time]: 2.029880
+
+[sptSparseTensorSortIndexAtMode]: 0.000000530 s
+[sptSparseTensorSetFibers]: 0.780564998 s
+[sptNewSemiSparseTensorWithNnz]: 0.481515120 s
+[Total preprocess time]: 1.262081
+[Copy indices]: 0.131764817 s
+[Cpu SpTns * Mtx]: 1.893190046 s
+[Total time]: 2.024955
+
+[sptSparseTensorSortIndexAtMode]: 0.000000235 s
+[sptSparseTensorSetFibers]: 0.777616657 s
+[sptNewSemiSparseTensorWithNnz]: 0.480740747 s
+[Total preprocess time]: 1.258358
+[Copy indices]: 0.131346256 s
+[Cpu SpTns * Mtx]: 1.892019972 s
+[Total time]: 2.023366
+
+[sptSparseTensorSortIndexAtMode]: 0.000000385 s
+[sptSparseTensorSetFibers]: 0.778829398 s
+[sptNewSemiSparseTensorWithNnz]: 0.480451683 s
+[Total preprocess time]: 1.259281
+[Copy indices]: 0.131447534 s
+[Cpu SpTns * Mtx]: 1.911972094 s
+[Total time]: 2.043420
+
+[sptSparseTensorSortIndexAtMode]: 0.000000599 s
+[sptSparseTensorSetFibers]: 0.780371760 s
+[sptNewSemiSparseTensorWithNnz]: 0.483541897 s
+[Total preprocess time]: 1.263914
+[Copy indices]: 0.131357255 s
+[Cpu SpTns * Mtx]: 1.959237374 s
+[Total time]: 2.090595
+
+[sptSparseTensorSortIndexAtMode]: 0.000000309 s
+[sptSparseTensorSetFibers]: 0.784131892 s
+[sptNewSemiSparseTensorWithNnz]: 0.480609546 s
+[Total preprocess time]: 1.264742
+[Copy indices]: 0.131419002 s
+[Cpu SpTns * Mtx]: 1.891355349 s
+[Total time]: 2.022774
+
+[Average CooTtm]: 3.311369578 s
++ ./ttm_gpu -i ../../../pasta-data/fb-m.tns -r 2 -d 0
+niters: 5
+input file: ../../../pasta-data/fb-m.tns
+mode: 0
+dev_id: 0
+impl_num: 14
+[sptSparseTensorSortIndexAtMode]: 22.961266370 s
+[sptSparseTensorSetFibers]: 0.799276205 s
+[sptNewSemiSparseTensorWithNnz]: 0.482395640 s
+[Total preprocess time]: 24.242938
+[Copy indices]: 0.135784735 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.312279590 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.116813723 s
+[Device copy back]: 0.149145832 s
+[Total time]: 0.714024
+
+[sptSparseTensorSortIndexAtMode]: 0.000000637 s
+[sptSparseTensorSetFibers]: 0.790934834 s
+[sptNewSemiSparseTensorWithNnz]: 0.481633938 s
+[Total preprocess time]: 1.272569
+[Copy indices]: 0.114665816 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.274578144 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.119787000 s
+[Device copy back]: 0.296680830 s
+[Total time]: 0.805712
+
+[sptSparseTensorSortIndexAtMode]: 0.000000547 s
+[sptSparseTensorSetFibers]: 0.778573969 s
+[sptNewSemiSparseTensorWithNnz]: 0.480410930 s
+[Total preprocess time]: 1.258985
+[Copy indices]: 0.131920591 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.218121196 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.119787832 s
+[Device copy back]: 0.280864589 s
+[Total time]: 0.750694
+
+[sptSparseTensorSortIndexAtMode]: 0.000000403 s
+[sptSparseTensorSetFibers]: 0.779045389 s
+[sptNewSemiSparseTensorWithNnz]: 0.479184844 s
+[Total preprocess time]: 1.258231
+[Copy indices]: 0.132148277 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.218065727 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.119587031 s
+[Device copy back]: 0.280479581 s
+[Total time]: 0.750281
+
+[sptSparseTensorSortIndexAtMode]: 0.000000426 s
+[sptSparseTensorSetFibers]: 0.779116377 s
+[sptNewSemiSparseTensorWithNnz]: 0.479494801 s
+[Total preprocess time]: 1.258612
+[Copy indices]: 0.132023790 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.218380079 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.119503488 s
+[Device copy back]: 0.280944804 s
+[Total time]: 0.750852
+
+[sptSparseTensorSortIndexAtMode]: 0.000000396 s
+[sptSparseTensorSetFibers]: 0.777749076 s
+[sptNewSemiSparseTensorWithNnz]: 0.479464237 s
+[Total preprocess time]: 1.257214
+[Copy indices]: 0.131960000 s
+nfibs: 60093560, flen: 1.66, fvar: 746320.68
+[Device copy]: 0.219227872 s
+all_nblocks: 469481, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.119615725 s
+[Device copy back]: 0.280371221 s
+[Total time]: 0.751175
+
+[Average CooTtm]: 2.210553995 s
++ for FILE in '$(ls ../../../pasta-data/*.tns)'
++ ./mttkrp -i ../../../pasta-data/fb-s.tns -r 5 -m 0
+niters: 5
+input file: ../../../pasta-data/fb-s.tns
+mode: 0
+dev_id: -2
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 38954435x38955429x532 NNZ = 139920771 DENSITY = 1.733188e-10
+Average slice length (c): 3.59 , 3.59 , 263008.97
+COO-STORAGE = 2.08GB
+
+[Cpu SpTns MTTKRP]: 5.130602862 s
+[Total time]: 5.130603
+
+[Cpu SpTns MTTKRP]: 4.749352362 s
+[Total time]: 4.749352
+
+[Cpu SpTns MTTKRP]: 4.746620092 s
+[Total time]: 4.746620
+
+[Cpu SpTns MTTKRP]: 4.743952935 s
+[Total time]: 4.743953
+
+[Cpu SpTns MTTKRP]: 4.743812374 s
+[Total time]: 4.743812
+
+[Cpu SpTns MTTKRP]: 4.743461723 s
+[Total time]: 4.743462
+
+[Average CooMTTKRP]: 5.036992364 s
+Performance: 0.42 GFlop/s, Bandwidth: 0.75 GB/s
+
++ ./mttkrp_gpu -i ../../../pasta-data/fb-s.tns -r 5 -m 0 -d 0
+niters: 5
+input file: ../../../pasta-data/fb-s.tns
+mode: 0
+dev_id: 0
+impl_num: 15
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 38954435x38955429x532 NNZ = 139920771 DENSITY = 1.733188e-10
+Average slice length (c): 3.59 , 3.59 , 263008.97
+COO-STORAGE = 2.08GB
+
+[Cuda SpTns MTTKRP H2D]: 1.760718511 s
+[Bandwidth H2D]: 3.395436 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.112670015 s
+[GFLOPS]: 12.42 GFlops, [Bandwidth]: 33.70 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097237452 s
+[Bandwidth D2H]: 12.819566 GBytes/sec
+[Total time]: 0.112670
+
+[Cuda SpTns MTTKRP H2D]: 0.914073268 s
+[Bandwidth H2D]: 6.540402 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.112446380 s
+[GFLOPS]: 12.44 GFlops, [Bandwidth]: 33.77 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097235021 s
+[Bandwidth D2H]: 12.819886 GBytes/sec
+[Total time]: 0.112446
+
+[Cuda SpTns MTTKRP H2D]: 0.913244385 s
+[Bandwidth H2D]: 6.546339 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.113296884 s
+[GFLOPS]: 12.35 GFlops, [Bandwidth]: 33.51 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097248050 s
+[Bandwidth D2H]: 12.818169 GBytes/sec
+[Total time]: 0.113297
+
+[Cuda SpTns MTTKRP H2D]: 0.913805305 s
+[Bandwidth H2D]: 6.542320 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.111488235 s
+[GFLOPS]: 12.55 GFlops, [Bandwidth]: 34.06 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097226667 s
+[Bandwidth D2H]: 12.820988 GBytes/sec
+[Total time]: 0.111488
+
+[Cuda SpTns MTTKRP H2D]: 0.912997775 s
+[Bandwidth H2D]: 6.548107 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.110926428 s
+[GFLOPS]: 12.61 GFlops, [Bandwidth]: 34.23 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097244511 s
+[Bandwidth D2H]: 12.818635 GBytes/sec
+[Total time]: 0.110926
+
+[Cuda SpTns MTTKRP H2D]: 0.913246168 s
+[Bandwidth H2D]: 6.546326 GBytes/sec
+all_nblocks: 2743545, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.112013605 s
+[GFLOPS]: 12.49 GFlops, [Bandwidth]: 33.90 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.097243726 s
+[Bandwidth D2H]: 12.818739 GBytes/sec
+[Total time]: 0.112014
+
+[Average CooMTTKRP]: 1.285873031 s
+Performance: 1.63 GFlop/s, Bandwidth: 2.95 GB/s
+
++ ./ttm -i ../../../pasta-data/fb-s.tns -r 2
+niters: 5
+input file: ../../../pasta-data/fb-s.tns
+mode: 0
+dev_id: -2
+[sptSparseTensorSortIndexAtMode]: 32.601256354 s
+[sptSparseTensorSetFibers]: 1.198349294 s
+[sptNewSemiSparseTensorWithNnz]: 0.690048369 s
+[Total preprocess time]: 34.489654
+[Copy indices]: 0.195584041 s
+[Cpu SpTns * Mtx]: 2.715964535 s
+[Total time]: 2.911549
+
+[sptSparseTensorSortIndexAtMode]: 0.000000615 s
+[sptSparseTensorSetFibers]: 1.091812152 s
+[sptNewSemiSparseTensorWithNnz]: 0.694061802 s
+[Total preprocess time]: 1.785875
+[Copy indices]: 0.187324138 s
+[Cpu SpTns * Mtx]: 2.702089576 s
+[Total time]: 2.889414
+
+[sptSparseTensorSortIndexAtMode]: 0.000000388 s
+[sptSparseTensorSetFibers]: 1.083735102 s
+[sptNewSemiSparseTensorWithNnz]: 0.689890599 s
+[Total preprocess time]: 1.773626
+[Copy indices]: 0.187275264 s
+[Cpu SpTns * Mtx]: 2.702743965 s
+[Total time]: 2.890019
+
+[sptSparseTensorSortIndexAtMode]: 0.000000362 s
+[sptSparseTensorSetFibers]: 1.083762049 s
+[sptNewSemiSparseTensorWithNnz]: 0.689746713 s
+[Total preprocess time]: 1.773509
+[Copy indices]: 0.186860476 s
+[Cpu SpTns * Mtx]: 2.705579433 s
+[Total time]: 2.892440
+
+[sptSparseTensorSortIndexAtMode]: 0.000000468 s
+[sptSparseTensorSetFibers]: 1.085084816 s
+[sptNewSemiSparseTensorWithNnz]: 0.690154895 s
+[Total preprocess time]: 1.775240
+[Copy indices]: 0.187379673 s
+[Cpu SpTns * Mtx]: 2.702323494 s
+[Total time]: 2.889703
+
+[sptSparseTensorSortIndexAtMode]: 0.000000583 s
+[sptSparseTensorSetFibers]: 1.085711400 s
+[sptNewSemiSparseTensorWithNnz]: 0.690076597 s
+[Total preprocess time]: 1.775789
+[Copy indices]: 0.186887592 s
+[Cpu SpTns * Mtx]: 2.702909163 s
+[Total time]: 2.889797
+
+[Average CooTtm]: 4.683416667 s
++ ./ttm_gpu -i ../../../pasta-data/fb-s.tns -r 2 -d 0
+niters: 5
+input file: ../../../pasta-data/fb-s.tns
+mode: 0
+dev_id: 0
+impl_num: 14
+[sptSparseTensorSortIndexAtMode]: 32.584363134 s
+[sptSparseTensorSetFibers]: 1.232890509 s
+[sptNewSemiSparseTensorWithNnz]: 0.686204505 s
+[Total preprocess time]: 34.503458
+[Copy indices]: 0.189212961 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.341835156 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.275008351 s
+[Device copy back]: 0.213489291 s
+[Total time]: 1.019546
+
+[sptSparseTensorSortIndexAtMode]: 0.000000475 s
+[sptSparseTensorSetFibers]: 1.090405267 s
+[sptNewSemiSparseTensorWithNnz]: 0.684039795 s
+[Total preprocess time]: 1.774446
+[Copy indices]: 0.187715076 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.338893793 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.274663611 s
+[Device copy back]: 0.213522886 s
+[Total time]: 1.014795
+
+[sptSparseTensorSortIndexAtMode]: 0.000000391 s
+[sptSparseTensorSetFibers]: 1.084662955 s
+[sptNewSemiSparseTensorWithNnz]: 0.684535864 s
+[Total preprocess time]: 1.769199
+[Copy indices]: 0.187805499 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.339252019 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.275230215 s
+[Device copy back]: 0.213477920 s
+[Total time]: 1.015766
+
+[sptSparseTensorSortIndexAtMode]: 0.000000384 s
+[sptSparseTensorSetFibers]: 1.081611530 s
+[sptNewSemiSparseTensorWithNnz]: 0.684543103 s
+[Total preprocess time]: 1.766155
+[Copy indices]: 0.188201309 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.338719671 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.275068189 s
+[Device copy back]: 0.213523474 s
+[Total time]: 1.015513
+
+[sptSparseTensorSortIndexAtMode]: 0.000000330 s
+[sptSparseTensorSetFibers]: 1.083324030 s
+[sptNewSemiSparseTensorWithNnz]: 0.684412548 s
+[Total preprocess time]: 1.767737
+[Copy indices]: 0.187977601 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.338869412 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.277009766 s
+[Device copy back]: 0.213511712 s
+[Total time]: 1.017368
+
+[sptSparseTensorSortIndexAtMode]: 0.000000509 s
+[sptSparseTensorSetFibers]: 1.081850319 s
+[sptNewSemiSparseTensorWithNnz]: 0.684431869 s
+[Total preprocess time]: 1.766283
+[Copy indices]: 0.187802360 s
+nfibs: 86145207, flen: 1.62, fvar: 1554598.34
+[Device copy]: 0.339625540 s
+all_nblocks: 673010, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.275062537 s
+[Device copy back]: 0.213476850 s
+[Total time]: 1.015967
+
+[Average CooTtm]: 3.040014996 s
++ for FILE in '$(ls ../../../pasta-data/*.tns)'
++ ./mttkrp -i ../../../pasta-data/nell-1.tns -r 5 -m 0
+niters: 5
+input file: ../../../pasta-data/nell-1.tns
+mode: 0
+dev_id: -2
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 2902330x2143368x25495389 NNZ = 143599552 DENSITY = 9.054155e-13
+Average slice length (c): 49.48 , 67.00 , 5.63
+COO-STORAGE = 2.14GB
+
+[Cpu SpTns MTTKRP]: 5.155681676 s
+[Total time]: 5.155682
+
+[Cpu SpTns MTTKRP]: 4.819827573 s
+[Total time]: 4.819828
+
+[Cpu SpTns MTTKRP]: 4.768824378 s
+[Total time]: 4.768824
+
+[Cpu SpTns MTTKRP]: 4.739398390 s
+[Total time]: 4.739398
+
+[Cpu SpTns MTTKRP]: 4.740058211 s
+[Total time]: 4.740058
+
+[Cpu SpTns MTTKRP]: 4.739719107 s
+[Total time]: 4.739719
+
+[Average CooMTTKRP]: 4.867626138 s
+Performance: 0.44 GFlop/s, Bandwidth: 0.60 GB/s
+
++ ./mttkrp_gpu -i ../../../pasta-data/nell-1.tns -r 5 -m 0 -d 0
+niters: 5
+input file: ../../../pasta-data/nell-1.tns
+mode: 0
+dev_id: 0
+impl_num: 15
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 2902330x2143368x25495389 NNZ = 143599552 DENSITY = 9.054155e-13
+Average slice length (c): 49.48 , 67.00 , 5.63
+COO-STORAGE = 2.14GB
+
+[Cuda SpTns MTTKRP H2D]: 1.981212922 s
+[Bandwidth H2D]: 1.699859 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081363820 s
+[GFLOPS]: 17.65 GFlops, [Bandwidth]: 35.75 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007924740 s
+[Bandwidth D2H]: 11.719573 GBytes/sec
+[Total time]: 0.081364
+
+[Cuda SpTns MTTKRP H2D]: 0.498391507 s
+[Bandwidth H2D]: 6.757303 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081537555 s
+[GFLOPS]: 17.61 GFlops, [Bandwidth]: 35.67 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007921220 s
+[Bandwidth D2H]: 11.724781 GBytes/sec
+[Total time]: 0.081538
+
+[Cuda SpTns MTTKRP H2D]: 0.432319735 s
+[Bandwidth H2D]: 7.790027 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081180818 s
+[GFLOPS]: 17.69 GFlops, [Bandwidth]: 35.83 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007923500 s
+[Bandwidth D2H]: 11.721407 GBytes/sec
+[Total time]: 0.081181
+
+[Cuda SpTns MTTKRP H2D]: 0.433038470 s
+[Bandwidth H2D]: 7.777097 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081662824 s
+[GFLOPS]: 17.58 GFlops, [Bandwidth]: 35.61 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007915923 s
+[Bandwidth D2H]: 11.732627 GBytes/sec
+[Total time]: 0.081663
+
+[Cuda SpTns MTTKRP H2D]: 0.432955695 s
+[Bandwidth H2D]: 7.778584 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081563886 s
+[GFLOPS]: 17.61 GFlops, [Bandwidth]: 35.66 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007914801 s
+[Bandwidth D2H]: 11.734290 GBytes/sec
+[Total time]: 0.081564
+
+[Cuda SpTns MTTKRP H2D]: 0.432778265 s
+[Bandwidth H2D]: 7.781773 GBytes/sec
+all_nblocks: 2815678, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.081518654 s
+[GFLOPS]: 17.62 GFlops, [Bandwidth]: 35.68 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.007919957 s
+[Bandwidth D2H]: 11.726651 GBytes/sec
+[Total time]: 0.081519
+
+[Average CooMTTKRP]: 0.678047432 s
+Performance: 3.18 GFlop/s, Bandwidth: 4.29 GB/s
+
++ ./ttm -i ../../../pasta-data/nell-1.tns -r 2
+niters: 5
+input file: ../../../pasta-data/nell-1.tns
+mode: 0
+dev_id: -2
+[sptSparseTensorSortIndexAtMode]: 31.257369158 s
+[sptSparseTensorSetFibers]: 1.235253530 s
+[sptNewSemiSparseTensorWithNnz]: 0.905307455 s
+[Total preprocess time]: 33.397930
+[Copy indices]: 0.241872580 s
+[Cpu SpTns * Mtx]: 1.602044938 s
+[Total time]: 1.843918
+
+[sptSparseTensorSortIndexAtMode]: 0.000000543 s
+[sptSparseTensorSetFibers]: 1.177251810 s
+[sptNewSemiSparseTensorWithNnz]: 0.905283860 s
+[Total preprocess time]: 2.082536
+[Copy indices]: 0.239301956 s
+[Cpu SpTns * Mtx]: 1.602663401 s
+[Total time]: 1.841965
+
+[sptSparseTensorSortIndexAtMode]: 0.000000442 s
+[sptSparseTensorSetFibers]: 1.178030341 s
+[sptNewSemiSparseTensorWithNnz]: 0.905231552 s
+[Total preprocess time]: 2.083262
+[Copy indices]: 0.239008021 s
+[Cpu SpTns * Mtx]: 1.602685993 s
+[Total time]: 1.841694
+
+[sptSparseTensorSortIndexAtMode]: 0.000000418 s
+[sptSparseTensorSetFibers]: 1.177852809 s
+[sptNewSemiSparseTensorWithNnz]: 0.906127063 s
+[Total preprocess time]: 2.083980
+[Copy indices]: 0.239425098 s
+[Cpu SpTns * Mtx]: 1.601970899 s
+[Total time]: 1.841396
+
+[sptSparseTensorSortIndexAtMode]: 0.000000379 s
+[sptSparseTensorSetFibers]: 1.177794510 s
+[sptNewSemiSparseTensorWithNnz]: 0.905554602 s
+[Total preprocess time]: 2.083349
+[Copy indices]: 0.239038317 s
+[Cpu SpTns * Mtx]: 1.602290895 s
+[Total time]: 1.841329
+
+[sptSparseTensorSortIndexAtMode]: 0.000000331 s
+[sptSparseTensorSetFibers]: 1.181220891 s
+[sptNewSemiSparseTensorWithNnz]: 0.905585379 s
+[Total preprocess time]: 2.086807
+[Copy indices]: 0.239294042 s
+[Cpu SpTns * Mtx]: 1.620187651 s
+[Total time]: 1.859482
+
+[Average CooTtm]: 3.945257349 s
++ ./ttm_gpu -i ../../../pasta-data/nell-1.tns -r 2 -d 0
+niters: 5
+input file: ../../../pasta-data/nell-1.tns
+mode: 0
+dev_id: 0
+impl_num: 14
+[sptSparseTensorSortIndexAtMode]: 31.711381614 s
+[sptSparseTensorSetFibers]: 1.291606952 s
+[sptNewSemiSparseTensorWithNnz]: 0.906741299 s
+[Total preprocess time]: 33.909730
+[Copy indices]: 0.245065723 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.244353908 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047563632 s
+[Device copy back]: 0.280846049 s
+[Total time]: 0.817829
+
+[sptSparseTensorSortIndexAtMode]: 0.000001056 s
+[sptSparseTensorSetFibers]: 1.182955936 s
+[sptNewSemiSparseTensorWithNnz]: 0.906590909 s
+[Total preprocess time]: 2.089548
+[Copy indices]: 0.382180130 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.313694932 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047523355 s
+[Device copy back]: 0.578853124 s
+[Total time]: 1.322252
+
+[sptSparseTensorSortIndexAtMode]: 0.000000660 s
+[sptSparseTensorSetFibers]: 1.192416851 s
+[sptNewSemiSparseTensorWithNnz]: 0.930474535 s
+[Total preprocess time]: 2.122892
+[Copy indices]: 0.212367020 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.285299821 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047553833 s
+[Device copy back]: 0.549849172 s
+[Total time]: 1.095070
+
+[sptSparseTensorSortIndexAtMode]: 0.000000529 s
+[sptSparseTensorSetFibers]: 1.191264719 s
+[sptNewSemiSparseTensorWithNnz]: 0.919558131 s
+[Total preprocess time]: 2.110823
+[Copy indices]: 0.218607925 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.289345321 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047558570 s
+[Device copy back]: 0.550022259 s
+[Total time]: 1.105534
+
+[sptSparseTensorSortIndexAtMode]: 0.000006877 s
+[sptSparseTensorSetFibers]: 1.196848352 s
+[sptNewSemiSparseTensorWithNnz]: 0.924759039 s
+[Total preprocess time]: 2.121614
+[Copy indices]: 0.215559234 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.734689887 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047594341 s
+[Device copy back]: 0.380944422 s
+[Total time]: 1.378788
+
+[sptSparseTensorSortIndexAtMode]: 0.000000670 s
+[sptSparseTensorSetFibers]: 1.277694041 s
+[sptNewSemiSparseTensorWithNnz]: 0.916085569 s
+[Total preprocess time]: 2.193780
+[Copy indices]: 0.295901148 s
+nfibs: 113299247, flen: 1.27, fvar: 37872.46
+[Device copy]: 0.502197885 s
+all_nblocks: 885151, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.047514798 s
+[Device copy back]: 0.719779977 s
+[Total time]: 1.565394
+
+[Average CooTtm]: 3.763572277 s
++ for FILE in '$(ls ../../../pasta-data/*.tns)'
++ ./mttkrp -i ../../../pasta-data/nell-2.tns -r 5 -m 0
+niters: 5
+input file: ../../../pasta-data/nell-2.tns
+mode: 0
+dev_id: -2
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 12092x9184x28818 NNZ = 76879419 DENSITY = 2.402239e-05
+Average slice length (c): 6357.87 , 8371.02 , 2667.76
+COO-STORAGE = 1.15GB
+
+[Cpu SpTns MTTKRP]: 0.985835063 s
+[Total time]: 0.985835
+
+[Cpu SpTns MTTKRP]: 0.841231231 s
+[Total time]: 0.841231
+
+[Cpu SpTns MTTKRP]: 0.857801788 s
+[Total time]: 0.857802
+
+[Cpu SpTns MTTKRP]: 0.865541973 s
+[Total time]: 0.865542
+
+[Cpu SpTns MTTKRP]: 0.840476242 s
+[Total time]: 0.840476
+
+[Cpu SpTns MTTKRP]: 0.840287260 s
+[Total time]: 0.840287
+
+[Average CooMTTKRP]: 0.849191908 s
+Performance: 1.36 GFlop/s, Bandwidth: 1.45 GB/s
+
++ ./mttkrp_gpu -i ../../../pasta-data/nell-2.tns -r 5 -m 0 -d 0
+niters: 5
+input file: ../../../pasta-data/nell-2.tns
+mode: 0
+dev_id: 0
+impl_num: 15
+COO Sparse Tensor information (use sptIndex, sptValue))---------
+DIMS = 12092x9184x28818 NNZ = 76879419 DENSITY = 2.402239e-05
+Average slice length (c): 6357.87 , 8371.02 , 2667.76
+COO-STORAGE = 1.15GB
+
+[Cuda SpTns MTTKRP H2D]: 0.600097408 s
+[Bandwidth H2D]: 2.053101 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.056126596 s
+[GFLOPS]: 13.70 GFlops, [Bandwidth]: 21.93 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000110545 s
+[Bandwidth D2H]: 3.500403 GBytes/sec
+[Total time]: 0.056127
+
+[Cuda SpTns MTTKRP H2D]: 0.201983767 s
+[Bandwidth H2D]: 6.099800 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.058363319 s
+[GFLOPS]: 13.17 GFlops, [Bandwidth]: 21.09 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000104519 s
+[Bandwidth D2H]: 3.702217 GBytes/sec
+[Total time]: 0.058363
+
+[Cuda SpTns MTTKRP H2D]: 0.202372390 s
+[Bandwidth H2D]: 6.088087 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.056547861 s
+[GFLOPS]: 13.60 GFlops, [Bandwidth]: 21.77 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000105293 s
+[Bandwidth D2H]: 3.675002 GBytes/sec
+[Total time]: 0.056548
+
+[Cuda SpTns MTTKRP H2D]: 0.201885750 s
+[Bandwidth H2D]: 6.102762 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.057572154 s
+[GFLOPS]: 13.35 GFlops, [Bandwidth]: 21.38 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000104990 s
+[Bandwidth D2H]: 3.685608 GBytes/sec
+[Total time]: 0.057572
+
+[Cuda SpTns MTTKRP H2D]: 0.201856628 s
+[Bandwidth H2D]: 6.103642 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.056765247 s
+[GFLOPS]: 13.54 GFlops, [Bandwidth]: 21.69 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000102714 s
+[Bandwidth D2H]: 3.767276 GBytes/sec
+[Total time]: 0.056765
+
+[Cuda SpTns MTTKRP H2D]: 0.201924092 s
+[Bandwidth H2D]: 6.101603 GBytes/sec
+all_nblocks: 1507440, nthreadsx: 5, nthreadsy: 51
+Execute spt_MTTKRPKernelRankSplitNnz3DOneKernel (32768, (5, 51))
+[Cuda SpTns MTTKRP]: 0.057409169 s
+[GFLOPS]: 13.39 GFlops, [Bandwidth]: 21.44 GB/s
+[Cuda SpTns MTTKRP D2H]: 0.000105288 s
+[Bandwidth D2H]: 3.675177 GBytes/sec
+[Total time]: 0.057409
+
+[Average CooMTTKRP]: 0.269620095 s
+Performance: 4.28 GFlop/s, Bandwidth: 4.57 GB/s
+
++ ./ttm -i ../../../pasta-data/nell-2.tns -r 2
+niters: 5
+input file: ../../../pasta-data/nell-2.tns
+mode: 0
+dev_id: -2
+[sptSparseTensorSortIndexAtMode]: 15.278669134 s
+[sptSparseTensorSetFibers]: 0.511681030 s
+[sptNewSemiSparseTensorWithNnz]: 0.135486385 s
+[Total preprocess time]: 15.925837
+[Copy indices]: 0.047443512 s
+[Cpu SpTns * Mtx]: 0.327348252 s
+[Total time]: 0.374792
+
+[sptSparseTensorSortIndexAtMode]: 0.000000354 s
+[sptSparseTensorSetFibers]: 0.458881585 s
+[sptNewSemiSparseTensorWithNnz]: 0.133384138 s
+[Total preprocess time]: 0.592266
+[Copy indices]: 0.042055432 s
+[Cpu SpTns * Mtx]: 0.326610798 s
+[Total time]: 0.368666
+
+[sptSparseTensorSortIndexAtMode]: 0.000000248 s
+[sptSparseTensorSetFibers]: 0.458728759 s
+[sptNewSemiSparseTensorWithNnz]: 0.133530533 s
+[Total preprocess time]: 0.592260
+[Copy indices]: 0.042904600 s
+[Cpu SpTns * Mtx]: 0.337333500 s
+[Total time]: 0.380238
+
+[sptSparseTensorSortIndexAtMode]: 0.000000246 s
+[sptSparseTensorSetFibers]: 0.458578079 s
+[sptNewSemiSparseTensorWithNnz]: 0.133599756 s
+[Total preprocess time]: 0.592178
+[Copy indices]: 0.042841982 s
+[Cpu SpTns * Mtx]: 0.330027155 s
+[Total time]: 0.372869
+
+[sptSparseTensorSortIndexAtMode]: 0.000000441 s
+[sptSparseTensorSetFibers]: 0.462046858 s
+[sptNewSemiSparseTensorWithNnz]: 0.133479777 s
+[Total preprocess time]: 0.595527
+[Copy indices]: 0.042731648 s
+[Cpu SpTns * Mtx]: 0.326768209 s
+[Total time]: 0.369500
+
+[sptSparseTensorSortIndexAtMode]: 0.000000685 s
+[sptSparseTensorSetFibers]: 0.457945647 s
+[sptNewSemiSparseTensorWithNnz]: 0.133483119 s
+[Total preprocess time]: 0.591429
+[Copy indices]: 0.042891111 s
+[Cpu SpTns * Mtx]: 0.326884274 s
+[Total time]: 0.369775
+
+[Average CooTtm]: 0.968326544 s
++ ./ttm_gpu -i ../../../pasta-data/nell-2.tns -r 2 -d 0
+niters: 5
+input file: ../../../pasta-data/nell-2.tns
+mode: 0
+dev_id: 0
+impl_num: 14
+[sptSparseTensorSortIndexAtMode]: 15.247770207 s
+[sptSparseTensorSetFibers]: 0.477809215 s
+[sptNewSemiSparseTensorWithNnz]: 0.132886514 s
+[Total preprocess time]: 15.858466
+[Copy indices]: 0.053727324 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.193278059 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013747457 s
+[Device copy back]: 0.041204898 s
+[Total time]: 0.301958
+
+[sptSparseTensorSortIndexAtMode]: 0.000000525 s
+[sptSparseTensorSetFibers]: 0.465460303 s
+[sptNewSemiSparseTensorWithNnz]: 0.133753887 s
+[Total preprocess time]: 0.599215
+[Copy indices]: 0.033375821 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.103155840 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013653350 s
+[Device copy back]: 0.041164566 s
+[Total time]: 0.191350
+
+[sptSparseTensorSortIndexAtMode]: 0.000000548 s
+[sptSparseTensorSetFibers]: 0.461969402 s
+[sptNewSemiSparseTensorWithNnz]: 0.133051904 s
+[Total preprocess time]: 0.595022
+[Copy indices]: 0.031476871 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.103647547 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013617100 s
+[Device copy back]: 0.041159628 s
+[Total time]: 0.189901
+
+[sptSparseTensorSortIndexAtMode]: 0.000000282 s
+[sptSparseTensorSetFibers]: 0.461929882 s
+[sptNewSemiSparseTensorWithNnz]: 0.133074210 s
+[Total preprocess time]: 0.595004
+[Copy indices]: 0.031535827 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.104010104 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013660348 s
+[Device copy back]: 0.041151012 s
+[Total time]: 0.190357
+
+[sptSparseTensorSortIndexAtMode]: 0.000000292 s
+[sptSparseTensorSetFibers]: 0.462578181 s
+[sptNewSemiSparseTensorWithNnz]: 0.132990541 s
+[Total preprocess time]: 0.595569
+[Copy indices]: 0.031711215 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.103703097 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013626106 s
+[Device copy back]: 0.041152877 s
+[Total time]: 0.190193
+
+[sptSparseTensorSortIndexAtMode]: 0.000000280 s
+[sptSparseTensorSetFibers]: 0.462740911 s
+[sptNewSemiSparseTensorWithNnz]: 0.132871860 s
+[Total preprocess time]: 0.595613
+[Copy indices]: 0.031624910 s
+nfibs: 16562258, flen: 4.64, fvar: 86703.60
+[Device copy]: 0.103745640 s
+all_nblocks: 129393, nthreadsx: 2, nthreadsy: 128
+[Cuda SpTns * Mtx] spt_TTMRankRBNnzKernel<<<32768, (2, 128)>>>
+[Cuda SpTns * Mtx]: 0.013626536 s
+[Device copy back]: 0.041215590 s
+[Total time]: 0.190213
+
+[Average CooTtm]: 0.851045510 s
++ echo done
+done
