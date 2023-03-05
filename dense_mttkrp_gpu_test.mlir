@@ -9,7 +9,7 @@ module {
 				            %argc: memref<?x?xf64>,
 				            %argd: memref<?x?xf64>,
 				            %arga: memref<?x?xf64>) {
-		"standalone.computation"() ({
+		"spf.computation"() ({
 			// http://tensor-compiler.org/docs/data_analytics
 			// void mttkrp(int I, int K, int L, int J, double *B,
 			//               double *A, double *C, double *D) {
@@ -18,12 +18,12 @@ module {
 			//     for(int l = 0; l < L; l++)
 			//       for(int j = 0; j < J; j++)
 			//         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
-			"standalone.bar"(%I, %J, %K, %L, %argb, %argc, %argd, %arga) ({
+			"spf.bar"(%I, %J, %K, %L, %argb, %argc, %argd, %arga) ({
 			^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
 			%0 = arith.mulf %b_i_k_l, %d_l_j : f64
 			%1 = arith.mulf %0, %c_k_j : f64
 			%2 = arith.addf %1, %a_i_j : f64
-			"standalone.yield"(%2) : (f64) -> ()
+			"spf.yield"(%2) : (f64) -> ()
 			})  {
 					reads = [
 						[affine_map<(j, i, k, l) -> (i, k, l)>],

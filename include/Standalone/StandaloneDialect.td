@@ -12,27 +12,29 @@
 include "mlir/IR/OpBase.td"
 
 //===----------------------------------------------------------------------===//
-// Standalone dialect definition.
+// SPF dialect definition.
 //===----------------------------------------------------------------------===//
 
-def Standalone_Dialect : Dialect {
-    let name = "standalone";
-    let summary = "A standalone out-of-tree MLIR dialect.";
+def SPF_Dialect : Dialect {
+    let name = "spf";
+    let summary = "A dialect for the Sparse Polyhedral Framework.";
     let description = [{
-        This dialect is an example of an out-of-tree MLIR dialect designed to
-        illustrate the basic setup required to develop MLIR-based tools without
-        working inside of the LLVM source tree.
+        This dialect wraps existing SPF (Sparse Polyhedral Framework) tools to
+        provide an MLIR interface and code generation. Generating MLIR allows
+        SPF based tools to target a much broader set of hardware than previously
+        possible, and allows researchers to use SPF to create optimizations
+        inside MLIR based compilers.
     }];
-    let cppNamespace = "::mlir::standalone";
+    let cppNamespace = "::mlir::spf";
 
     let dependentDialects = ["scf::SCFDialect", "vector::VectorDialect", "mlir::AffineDialect", "memref::MemRefDialect"];
 }
 
 //===----------------------------------------------------------------------===//
-// Base standalone operation definition.
+// Base SPF operation definition.
 //===----------------------------------------------------------------------===//
 
-class Standalone_Op<string mnemonic, list<Trait> traits = []> :
-        Op<Standalone_Dialect, mnemonic, traits>;
+class SPF_Op<string mnemonic, list<Trait> traits = []> :
+        Op<SPF_Dialect, mnemonic, traits>;
 
 #endif // STANDALONE_DIALECT

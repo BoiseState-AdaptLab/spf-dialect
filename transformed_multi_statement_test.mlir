@@ -67,8 +67,8 @@ module @my_module {
         memref.store %c2, %x_vals[%c2] : memref<4xindex>
         memref.store %c3, %x_vals[%c3] : memref<4xindex>
 
-        "standalone.computation"() ({
-            "standalone.bar"(%T, %X, %t_vals, %x_vals) ({
+        "spf.computation"() ({
+            "spf.bar"(%T, %X, %t_vals, %x_vals) ({
             ^bb0(%tt : index, %xx : index):
             %c68 = arith.constant 68 : index
 
@@ -83,7 +83,7 @@ module @my_module {
             // increment index
             %inew = arith.addi %iold, %c1 :index
             memref.store %inew, %i[%c0] : memref<1xindex>
-            "standalone.yield"(): () -> ()
+            "spf.yield"(): () -> ()
             })  {
                 reads = [
                             [affine_map<(t, x) -> (t)>],
@@ -99,7 +99,7 @@ module @my_module {
                         transforms = ["{[a,b,c,d]->[a,0,x,0]:x=c-1}"]
                 } : (index, index, memref<2xindex>, memref<4xindex>) -> ()
 
-            "standalone.bar"(%T, %X, %t_vals, %x_vals) ({
+            "spf.bar"(%T, %X, %t_vals, %x_vals) ({
             ^bb0(%tt : index, %xx : index):
             %c68 = arith.constant 68 : index
 
@@ -114,7 +114,7 @@ module @my_module {
             // increment index
             %inew = arith.addi %iold, %c1 :index
             memref.store %inew, %i[%c0] : memref<1xindex>
-            "standalone.yield"(): () -> ()
+            "spf.yield"(): () -> ()
             })  {
                     reads = [
                         [affine_map<(t, x) -> (t)>],

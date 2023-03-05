@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   mlir::standalone::registerMyPassPass();
 
   mlir::DialectRegistry registry;
-  registry.insert<mlir::standalone::StandaloneDialect>();
+  registry.insert<mlir::spf::SPFDialect>();
   registerAllDialects(registry);
 
   return mlir::asMainReturnCode(

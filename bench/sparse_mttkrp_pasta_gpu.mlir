@@ -73,7 +73,7 @@ module {
         %NUM_LOOPS_NNZ = arith.divui %tmp1, %NNZ_PER_LOOP : index
 
         %start = func.call @milliTime() : () -> (i64)
-        "standalone.computation"() ({
+        "spf.computation"() ({
             // MTTKRP for GPUs: (this is a stright port of pasta implementation)
             //
             // NNZ_PER_LOOP = BLOCKS * TRHEADS_NNZ
@@ -95,14 +95,14 @@ module {
             //     }
             //   }
             // }
-            "standalone.bar"(%NNZ, %BLOCKS, %THREADS_J, %THREADS_NNZ, %NUM_LOOPS_NNZ, %J, // symbols
+            "spf.bar"(%NNZ, %BLOCKS, %THREADS_J, %THREADS_NNZ, %NUM_LOOPS_NNZ, %J, // symbols
                              %argb_coord_0, %argb_coord_1, %argb_coord_2, %THREADS_NNZ, %NNZ_PER_LOOP, // ufInputs
                              %argb_values, %argc, %argd, // inputs
                              %arga) ({ // outputs
                     ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32):
                     %0 = arith.mulf %b_i_k_l, %d_l_j : f32
                     %1 = arith.mulf %0, %c_k_j : f32
-                    "standalone.yield"(%1) : (f32) -> ()
+                    "spf.yield"(%1) : (f32) -> ()
                     })  {
                         reads = [
                             [affine_map<(block, j, tnnz, nl, x, i, k, l) -> (x)>],

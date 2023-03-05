@@ -16,7 +16,7 @@ module {
                                  %y: memref<?x?xf32>) -> (i64) attributes {llvm.emit_c_interface} {
 
         %start = func.call @milliTime() : () -> (i64)
-        "standalone.computation"() ({
+        "spf.computation"() ({
             // for(int f = 0; f < Mf; f++) {
             //     for(int m = UFfptr(f); m < UFfptr(f+1); m++) {
             //         int k = x_coord_constant[m];
@@ -25,11 +25,11 @@ module {
             //         }
             //     }
             // }
-            "standalone.bar"(%Mf, %R, %fptr, %x_coord_constant, %x_values, %u, %y) ({
+            "spf.bar"(%Mf, %R, %fptr, %x_coord_constant, %x_values, %u, %y) ({
                 ^bb0(%x_value : f32, %u_k_r : f32, %y_f_r : f32):
                 %0 = arith.mulf %x_value, %u_k_r : f32
                 %1 = arith.addf %0, %y_f_r : f32
-                "standalone.yield"(%1) : (f32) -> ()
+                "spf.yield"(%1) : (f32) -> ()
             }) {
                 reads = [
                     [affine_map<(f, m, k, r) -> (m)>],

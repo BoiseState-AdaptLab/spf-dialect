@@ -25,7 +25,7 @@
 // https://mlir.llvm.org/docs/Dialects/Affine/#integer-sets and then symbols
 // could be passed the normal way they are with that construct. But, that's
 // going to have to be future work.
-mlir::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
+mlir::OpOperandVector mlir::spf::BarOp::getSymbolOperands() {
   // BarOp has variadic number of input and output parameters. There's a problem
   // with this, how are we to know where to break between operation parameters
   // intended to be fall in the input bucket vs output bucket. The
@@ -44,7 +44,7 @@ mlir::OpOperandVector mlir::standalone::BarOp::getSymbolOperands() {
 
 // UFIntputOperands are used as arguments to the provided UFs but not as
 // arguments to the statement/.
-mlir::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
+mlir::OpOperandVector mlir::spf::BarOp::getUFInputOperands() {
   // UF inputs come after symbols in the operand list, make sure to skip those.
   int64_t numSymbols = this->getSymbols().size();
 
@@ -61,7 +61,7 @@ mlir::OpOperandVector mlir::standalone::BarOp::getUFInputOperands() {
 }
 
 // Items read from inputs will be arguments to the statement.
-mlir::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
+mlir::OpOperandVector mlir::spf::BarOp::getInputOperands() {
   int64_t numInputs = this->getInputs().size();
   // Regular inputs come after uf inputs and symbols in the operand list, make
   // sure to skip those.
@@ -82,7 +82,7 @@ mlir::OpOperandVector mlir::standalone::BarOp::getInputOperands() {
 }
 
 // Each execution of a statement will write to something in the output
-mlir::OpOperandVector mlir::standalone::BarOp::getOutputOperands() {
+mlir::OpOperandVector mlir::spf::BarOp::getOutputOperands() {
   int64_t numOutputs = this->getOutputs().size();
   mlir::OpOperandVector result;
   result.reserve(numOutputs);

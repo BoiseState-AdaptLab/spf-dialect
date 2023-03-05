@@ -14,7 +14,7 @@
 #include "mlir/Dialect/Vector/IR/VectorOps.h"
 
 using namespace mlir;
-using namespace mlir::standalone;
+using namespace mlir::spf;
 
 #include "Standalone/StandaloneOpsDialect.cpp.inc"
 
@@ -22,7 +22,7 @@ using namespace mlir::standalone;
 // Standalone dialect.
 //===----------------------------------------------------------------------===//
 
-void StandaloneDialect::initialize() {
+void SPFDialect::initialize() {
   addOperations<
 #define GET_OP_LIST
 #include "Standalone/StandaloneOps.cpp.inc"

@@ -30,13 +30,13 @@ func.func @main() {
     memref.store %f100, %A[%c9] : memref<10xf64>
     memref.store %f100, %B[%c9] : memref<10xf64>
 
-    "standalone.computation"() ({
-        "standalone.bar"(%ub_T_div_2, %lb_x, %ub_x, %B, %A) ({
+    "spf.computation"() ({
+        "spf.bar"(%ub_T_div_2, %lb_x, %ub_x, %B, %A) ({
         ^stmt(%B_x_plus_one: f64, %B_x: f64, %B_x_minus_one: f64):
         %0 = arith.addf %B_x_plus_one, %B_x : f64
         %1 = arith.addf %0, %B_x_minus_one : f64
         %2 = arith.divf %1, %f3 : f64
-        "standalone.yield"(%2): (f64) -> ()
+        "spf.yield"(%2): (f64) -> ()
         })  {  reads = [
                            [ // data access functions for first input
                                affine_map<(t, x) -> (x+1)>,
@@ -53,12 +53,12 @@ func.func @main() {
                iterationSpace = "{[t,x]: 1<=t<=ub_T and lb_x<=x<=ub_x}",
                transforms = []
             }:(index,index,index,memref<10xf64>,memref<10xf64>)->()
-        "standalone.bar"(%ub_T_div_2, %lb_x, %ub_x, %A, %B) ({
+        "spf.bar"(%ub_T_div_2, %lb_x, %ub_x, %A, %B) ({
         ^stmt(%A_x_plus_one: f64, %A_x: f64, %A_x_minus_one: f64):
         %0 = arith.addf %A_x_plus_one, %A_x : f64
         %1 = arith.addf %0, %A_x_minus_one : f64
         %2 = arith.divf %1, %f3 : f64
-        "standalone.yield"(%2): (f64) -> ()
+        "spf.yield"(%2): (f64) -> ()
         })  {  reads = [
                    [ // data access functions for first input
                        affine_map<(t, x) -> (x+1)>,

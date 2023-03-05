@@ -15,7 +15,7 @@ include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
-def Standalone_FooOp : Standalone_Op<"foo", [Pure,
+def Standalone_FooOp : SPF_Op<"foo", [Pure,
                                              SameOperandsAndResultType]> {
     let summary = "Illustrates how to define an operation.";
     let description = [{
@@ -42,7 +42,7 @@ def Standalone_FooOp : Standalone_Op<"foo", [Pure,
     }];
 }
 
-def Standalone_YieldOp : Standalone_Op<"yield", [Pure, ReturnLike, Terminator]>,
+def Standalone_YieldOp : SPF_Op<"yield", [Pure, ReturnLike, Terminator]>,
     Arguments<(ins Variadic<AnyType>:$values)> {
   let summary = "TODO";
   let description = [{
@@ -50,7 +50,7 @@ def Standalone_YieldOp : Standalone_Op<"yield", [Pure, ReturnLike, Terminator]>,
   }];
 }
 
-def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
+def Standalone_BarOp : SPF_Op<"bar", [AttrSizedOperandSegments]> {
     let summary = "This is a bar op";
     let description = [{
         Stuff
@@ -79,7 +79,7 @@ def Standalone_BarOp : Standalone_Op<"bar", [AttrSizedOperandSegments]> {
     let regions = (region AnyRegion:$body, VariadicRegion<AnyRegion>:$ufs);
 }
 
-def Standalone_ComputationOp : Standalone_Op<"computation", [NoTerminator]> {
+def Standalone_ComputationOp : SPF_Op<"computation", [NoTerminator]> {
     let summary = "TODO";
     let description = [{
         TODO

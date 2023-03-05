@@ -38,7 +38,7 @@ module {
                              %argc: memref<?x?xf32>,
                              %argd: memref<?x?xf32>,
                              %arga: memref<?x?xf32>) -> () {
-		"standalone.computation"() ({
+		"spf.computation"() ({
 			// COO MTTKRP:
 			//
 			// parallel_for (int j = 0; j < J; j++)
@@ -49,12 +49,12 @@ module {
 			//     val=UFval(z);
 			//     A[i,j] += val*D[l,j]*C[k,j];
 			// }
-			"standalone.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+			"spf.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
 			^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
 			%0 = arith.mulf %b_i_k_l, %d_l_j : f32
 			%1 = arith.mulf %0, %c_k_j : f32
 			%2 = arith.addf %1, %a_i_j : f32
-			"standalone.yield"(%2) : (f32) -> ()
+			"spf.yield"(%2) : (f32) -> ()
 			})  {
                     reads = [
                         [affine_map<(j, z, i, k, l) -> (z)>],
