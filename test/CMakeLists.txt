@@ -12,8 +12,7 @@ configure_lit_site_cfg(
 set(STANDALONE_TEST_DEPENDS
         FileCheck count not
         standalone-capi-test
-        standalone-opt
-        standalone-translate
+        spf-opt
         )
 if(MLIR_ENABLE_BINDINGS_PYTHON)
   list(APPEND STANDALONE_TEST_DEPENDS StandalonePythonModules)

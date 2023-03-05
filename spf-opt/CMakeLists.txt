@@ -12,9 +12,9 @@ set(LIBS
         codegen
         omega
         )
-add_llvm_executable(standalone-opt standalone-opt.cpp)
+add_llvm_executable(spf-opt spf-opt.cpp)
 
-llvm_update_compile_flags(standalone-opt)
-target_link_libraries(standalone-opt PRIVATE ${LIBS})
+llvm_update_compile_flags(spf-opt)
+target_link_libraries(spf-opt PRIVATE ${LIBS})
 
-mlir_check_all_link_libraries(standalone-opt)
+mlir_check_all_link_libraries(spf-opt)

@@ -23,13 +23,16 @@ function add_exteded_frostt_header() {
 }
 
 # create functions for scope to prevent mixing up NELL1 with NELL2 etc
-function get_nell2() {
+function get_nell2s() {
 	local NELL2="nell-2.tns"
+	local NELL2MOD="nell-2-modified.tns"
 	if [[ ! -e $NELL2 ]]; then
 		wget https://s3.us-east-2.amazonaws.com/frostt/frostt_data/nell/nell-2.tns.gz
 		gzip -d "$NELL2.gz"
+		head -5879419 $NELL2 >> $NELL2MOD
+		add_exteded_frostt_header $NELL2MOD
 		add_exteded_frostt_header $NELL2
 	fi
 }
 
-get_nell2
+get_nell2s

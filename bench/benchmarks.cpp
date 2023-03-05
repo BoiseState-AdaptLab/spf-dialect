@@ -41,7 +41,7 @@ void runTest(T &result, const char *context, char *filename, Config config) {
   auto red = "\033[31m";
   auto green = "\033[32m";
   auto reset = "\033[0m";
-  auto reference = T(filename, config, true);
+  auto reference = T(filename, config, /*isReference*/ true);
   if (!reference.isSame(result)) {
     std::cerr << red << context
               << " result doesn't match reference implementation\n"

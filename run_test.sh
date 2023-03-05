@@ -6,7 +6,7 @@ export ASAN_OPTIONS=detect_leaks=0
 echo  "EXPECTED OUTPUT ========================="
 build/jacobi/jacobi-no-transform-c-print-example
 echo  "OUTPUT =================================="
-build/bin/standalone-opt no_transform_multi_statement_test.mlir \
+build/bin/spf-opt no_transform_multi_statement_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -30,7 +30,7 @@ build/bin/standalone-opt no_transform_multi_statement_test.mlir \
 echo  "EXPECTED OUTPUT ========================="
 build/jacobi/jacobi-transformed-c-print-example
 echo  "OUTPUT =================================="
-build/bin/standalone-opt transformed_multi_statement_test.mlir \
+build/bin/spf-opt transformed_multi_statement_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -54,7 +54,7 @@ build/bin/standalone-opt transformed_multi_statement_test.mlir \
 echo  "EXPECTED JACOBI OUTPUT =================="
 build/jacobi/jacobi-expected
 echo  "JACOBI==================================="
-build/bin/standalone-opt no_transform_jacobi_test.mlir \
+build/bin/spf-opt no_transform_jacobi_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -75,7 +75,7 @@ build/bin/standalone-opt no_transform_jacobi_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "TRANSFORMED JACOBI======================="
-build/bin/standalone-opt transformed_jacobi_test.mlir \
+build/bin/spf-opt transformed_jacobi_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -99,7 +99,7 @@ echo  "EXPECTED MTTKRP OUTPUT =================="
 echo  "( ( 16075, 21930, 28505, 35800, 43815 ),"
 echo  "  ( 10000, 14225, 19180, 24865, 31280 ) )"
 echo  "DENSE-CPU================================"
-build/bin/standalone-opt dense_mttkrp_test.mlir \
+build/bin/spf-opt dense_mttkrp_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -120,7 +120,7 @@ build/bin/standalone-opt dense_mttkrp_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "SPARSE-CPU==============================="
-build/bin/standalone-opt sparse_mttkrp_test.mlir \
+build/bin/spf-opt sparse_mttkrp_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -142,7 +142,7 @@ build/bin/standalone-opt sparse_mttkrp_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "DENSE-GPU================================"
-build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
+build/bin/spf-opt dense_mttkrp_gpu_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -156,8 +156,8 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
   -arith-bufferize \
   -finalizing-bufferize \
   -gpu-kernel-outlining \
-  | build/bin/standalone-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
-  | build/bin/standalone-opt -gpu-to-llvm \
+  | build/bin/spf-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
+  | build/bin/spf-opt -gpu-to-llvm \
   -convert-vector-to-llvm \
   -convert-memref-to-llvm \
   -convert-complex-to-standard \
@@ -173,7 +173,7 @@ build/bin/standalone-opt dense_mttkrp_gpu_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so \
     --shared-libs=../llvm-project/build/lib/libmlir_cuda_runtime.so
 echo  "SPARSE-GPU==============================="
-build/bin/standalone-opt sparse_mttkrp_gpu_test.mlir \
+build/bin/spf-opt sparse_mttkrp_gpu_test.mlir \
   -my-pass \
   -inline \
   -cse \
@@ -187,8 +187,8 @@ build/bin/standalone-opt sparse_mttkrp_gpu_test.mlir \
   -arith-bufferize \
   -finalizing-bufferize \
   -gpu-kernel-outlining \
-  | build/bin/standalone-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
-  | build/bin/standalone-opt -gpu-async-region \
+  | build/bin/spf-opt -pass-pipeline='builtin.module(gpu.module(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin))' \
+  | build/bin/spf-opt -gpu-async-region \
   -gpu-to-llvm \
   -convert-vector-to-llvm \
   -convert-memref-to-llvm \

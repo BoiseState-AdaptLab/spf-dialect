@@ -53,7 +53,7 @@ macro(create_partial_lowering out_partial_lowering_filename file_name_no_extensi
     set(${out_partial_lowering_filename} ${partial_lowering_filename})
     add_custom_command(OUTPUT ${partial_lowering_filename}
             DEPENDS ${mlir_file}
-            COMMAND standalone-opt ${mlir_file}
+            COMMAND spf-opt ${mlir_file}
             -my-pass
             -o ${partial_lowering_filename}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bench)
@@ -87,7 +87,7 @@ macro(append_cpu_pipeline_object_file object_file_list mlir_file benchmark_name)
     set(cpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_cpu_pipeline_output.mlir)
     add_custom_command(OUTPUT ${cpu_pipeline_filename}
             DEPENDS ${partial_lowering_filename}
-            COMMAND standalone-opt ${partial_lowering_filename}
+            COMMAND spf-opt ${partial_lowering_filename}
             -inline
             -cse
             -loop-invariant-code-motion
@@ -119,7 +119,7 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
     set(gpu_pipeline_filename ${PROJECT_BINARY_DIR}/bench/${file_name_no_extension}_gpu_pipeline_output.mlir)
     add_custom_command(OUTPUT ${gpu_pipeline_filename}
                     DEPENDS ${partial_lowering_filename}
-                    COMMAND standalone-opt ${partial_lowering_filename}
+                    COMMAND spf-opt ${partial_lowering_filename}
                     -lower-affine
                     -cse
                     -gpu-map-parallel-loops
@@ -133,8 +133,8 @@ macro(append_gpu_pipeline_object_file object_file_list mlir_file benchmark_name)
                     -arith-bufferize
                     -finalizing-bufferize
                     -gpu-kernel-outlining
-                    | ../build/bin/standalone-opt -pass-pipeline=\'builtin.module\(gpu.module\(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin\)\)\'
-                    | ../build/bin/standalone-opt -gpu-async-region
+                    | ../build/bin/spf-opt -pass-pipeline=\'builtin.module\(gpu.module\(strip-debuginfo,convert-gpu-to-nvvm,gpu-to-cubin\)\)\'
+                    | ../build/bin/spf-opt -gpu-async-region
                     -gpu-to-llvm
                     -convert-vector-to-llvm
                     -convert-memref-to-llvm
