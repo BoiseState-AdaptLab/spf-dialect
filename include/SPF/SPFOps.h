@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef STANDALONE_STANDALONEOPS_H
-#define STANDALONE_STANDALONEOPS_H
+#ifndef SPF_SPFOPS_H
+#define SPF_SPFOPS_H
 
 #include "mlir/Dialect/Linalg/IR/LinalgInterfaces.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -18,6 +18,6 @@
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 
 #define GET_OP_CLASSES
-#include "Standalone/StandaloneOps.h.inc"
+#include "SPF/SPFOps.h.inc"
 
-#endif // STANDALONE_STANDALONEOPS_H
+#endif // SPF_SPFOPS_H

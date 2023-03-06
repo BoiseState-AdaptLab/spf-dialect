@@ -12,7 +12,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
-#include "Standalone/StandaloneDialect.h"
+#include "SPF/SPFDialect.h"
 #include "StandaloneTransforms/Passes.h"
 
 int main(int argc, char **argv) {

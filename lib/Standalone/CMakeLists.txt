@@ -3,10 +3,10 @@ add_mlir_dialect_library(MLIRStandalone
         StandaloneOps.cpp
 
         ADDITIONAL_HEADER_DIRS
-        ${PROJECT_SOURCE_DIR}/include/Standalone
+        ${PROJECT_SOURCE_DIR}/include/SPF
 
         DEPENDS
-        MLIRStandaloneOpsIncGen
+        MLIRSPFOpsIncGen
 
 		LINK_LIBS PUBLIC
 		MLIRIR

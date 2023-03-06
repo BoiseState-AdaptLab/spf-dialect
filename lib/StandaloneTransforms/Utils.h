@@ -1,7 +1,7 @@
 #ifndef STANDALONE_STANDALONETRANSFORMS_UTILS_H
 #define STANDALONE_STANDALONETRANSFORMS_UTILS_H
 
-#include "Standalone/StandaloneOps.h"
+#include "SPF/SPFOps.h"
 #include "iegenlib.h"
 #include "mlir/AsmParser/AsmParser.h"
 #include "mlir/IR/AffineMap.h"

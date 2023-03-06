@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Standalone/StandaloneOps.h"
-#include "Standalone/StandaloneDialect.h"
+#include "SPF/SPFOps.h"
+#include "SPF/SPFDialect.h"
 #include "mlir/Dialect/Linalg/IR/LinalgInterfaces.h"
 #include "mlir/IR/OpImplementation.h"
 #include "llvm/ADT/SmallVector.h"
 
 #define GET_OP_CLASSES
-#include "Standalone/StandaloneOps.cpp.inc"
+#include "SPF/SPFOps.cpp.inc"
 
 // Symbols are used in the iteration space and mapped to arguments using the
 // symbolNames attribute.

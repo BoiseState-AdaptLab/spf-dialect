@@ -5,7 +5,7 @@
 #include "mlir/Transforms/LocationSnapshot.h"
 #include "mlir/Transforms/ViewOpGraph.h"
 #include "llvm/Support/Debug.h"
-#include "Standalone/StandaloneOps.h"
+#include "SPF/SPFOps.h"
 #include <limits>
 
 namespace mlir {

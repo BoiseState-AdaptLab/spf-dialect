@@ -1,2 +1,2 @@
-add_subdirectory(Standalone)
+add_subdirectory(SPF)
 add_subdirectory(StandaloneTransforms)

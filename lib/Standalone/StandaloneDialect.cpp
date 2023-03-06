@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Standalone/StandaloneDialect.h"
-#include "Standalone/StandaloneOps.h"
+#include "SPF/SPFDialect.h"
+#include "SPF/SPFOps.h"
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
@@ -16,7 +16,7 @@
 using namespace mlir;
 using namespace mlir::spf;
 
-#include "Standalone/StandaloneOpsDialect.cpp.inc"
+#include "SPF/SPFOpsDialect.cpp.inc"
 
 //===----------------------------------------------------------------------===//
 // Standalone dialect.
@@ -25,6 +25,6 @@ using namespace mlir::spf;
 void SPFDialect::initialize() {
   addOperations<
 #define GET_OP_LIST
-#include "Standalone/StandaloneOps.cpp.inc"
+#include "SPF/SPFOps.cpp.inc"
       >();
 }

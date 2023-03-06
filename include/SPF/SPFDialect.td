@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef STANDALONE_DIALECT
-#define STANDALONE_DIALECT
+#ifndef SPF_DIALECT
+#define SPF_DIALECT
 
 include "mlir/IR/OpBase.td"
 
@@ -37,4 +37,4 @@ def SPF_Dialect : Dialect {
 class SPF_Op<string mnemonic, list<Trait> traits = []> :
         Op<SPF_Dialect, mnemonic, traits>;
 
-#endif // STANDALONE_DIALECT
+#endif // SPF_DIALECT
