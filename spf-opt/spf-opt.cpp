@@ -13,11 +13,11 @@
 #include "llvm/Support/ToolOutputFile.h"
 
 #include "SPF/SPFDialect.h"
-#include "StandaloneTransforms/Passes.h"
+#include "SPFTransforms/Passes.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
-  mlir::standalone::registerMyPassPass();
+  mlir::spf::registerMyPassPass();
 
   mlir::DialectRegistry registry;
   registry.insert<mlir::spf::SPFDialect>();

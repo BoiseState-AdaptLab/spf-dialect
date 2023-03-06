@@ -1,5 +1,5 @@
-#ifndef STANDALONE_DIALECT_PASSES_H
-#define STANDALONE_DIALECT_PASSES_H
+#ifndef SPF_DIALECT_PASSES_H
+#define SPF_DIALECT_PASSES_H
 
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/LocationSnapshot.h"
@@ -9,7 +9,7 @@
 #include <limits>
 
 namespace mlir {
-    namespace standalone {
+    namespace spf {
 
 //===----------------------------------------------------------------------===//
 // Passes
@@ -24,9 +24,9 @@ namespace mlir {
 /// Generate the code for registering passes.
 #define GEN_PASS_REGISTRATION
 
-#include "StandaloneTransforms/Passes.h.inc"
+#include "SPFTransforms/Passes.h.inc"
 
     }
 }
 
-#endif //STANDALONE_DIALECT_PASSES_H
+#endif //SPF_DIALECT_PASSES_H

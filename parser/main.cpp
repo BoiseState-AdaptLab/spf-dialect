@@ -1,4 +1,4 @@
-#include "../lib/StandaloneTransforms/Parser.h"
+#include "../lib/SPFTransforms/Parser.h"
 #include "computation/Computation.h"
 #include <iostream>
 
@@ -87,8 +87,8 @@ int main() {
     }
 
     std::cout << "parse =============================\n";
-    auto lexer = mlir::standalone::parser::Lexer(std::move(code));
-    auto parser = mlir::standalone::parser::Parser(lexer, vOmegaReplacer);
+    auto lexer = mlir::spf::parser::Lexer(std::move(code));
+    auto parser = mlir::spf::parser::Parser(lexer, vOmegaReplacer);
     auto ast = parser.parseProgram();
 
     auto red = "\033[31m";

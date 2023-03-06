@@ -1,5 +1,5 @@
-#ifndef STANDALONE_PARSER_H
-#define STANDALONE_PARSER_H
+#ifndef SPF_PARSER_H
+#define SPF_PARSER_H
 
 #include "iegenlib.h"
 #include "set_relation/VisitorChangeUFsForOmega.h"
@@ -24,7 +24,7 @@
 #include <vector>
 
 namespace mlir {
-namespace standalone {
+namespace spf {
 namespace parser {
 
 /// Structure definition a location in a file.
@@ -1081,7 +1081,7 @@ private:
 };
 
 } // namespace parser
-} // namespace standalone
+} // namespace spf
 } // namespace mlir
 
-#endif // STANDALONE_PARSER_H
+#endif // SPF_PARSER_H

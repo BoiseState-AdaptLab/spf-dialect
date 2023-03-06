@@ -1,4 +1,4 @@
-add_mlir_library(StandaloneTransforms
+add_mlir_library(SPFTransforms
   MyPass.cpp
   Printer.h
   Utils.h
@@ -10,7 +10,7 @@ add_mlir_library(StandaloneTransforms
   lib/IEGenLib/lib/gtest/include
 
   DEPENDS
-  StandaloneTransformsPassIncGen
+  SPFTransformsPassIncGen
 
   LINK_LIBS PUBLIC
   MLIRAnalysis

@@ -5,15 +5,15 @@ configure_lit_site_cfg(
         ${CMAKE_CURRENT_SOURCE_DIR}/lit.cfg.py
 )
 
-set(STANDALONE_TEST_DEPENDS
+set(SPF_TEST_DEPENDS
         FileCheck count not
         spf-opt
         )
 
-add_lit_testsuite(check-standalone "Running the standalone regression tests"
+add_lit_testsuite(check-spf "Running the spf regression tests"
         ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS ${STANDALONE_TEST_DEPENDS}
+        DEPENDS ${SPF_TEST_DEPENDS}
         )
-set_target_properties(check-standalone PROPERTIES FOLDER "Tests")
+set_target_properties(check-spf PROPERTIES FOLDER "Tests")
 
-add_lit_testsuites(STANDALONE ${CMAKE_CURRENT_SOURCE_DIR} DEPENDS ${STANDALONE_TEST_DEPENDS})
+add_lit_testsuites(SPF ${CMAKE_CURRENT_SOURCE_DIR} DEPENDS ${SPF_TEST_DEPENDS})

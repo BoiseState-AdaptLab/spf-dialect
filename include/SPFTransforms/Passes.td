@@ -9,7 +9,7 @@ def MyPass : Pass<"my-pass"> {
   let description = [{
       This pass prints some debug stuff
   }];
-  let constructor = "mlir::standalone::createMyPass()";
+  let constructor = "mlir::spf::createMyPass()";
   let dependentDialects = ["mlir::gpu::GPUDialect"];
 }
 

@@ -2,7 +2,7 @@
 #include "Printer.h"
 #include "SPF/SPFDialect.h"
 #include "SPF/SPFOps.h"
-#include "StandaloneTransforms/Passes.h"
+#include "SPFTransforms/Passes.h"
 #include "Utils.h"
 #include "iegenlib.h"
 #include "mlir/AsmParser/AsmParser.h"
@@ -58,31 +58,31 @@
 
 using ReadWrite = std::vector<std::pair<std::string, std::string>>;
 
-namespace sparser = mlir::standalone::parser;
+namespace sparser = mlir::spf::parser;
 
 namespace mlir {
-namespace standalone {
+namespace spf {
 #define GEN_PASS_CLASSES
 
-#include "StandaloneTransforms/Passes.h.inc"
+#include "SPFTransforms/Passes.h.inc"
 
-} // namespace standalone
+} // namespace spf
 } // namespace mlir
 
 using namespace mlir;
 
 namespace {
-struct MyPass : public mlir::standalone::MyPassBase<MyPass> {
+struct MyPass : public mlir::spf::MyPassBase<MyPass> {
   void runOnOperation() override;
 };
 } // end anonymous namespace
 
 namespace mlir {
-namespace standalone {
+namespace spf {
 std::unique_ptr<OperationPass<>> createMyPass() {
   return std::make_unique<MyPass>();
 }
-} // namespace standalone
+} // namespace spf
 } // namespace mlir
 
 namespace {
@@ -564,10 +564,10 @@ std::string relationForOperand(AffineMap map) {
   return read;
 };
 
-std::unique_ptr<standalone::parser::Program>
+std::unique_ptr<spf::parser::Program>
 parse(std::tuple<std::string, VisitorChangeUFsForOmega *> input) {
-  auto lexer = standalone::parser::Lexer(std::move(std::get<0>(input)));
-  auto parser = standalone::parser::Parser(lexer, std::get<1>(input));
+  auto lexer = spf::parser::Lexer(std::move(std::get<0>(input)));
+  auto parser = spf::parser::Parser(lexer, std::get<1>(input));
   return parser.parseProgram();
 }
 
@@ -706,14 +706,9 @@ public:
 };
 } // end anonymous namespace
 
-void populateStandaloneToSomethingConversionPatterns(
-    RewritePatternSet &patterns) {
-  patterns.add<ReplaceWithCodeGen>(patterns.getContext());
-}
-
 void MyPass::runOnOperation() {
   RewritePatternSet patterns(&getContext());
-  populateStandaloneToSomethingConversionPatterns(patterns);
+  patterns.add<ReplaceWithCodeGen>(patterns.getContext());
   ConversionTarget target(getContext());
   target.addLegalDialect<scf::SCFDialect, arith::ArithDialect,
                          vector::VectorDialect, memref::MemRefDialect,
