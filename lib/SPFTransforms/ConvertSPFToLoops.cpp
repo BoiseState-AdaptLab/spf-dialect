@@ -72,7 +72,8 @@ namespace spf {
 using namespace mlir;
 
 namespace {
-struct ConvertSpfToLoops : public mlir::spf::ConvertSPFToLoopsBase<ConvertSpfToLoops> {
+struct ConvertSpfToLoops
+    : public mlir::spf::ConvertSPFToLoopsBase<ConvertSpfToLoops> {
   void runOnOperation() override;
 };
 } // end anonymous namespace
@@ -124,7 +125,9 @@ static SmallVector<Value> makeCanonicalAffineApplies(OpBuilder &builder,
   return res;
 }
 
-struct Walker : public sparser::VisitorBase {
+// Compiler generates MLIR dialects from the AST parsed from C code generated
+// during polyhedral scanning.
+struct Compiler : public sparser::VisitorBase {
   mlir::OpBuilder &builder;
   // symbols is a map between `std::string`s and `mlir::Value`s. It accomplishes
   // essentially the same job as the MLIR symbol table. It's uses could and
@@ -140,8 +143,8 @@ struct Walker : public sparser::VisitorBase {
   int loopLevel = 0;
 
 public:
-  explicit Walker(mlir::OpBuilder &builder, spf::ComputationOp computationOp,
-                  std::vector<StatementContext> statements)
+  explicit Compiler(mlir::OpBuilder &builder, spf::ComputationOp computationOp,
+                    std::vector<StatementContext> statements)
       : builder(builder), computationOp(computationOp), statements(statements) {
     // populate symbols TODO: symbols should hang off computation not statement,
     // for now I'm just assuming that the symbols are the same and reading them
@@ -696,7 +699,7 @@ public:
     }
 
     // Walk ast and generate MLIR based on Omega AST
-    Walker(rewriter, computationOp, statements).codeGen(std::move(simpleAST));
+    Compiler(rewriter, computationOp, statements).codeGen(std::move(simpleAST));
 
     rewriter.eraseOp(computationOp);
     LLVM_DEBUG(llvm::dbgs() << "===========================================\n");
