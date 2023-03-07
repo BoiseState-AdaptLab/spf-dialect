@@ -54,7 +54,7 @@ macro(create_partial_lowering out_partial_lowering_filename file_name_no_extensi
     add_custom_command(OUTPUT ${partial_lowering_filename}
             DEPENDS ${mlir_file}
             COMMAND spf-opt ${mlir_file}
-            -my-pass
+            -convert-spf-to-loops
             -o ${partial_lowering_filename}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bench)
 

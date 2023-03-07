@@ -1,5 +1,5 @@
 add_mlir_library(SPFTransforms
-  MyPass.cpp
+  ConvertSPFToLoops.cpp
   Printer.h
   Utils.h
 

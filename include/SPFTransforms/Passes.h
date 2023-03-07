@@ -15,7 +15,7 @@ namespace mlir {
 // Passes
 //===----------------------------------------------------------------------===//
 
-        std::unique_ptr<OperationPass<>> createMyPass();
+        std::unique_ptr<OperationPass<>> createConvertSPFToLoops();
 
 //===----------------------------------------------------------------------===//
 // Registration

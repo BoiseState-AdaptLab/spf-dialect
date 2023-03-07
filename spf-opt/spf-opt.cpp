@@ -17,7 +17,7 @@
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
-  mlir::spf::registerMyPassPass();
+  mlir::spf::registerConvertSPFToLoops();
 
   mlir::DialectRegistry registry;
   registry.insert<mlir::spf::SPFDialect>();

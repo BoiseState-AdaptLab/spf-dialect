@@ -54,7 +54,7 @@
 #include <utility>
 #include <vector>
 
-#define DEBUG_TYPE "my-pass"
+#define DEBUG_TYPE "convert-spf-to-loops"
 
 using ReadWrite = std::vector<std::pair<std::string, std::string>>;
 
@@ -72,15 +72,15 @@ namespace spf {
 using namespace mlir;
 
 namespace {
-struct MyPass : public mlir::spf::MyPassBase<MyPass> {
+struct ConvertSpfToLoops : public mlir::spf::ConvertSPFToLoopsBase<ConvertSpfToLoops> {
   void runOnOperation() override;
 };
 } // end anonymous namespace
 
 namespace mlir {
 namespace spf {
-std::unique_ptr<OperationPass<>> createMyPass() {
-  return std::make_unique<MyPass>();
+std::unique_ptr<OperationPass<>> createConvertSPFToLoops() {
+  return std::make_unique<ConvertSpfToLoops>();
 }
 } // namespace spf
 } // namespace mlir
@@ -705,7 +705,7 @@ public:
 };
 } // end anonymous namespace
 
-void MyPass::runOnOperation() {
+void ConvertSpfToLoops::runOnOperation() {
   RewritePatternSet patterns(&getContext());
   patterns.add<ReplaceWithCodeGen>(patterns.getContext());
   ConversionTarget target(getContext());

@@ -7,7 +7,7 @@ echo  "EXPECTED OUTPUT ========================="
 build/jacobi/jacobi-no-transform-c-print-example
 echo  "OUTPUT =================================="
 build/bin/spf-opt no_transform_multi_statement_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -31,7 +31,7 @@ echo  "EXPECTED OUTPUT ========================="
 build/jacobi/jacobi-transformed-c-print-example
 echo  "OUTPUT =================================="
 build/bin/spf-opt transformed_multi_statement_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -55,7 +55,7 @@ echo  "EXPECTED JACOBI OUTPUT =================="
 build/jacobi/jacobi-expected
 echo  "JACOBI==================================="
 build/bin/spf-opt no_transform_jacobi_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -76,7 +76,7 @@ build/bin/spf-opt no_transform_jacobi_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "TRANSFORMED JACOBI======================="
 build/bin/spf-opt transformed_jacobi_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -100,7 +100,7 @@ echo  "( ( 16075, 21930, 28505, 35800, 43815 ),"
 echo  "  ( 10000, 14225, 19180, 24865, 31280 ) )"
 echo  "DENSE-CPU================================"
 build/bin/spf-opt dense_mttkrp_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -121,7 +121,7 @@ build/bin/spf-opt dense_mttkrp_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "SPARSE-CPU==============================="
 build/bin/spf-opt sparse_mttkrp_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -143,7 +143,7 @@ build/bin/spf-opt sparse_mttkrp_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_c_runner_utils.so
 echo  "DENSE-GPU================================"
 build/bin/spf-opt dense_mttkrp_gpu_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
@@ -174,7 +174,7 @@ build/bin/spf-opt dense_mttkrp_gpu_test.mlir \
     --shared-libs=../llvm-project/build/lib/libmlir_cuda_runtime.so
 echo  "SPARSE-GPU==============================="
 build/bin/spf-opt sparse_mttkrp_gpu_test.mlir \
-  -my-pass \
+  -convert-spf-to-loops \
   -inline \
   -cse \
   -lower-affine \
