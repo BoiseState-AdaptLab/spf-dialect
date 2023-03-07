@@ -95,7 +95,7 @@ module {
             //     }
             //   }
             // }
-            "spf.bar"(%NNZ, %BLOCKS, %THREADS_J, %THREADS_NNZ, %NUM_LOOPS_NNZ, %J, // symbols
+            "spf.statement"(%NNZ, %BLOCKS, %THREADS_J, %THREADS_NNZ, %NUM_LOOPS_NNZ, %J, // symbols
                              %argb_coord_0, %argb_coord_1, %argb_coord_2, %THREADS_NNZ, %NNZ_PER_LOOP, // ufInputs
                              %argb_values, %argc, %argd, // inputs
                              %arga) ({ // outputs

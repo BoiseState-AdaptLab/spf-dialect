@@ -18,7 +18,7 @@ module {
 			//     for(int l = 0; l < L; l++)
 			//       for(int j = 0; j < J; j++)
 			//         A[i,j] += B[i,k,l]*D[l,j]*C[k,j];
-			"spf.bar"(%I, %J, %K, %L, %argb, %argc, %argd, %arga) ({
+			"spf.statement"(%I, %J, %K, %L, %argb, %argc, %argd, %arga) ({
 			^bb0(%b_i_k_l : f64, %c_k_j : f64, %d_l_j : f64, %a_i_j : f64):
 			%0 = arith.mulf %b_i_k_l, %d_l_j : f64
 			%1 = arith.mulf %0, %c_k_j : f64

@@ -25,7 +25,7 @@ module {
             //         }
             //     }
             // }
-            "spf.bar"(%Mf, %R, %fptr, %x_coord_constant, %x_values, %u, %y) ({
+            "spf.statement"(%Mf, %R, %fptr, %x_coord_constant, %x_values, %u, %y) ({
                 ^bb0(%x_value : f32, %u_k_r : f32, %y_f_r : f32):
                 %0 = arith.mulf %x_value, %u_k_r : f32
                 %1 = arith.addf %0, %y_f_r : f32

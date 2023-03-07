@@ -140,8 +140,7 @@ struct Walker : public sparser::VisitorBase {
   int loopLevel = 0;
 
 public:
-  explicit Walker(mlir::OpBuilder &builder,
-                  spf::ComputationOp computationOp,
+  explicit Walker(mlir::OpBuilder &builder, spf::ComputationOp computationOp,
                   std::vector<StatementContext> statements)
       : builder(builder), computationOp(computationOp), statements(statements) {
     // populate symbols TODO: symbols should hang off computation not statement,
@@ -585,11 +584,11 @@ public:
     // Run through MLIR statements in MLIR computationOp and populate IEGenLib
     // computation.
     for (auto &op : computationOp.getBody().front()) {
-      if (!isa<spf::BarOp>(op)) {
+      if (!isa<spf::StatementOp>(op)) {
         return emitError(op.getLoc(),
                          "A computation can only contain statements");
       }
-      spf::BarOp statementOp = cast<spf::BarOp>(op);
+      spf::StatementOp statementOp = cast<spf::StatementOp>(op);
 
       // Build up reads and writes
       ReadWrite reads;
@@ -713,7 +712,7 @@ void MyPass::runOnOperation() {
   target.addLegalDialect<scf::SCFDialect, arith::ArithDialect,
                          vector::VectorDialect, memref::MemRefDialect,
                          AffineDialect, func::FuncDialect, gpu::GPUDialect>();
-  target.addIllegalOp<spf::BarOp, spf::ComputationOp>();
+  target.addIllegalOp<spf::StatementOp, spf::ComputationOp>();
   if (failed(applyPartialConversion(getOperation(), target,
                                     std::move(patterns)))) {
     signalPassFailure();

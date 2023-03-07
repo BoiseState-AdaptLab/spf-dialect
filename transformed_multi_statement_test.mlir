@@ -68,7 +68,7 @@ module @my_module {
         memref.store %c3, %x_vals[%c3] : memref<4xindex>
 
         "spf.computation"() ({
-            "spf.bar"(%T, %X, %t_vals, %x_vals) ({
+            "spf.statement"(%T, %X, %t_vals, %x_vals) ({
             ^bb0(%tt : index, %xx : index):
             %c68 = arith.constant 68 : index
 
@@ -99,7 +99,7 @@ module @my_module {
                         transforms = ["{[a,b,c,d]->[a,0,x,0]:x=c-1}"]
                 } : (index, index, memref<2xindex>, memref<4xindex>) -> ()
 
-            "spf.bar"(%T, %X, %t_vals, %x_vals) ({
+            "spf.statement"(%T, %X, %t_vals, %x_vals) ({
             ^bb0(%tt : index, %xx : index):
             %c68 = arith.constant 68 : index
 

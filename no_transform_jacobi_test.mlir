@@ -31,7 +31,7 @@ func.func @main() {
     memref.store %f100, %B[%c9] : memref<10xf64>
 
     "spf.computation"() ({
-        "spf.bar"(%ub_T_div_2, %lb_x, %ub_x, %B, %A) ({
+        "spf.statement"(%ub_T_div_2, %lb_x, %ub_x, %B, %A) ({
         ^stmt(%B_x_plus_one: f64, %B_x: f64, %B_x_minus_one: f64):
         %0 = arith.addf %B_x_plus_one, %B_x : f64
         %1 = arith.addf %0, %B_x_minus_one : f64
@@ -53,7 +53,7 @@ func.func @main() {
                iterationSpace = "{[t,x]: 1<=t<=ub_T and lb_x<=x<=ub_x}",
                transforms = []
             }:(index,index,index,memref<10xf64>,memref<10xf64>)->()
-        "spf.bar"(%ub_T_div_2, %lb_x, %ub_x, %A, %B) ({
+        "spf.statement"(%ub_T_div_2, %lb_x, %ub_x, %A, %B) ({
         ^stmt(%A_x_plus_one: f64, %A_x: f64, %A_x_minus_one: f64):
         %0 = arith.addf %A_x_plus_one, %A_x : f64
         %1 = arith.addf %0, %A_x_minus_one : f64

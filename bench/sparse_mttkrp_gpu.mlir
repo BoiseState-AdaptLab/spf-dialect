@@ -39,7 +39,7 @@ module {
             //     A[i,j] += val*C[k,j]*D[l,j];
             //   }
             // }
-            "spf.bar"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
+            "spf.statement"(%NNZ, %J, %b_coord_0, %b_coord_1, %b_coord_2, %b_values, %c, %d, %a) ({
                 ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
                 %0 = arith.mulf %b_i_k_l, %d_l_j : f32
                 %1 = arith.mulf %0, %c_k_j : f32

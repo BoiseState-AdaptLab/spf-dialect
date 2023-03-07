@@ -50,7 +50,7 @@ module {
             //   for (int j = 0; j < J; j++)
             //     A[i,j] += val*C[k,j]*D[l,j];
             // }
-            "spf.bar"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
+            "spf.statement"(%NNZ, %J, %argb_coord_0, %argb_coord_1, %argb_coord_2, %argb_values, %argc, %argd, %arga) ({
                 ^bb0(%b_i_k_l : f32, %c_k_j : f32, %d_l_j : f32, %a_i_j : f32):
                 %0 = arith.mulf %b_i_k_l, %d_l_j : f32
                 %1 = arith.mulf %0, %c_k_j : f32

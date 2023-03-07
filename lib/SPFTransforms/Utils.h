@@ -20,7 +20,7 @@ private:
   Relation *transformation;
 
 public:
-  mlir::spf::BarOp statementOp;
+  mlir::spf::StatementOp statementOp;
   /// Maps from this statement's (possibly transformed) execution schedule tuple
   /// to its corresponding iteration space tuple.
   ///
@@ -145,7 +145,7 @@ public:
   }
 
   explicit StatementContext(mlir::MLIRContext *context,
-                            mlir::spf::BarOp statement,
+                            mlir::spf::StatementOp statement,
                             Set *iterationSpace, Relation *executionSchedule)
       : context(context), iterationSpace(iterationSpace),
         transformation(executionSchedule), statementOp(statement) {}

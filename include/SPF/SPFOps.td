@@ -7,45 +7,22 @@ include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
-def Standalone_FooOp : SPF_Op<"foo", [Pure,
-                                             SameOperandsAndResultType]> {
-    let summary = "Illustrates how to define an operation.";
-    let description = [{
-        The `standalone.foo` operation illustrates how to define a new
-        operation in a dialect. It uses an operation trait to declare that it
-        has no side effects.
-
-        This operation takes an integer argument and returns an integer.
-
-        Example:
-
-        ```mlir
-        %0 = arith.constant 2 : i32
-        // Apply the foo operation to %0
-        %1 = standalone.foo %0 : i32
-        ```
-    }];
-
-    let arguments = (ins I32:$input);
-    let results = (outs I32:$res);
-
-    let assemblyFormat = [{
-        $input attr-dict `:` type($input)
-    }];
-}
-
-def Standalone_YieldOp : SPF_Op<"yield", [Pure, ReturnLike, Terminator]>,
+def SPF_YieldOp : SPF_Op<"yield", [Pure, ReturnLike, Terminator]>,
     Arguments<(ins Variadic<AnyType>:$values)> {
-  let summary = "TODO";
+  let summary = "yield for SPF statements";
   let description = [{
-    TODO
+    Results that are provided to yield will be written to the inputs of an
+    spf.statement operation with the mapping provided in writes.
   }];
 }
 
-def Standalone_BarOp : SPF_Op<"bar", [AttrSizedOperandSegments]> {
-    let summary = "This is a bar op";
+def SPF_StatementOp : SPF_Op<"statement", [AttrSizedOperandSegments]> {
+    let summary = "SPF statement";
     let description = [{
-        Stuff
+        See Chapter 3 of thesis: "Portable Sparse Polyhedral Framework code
+        generation using Multi Level Intermediate Representation" by Aaron St
+        George at Boise State University for line by line description of
+        statement operation.
     }];
 
     let arguments = (ins Variadic<AnyType>:$symbols,
@@ -71,10 +48,12 @@ def Standalone_BarOp : SPF_Op<"bar", [AttrSizedOperandSegments]> {
     let regions = (region AnyRegion:$body, VariadicRegion<AnyRegion>:$ufs);
 }
 
-def Standalone_ComputationOp : SPF_Op<"computation", [NoTerminator]> {
-    let summary = "TODO";
+def SPF_ComputationOp : SPF_Op<"computation", [NoTerminator]> {
+    let summary = "SPF computation";
     let description = [{
-        TODO
+        All statement operations must be inside a computation. After lowering,
+        generated code will execute in the order determined by execution
+        schedule, not by order within computation.
     }];
 
     let regions = (region AnyRegion:$body);
