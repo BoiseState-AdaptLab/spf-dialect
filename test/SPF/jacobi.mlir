@@ -1,3 +1,24 @@
+// RUN: spf-opt %s \
+// RUN:  -convert-spf-to-loops \
+// RUN:  -inline \
+// RUN:  -cse \
+// RUN:  -lower-affine \
+// RUN:  -convert-vector-to-scf \
+// RUN:  -convert-scf-to-cf \
+// RUN:  -gpu-to-llvm \
+// RUN:  -convert-vector-to-llvm \
+// RUN:  -convert-memref-to-llvm \
+// RUN:  -convert-complex-to-standard \
+// RUN:  -convert-math-to-llvm \
+// RUN:  -convert-complex-to-llvm \
+// RUN:  -convert-math-to-libm \
+// RUN:  -convert-func-to-llvm \
+// RUN:  -reconcile-unrealized-casts \
+// RUN:  | mlir-cpu-runner \
+// RUN:    -entry-point-result=void \
+// RUN:    -shared-libs=%mlir_lib_dir/libmlir_c_runner_utils%shlibext \
+// RUN:    -shared-libs=%mlir_lib_dir/libmlir_runner_utils%shlibext \
+// RUN:    | FileCheck %s
 
 func.func private @printMemrefF64(memref<*xf64>) attributes { llvm.emit_c_interface }
 
@@ -51,7 +72,7 @@ func.func @main() {
                iteratorTypes = ["reduction", "reduction"],
                executionSchedule = "{[t,x]->[t,0,x,0]}",
                iterationSpace = "{[t,x]: 1<=t<=ub_T and lb_x<=x<=ub_x}",
-               transforms = ["{[a,b,c,d]->[a,0,x,0]:x=c-1}"]
+               transforms = []
             }:(index,index,index,memref<10xf64>,memref<10xf64>)->()
         "spf.statement"(%ub_T_div_2, %lb_x, %ub_x, %A, %B) ({
         ^stmt(%A_x_plus_one: f64, %A_x: f64, %A_x_minus_one: f64):
@@ -73,14 +94,16 @@ func.func @main() {
                iteratorTypes = ["reduction", "reduction"],
                executionSchedule = "{[t,x]->[t,1,x,0]}",
                iterationSpace = "{[t,x]: 1<=t<=ub_T and lb_x<=x<=ub_x}",
-               transforms = ["{[a,b,c,d]->[a,0,c,1]}"]
+               transforms = []
             }:(index,index,index,memref<10xf64>,memref<10xf64>)->()
     }): () -> ()
 
 
+    // CHECK: [0,  0.0558858,  0.330234,  1.35142,  4.24732,  10.8317,  23.2078,  42.8085,  69.2831,  100]
 	%unranked_A = memref.cast %A : memref<10xf64> to memref<*xf64>
 	call @printMemrefF64(%unranked_A) : (memref<*xf64>) -> ()
 
+    // CHECK: [0,  0.128707,  0.57918,  1.97632,  5.47681,  12.7623,  25.616,  45.0998,  70.6972,  100]
 	%unranked_B = memref.cast %B : memref<10xf64> to memref<*xf64>
 	call @printMemrefF64(%unranked_B) : (memref<*xf64>) -> ()
 

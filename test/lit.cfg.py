@@ -30,6 +30,10 @@ config.test_source_root = os.path.dirname(__file__)
 config.test_exec_root = os.path.join(config.spf_obj_root, 'test')
 
 config.substitutions.append(('%PATH%', config.environment['PATH']))
+config.substitutions.append(('%shlibext', config.llvm_shlib_ext))
+config.substitutions.append(('%mlir_lib_dir', config.mlir_lib_dir))
+config.substitutions.append(('%spf_src_dir', config.spf_src_root))
+config.substitutions.append(('%spf_lib_dir', config.spf_obj_root + "/lib"))
 
 llvm_config.with_system_environment(
     ['HOME', 'INCLUDE', 'LIB', 'TMP', 'TEMP'])
@@ -51,6 +55,7 @@ llvm_config.with_environment('PATH', config.llvm_tools_dir, append_path=True)
 tool_dirs = [config.spf_tools_dir, config.llvm_tools_dir]
 tools = [
     'spf-opt',
+    'mlir-cpu-runner',
 ]
 
 llvm_config.add_tool_substitutions(tools, tool_dirs)
