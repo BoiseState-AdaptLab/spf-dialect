@@ -2,9 +2,9 @@
 
 By using [MLIR](https://mlir.llvm.org/), `spf-dialect` provides a more portable Sparse Polyhedral Framework (SPF) interface than the [existing SPF tools](http://dx.doi.org/10.1109/COMPSAC51774.2021.00275) it builds on. SPF is used in a wide variety of research settings. To name a few: SPF is used in synthesizing sparse tensor [format conversions](https://dl.acm.org/doi/10.1145/3579990.3580021) and
 [contractions](https://dl.acm.org/doi/10.1145/3566054), and in [inspector-executor
-compiler optimizations](https://ieeexplore.ieee.org/document/8436444). With this dialect researchers can express SPF in MLIR, and create SPF based optimizations inside MLIR based compilers. Because of the portability of MLIR code generation, SPF based tools can now target a much broader set of hardware than previously possible.
+compiler optimizations](https://ieeexplore.ieee.org/document/8436444). With `spf-dialect` researchers can express SPF in MLIR, and create SPF based optimizations inside MLIR based compilers. Because of the portability of MLIR code generation, SPF based tools can now target a much broader set of hardware than previously possible.
 
-CPU and GPU code generated using `spf-dialect` is competitive with code generated using the SPF `C` front-end ([`IEGenLib`](https://github.com/BoiseState-AdaptLab/IEGenLib)), and code from the [PASTA benchmark suite](https://gitlab.com/tensorworld/pasta). The SPF `C` front-end is not capable of generating GPU code.
+For an [MTTKRP](http://tensor-compiler.org/docs/data_analytics.html) kernel, CPU and GPU code generated using `spf-dialect` is competitive with code generated using the SPF `C` front-end ([`IEGenLib`](https://github.com/BoiseState-AdaptLab/IEGenLib)), and code from the [PASTA benchmark suite](https://gitlab.com/tensorworld/pasta). The SPF `C` front-end is not capable of generating GPU code.
 ![performance comparison](https://user-images.githubusercontent.com/2278731/223522866-0bfbf2ae-7079-4b53-9552-2f4c24b7a2ea.png)
 
 
